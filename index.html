@@ -418,16 +418,16 @@
             </div>
 
             <div class="dice-grid">
-                <button class="dice-btn btn-d4" onclick="addDie('d4', event)">D4</button>
-                <button class="dice-btn btn-d5" onclick="addDie('d5', event)">D5</button>
-                <button class="dice-btn btn-d6" onclick="addDie('d6', event)">D6</button>
-                <button class="dice-btn btn-d7" onclick="addDie('d7', event)">D7</button>
-                <button class="dice-btn btn-d8" onclick="addDie('d8', event)">D8</button>
-                <button class="dice-btn btn-d9" onclick="addDie('d9', event)">D9</button>
-                <button class="dice-btn btn-d10" onclick="addDie('d10', event)">D10</button>
-                <button class="dice-btn btn-d20" onclick="addDie('d20', event)">D20</button>
-                <button class="dice-btn btn-d100" onclick="addDie('d100', event)">D100</button>
-                <button class="dice-btn btn-coin" onclick="addDie('coin', event)">MOEDA</button>
+                <button class="dice-btn btn-d4" onclick="addDie('d4')">D4</button>
+                <button class="dice-btn btn-d5" onclick="addDie('d5')">D5</button>
+                <button class="dice-btn btn-d6" onclick="addDie('d6')">D6</button>
+                <button class="dice-btn btn-d7" onclick="addDie('d7')">D7</button>
+                <button class="dice-btn btn-d8" onclick="addDie('d8')">D8</button>
+                <button class="dice-btn btn-d9" onclick="addDie('d9')">D9</button>
+                <button class="dice-btn btn-d10" onclick="addDie('d10')">D10</button>
+                <button class="dice-btn btn-d20" onclick="addDie('d20')">D20</button>
+                <button class="dice-btn btn-d100" onclick="addDie('d100')">D100</button>
+                <button class="dice-btn btn-coin" onclick="addDie('coin')">MOEDA</button>
             </div>
 
             <div class="custom-zone">
@@ -435,7 +435,7 @@
                     <i class="fa-solid fa-cube input-icon"></i>
                     <input type="number" id="custom-sides-input" class="magic-input" placeholder="Lados (Ex: 12)" min="2">
                 </div>
-                <button class="btn-magic" onclick="addCustomFromInput(event)">
+                <button class="btn-magic" onclick="addCustomFromInput()">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Forjar Dado
                 </button>
             </div>
@@ -535,16 +535,15 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         document.getElementById('player-name-input').value = savedPlayerName;
     }
 
-    // Mutiplayer Setup
+    // Multiplayer Setup
     const peerId = isShareMode ? `circus-obs-${Math.random().toString(36).substring(2, 6)}` : `circus-master-${roomParam}`;
     let peer = null;
     let isHost = false;
     let hostConn = null;
     let activeConnections = [];
 
-    // Cheats ocultos
-    window.cheatsEnabled = false;
-    let cheatBuffer = "";
+    // Sistema de Sincronização do Log de Histórico
+    window.chatHistory = [];
 
     let scene, camera, renderer, diceList = [], raycaster, mouse;
     let particles = [];
@@ -558,7 +557,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     
     window.currentModifier = modParam;
     window.currentPercent = pctParam;
-    window.lastRolledValue = 0;
 
     if(!isShareMode) {
         document.getElementById('modifier-input').value = window.currentModifier;
@@ -601,15 +599,22 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         }
     };
 
-    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null) => {
+    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null, isLocalOnly = false, historicalData = null) => {
         const devlog = document.getElementById('devlog');
         if (!devlog) return;
+
+        const time = historicalData ? historicalData.time : new Date().toLocaleTimeString('pt-BR');
+        const displayName = historicalData ? historicalData.author : (author || window.playerName || "Sistema");
+        const mod = historicalData ? historicalData.mod : window.currentModifier;
+        const pct = historicalData ? historicalData.pct : window.currentPercent;
+
+        if (!isLocalOnly && !historicalData) {
+            window.chatHistory.push({ msg, isDanger, trueMsg, author: displayName, time, mod, pct });
+        }
+
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         if(isDanger) entry.style.borderLeftColor = 'var(--danger)';
-
-        const time = new Date().toLocaleTimeString('pt-BR');
-        const displayName = author || window.playerName || "Sistema";
         
         entry.innerHTML = `
             <div class="log-time">
@@ -617,10 +622,9 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                     <span>[${time}]</span>
                     <span style="color: var(--accent); font-size: 11px; text-transform: uppercase;">${displayName}</span>
                 </span>
-                <span>Mod: ${window.currentModifier} | ${window.currentPercent}%</span>
+                <span>Mod: ${mod} | ${pct}%</span>
             </div>
             <div>${msg}</div>
-            ${trueMsg ? `<div class="true-log"><i class="fa-solid fa-eye"></i> Realidade: ${trueMsg}</div>` : ''}
         `;
         devlog.prepend(entry);
     };
@@ -646,7 +650,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 document.getElementById('player-name-input').value = window.playerName;
                 localStorage.setItem('circus_player_name', window.playerName);
             }
-            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
+            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`, false, null, null, true);
         });
         
         peer.on('error', (err) => {
@@ -662,7 +666,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 peer.on('open', () => {
                     hostConn = peer.connect(`circus-room-${roomParam}`);
                     hostConn.on('open', () => {
-                        window.logToDevlog(`🎮 Conectado à sala: ${roomParam}`);
+                        window.logToDevlog(`🎮 Conectado à sala: ${roomParam}`, false, null, null, true);
                         hostConn.send({ action: 'request_sync', playerName: window.playerName }); 
                     });
                     hostConn.on('data', (data) => handleIncomingData(data, null));
@@ -679,7 +683,15 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 const currentDiceState = diceList.map(d => ({
                     type: d.userData.type, sides: d.userData.sides, value: d.userData.value, id: d.userData.id, isRemoving: d.userData.isRemoving
                 })).filter(d => !d.isRemoving);
-                conn.send({ action: 'sync_init', dice: currentDiceState, mod: window.currentModifier, pct: window.currentPercent });
+                
+                // Mestre envia todo o histórico de mensagens salvo para quem acabou de entrar
+                conn.send({ 
+                    action: 'sync_init', 
+                    dice: currentDiceState, 
+                    mod: window.currentModifier, 
+                    pct: window.currentPercent,
+                    history: window.chatHistory 
+                });
             });
             
             conn.on('data', (data) => {
@@ -726,20 +738,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             if (e.key === 'Escape') window.toggleRulesWindow(); 
             if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
                 e.preventDefault(); window.playDramatizacao();
-            }
-
-            // Monitor de códigos de trapaça (Completamente invisível)
-            if (e.key && e.key.length === 1) {
-                cheatBuffer += e.key.toLowerCase();
-                if (cheatBuffer.length > 30) cheatBuffer = cheatBuffer.slice(-30);
-                
-                if (isHost && cheatBuffer.endsWith('goodnightworld')) {
-                    window.cheatsEnabled = true;
-                    cheatBuffer = '';
-                } else if (!isHost && !isShareMode && cheatBuffer.endsWith('badnightworld')) {
-                    window.cheatsEnabled = true;
-                    cheatBuffer = '';
-                }
             }
         });
 
@@ -829,7 +827,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const baseUrl = window.location.origin + window.location.pathname;
         const url = baseUrl + `?view=share&room=${roomParam}`;
         navigator.clipboard.writeText(url).then(() => {
-            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado (Estático)</span>`);
+            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado (Estático)</span>`, false, null, null, true);
         });
     };
 
@@ -837,7 +835,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const baseUrl = window.location.origin + window.location.pathname;
         const url = baseUrl + `?room=${roomParam}`;
         navigator.clipboard.writeText(url).then(() => {
-            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado (Envie aos amigos!)</span>`);
+            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado (Envie aos amigos!)</span>`, false, null, null, true);
         });
     };
 
@@ -886,27 +884,17 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         }
     }
 
-    window.addDie = (type, event) => {
-        let rollMode = 'normal';
-        if (window.cheatsEnabled && event) {
-            if (event.shiftKey) rollMode = 'shift';
-            else if (event.ctrlKey) rollMode = 'ctrl';
-        }
-        spawnDice(type, null, rollMode, null, null, false);
+    window.addDie = (type) => {
+        spawnDice(type, null, false);
     };
 
-    window.addCustomFromInput = (event) => {
+    window.addCustomFromInput = () => {
         const input = document.getElementById('custom-sides-input');
         const sides = parseInt(input.value); if(!sides || sides < 2) return;
-        let rollMode = 'normal';
-        if (window.cheatsEnabled && event) {
-            if (event.shiftKey) rollMode = 'shift';
-            else if (event.ctrlKey) rollMode = 'ctrl';
-        }
-        spawnDice('custom', sides, rollMode, null, null, false);
+        spawnDice('custom', sides, false);
     }
 
-    function spawnDice(type, sides, rollMode = 'normal', forcedValue = null, id = null, isRemote = false, remoteAuthor = null) {
+    function spawnDice(type, sides, forcedValue = null, id = null, isRemote = false, remoteAuthor = null) {
         let geometry, material;
         const finalSides = sides || (configs[type] ? configs[type].sides : 0);
 
@@ -932,7 +920,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const meshId = id || Date.now() + Math.random().toString(36).substring(2,7);
 
         mesh.userData = { 
-            id: meshId, type, sides: finalSides, label, value: 0, rollMode: rollMode || 'normal', yOffset: 0, isRolling: false 
+            id: meshId, type, sides: finalSides, label, value: 0, yOffset: 0, isRolling: false 
         };
         
         scene.add(mesh); diceList.push(mesh);
@@ -1003,30 +991,13 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         
         let res;
 
+        // Sem atalhos ou cheats, todos os dados jogados aqui são inteiramente e puramente aleatórios.
         if (forcedValue !== null) {
             res = forcedValue; 
         } else if (dice.userData.type === 'coin') {
-            if (dice.userData.rollMode === 'shift') res = "Ca";
-            else if (dice.userData.rollMode === 'ctrl') res = "Co";
-            else res = Math.random() > 0.5 ? "Ca" : "Co";
+            res = Math.random() > 0.5 ? "Ca" : "Co";
         } else {
-            if (dice.userData.rollMode === 'shift') { 
-                res = dice.userData.sides; 
-            } else if (dice.userData.rollMode === 'ctrl') {
-                let prev = window.lastRolledValue || 0;
-                if (prev === 19 || prev === 20) {
-                    res = prev;
-                } else {
-                    res = prev + 1;
-                    if (res >= 20) res = 19; 
-                }
-            } else { 
-                res = Math.floor(Math.random() * dice.userData.sides) + 1;
-            }
-        }
-
-        if (dice.userData.type !== 'coin') {
-            window.lastRolledValue = res;
+            res = Math.floor(Math.random() * dice.userData.sides) + 1;
         }
 
         if (!isRemote) {
@@ -1082,7 +1053,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                     } else {
                         const dName = dice.userData.type.toUpperCase() === 'CUSTOM' ? `D${dice.userData.sides}` : dice.userData.type.toUpperCase();
                         let ruleText = getActionName(res, dice.userData.sides);
-                        // TrueMsg foi removido propositalmente para manter a trapaça do mestre indetectável no log
                         window.logToDevlog(`Rolou <b>${dName}</b>: <span style="color:${res === dice.userData.sides?'var(--magic)':'var(--success)'}; font-weight:900; font-size:16px">${res}</span><br><span style="color: var(--text-muted); font-size: 11px; font-weight: bold; margin-top:4px; display:block;">[Ações: ${ruleText}]</span>`, false, null, author);
                     }
                 }
@@ -1221,11 +1191,20 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                     if(pctInput) pctInput.value = window.currentPercent;
                 }
 
-                data.dice.forEach(d => { spawnDice(d.type, d.sides, 'normal', d.value, d.id, true, remoteAuthor); });
+                data.dice.forEach(d => { spawnDice(d.type, d.sides, d.value, d.id, true, remoteAuthor); });
                 window.updateTotal(true);
+
+                // Aplicaçao Centralizada do Historico p/ Recem Conectados
+                const devlog = document.getElementById('devlog');
+                if (devlog) devlog.innerHTML = '';
+                window.chatHistory = data.history || [];
+                
+                window.chatHistory.forEach(item => {
+                    window.logToDevlog(item.msg, item.isDanger, item.trueMsg, item.author, true, item);
+                });
             }
         } else if(data.action === 'spawn') {
-            spawnDice(data.type, data.sides, 'normal', data.value, data.id, true, remoteAuthor);
+            spawnDice(data.type, data.sides, data.value, data.id, true, remoteAuthor);
         } else if(data.action === 'remove') {
             const target = diceList.find(d => d.userData.id === data.id);
             if(target) removeDice(target, true);
@@ -1251,6 +1230,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             window.updateTotal(true);
         }
 
+        // Se o Host recebeu de um jogador, repassa para todos os outros
         if (isHost && senderConn) {
             activeConnections.forEach(c => {
                 if (c !== senderConn && c.open) {
