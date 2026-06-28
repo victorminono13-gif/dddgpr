@@ -511,7 +511,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
 <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
 
-    // Gerenciamento da Memória de Sala e Jogador
+    // Gerenciamento da Memória de Sala, Histórico e Jogador
     let savedRoom = localStorage.getItem('circus_room_id');
     if (!savedRoom) {
         savedRoom = 'sala_' + Math.random().toString(36).substring(2, 9);
@@ -535,15 +535,15 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         document.getElementById('player-name-input').value = savedPlayerName;
     }
 
-    // Multiplayer Setup
+    // Histórico Mestre/Servidor
+    window.logHistory = [];
+
+    // Mutiplayer Setup (Host / Client Architecture)
     const peerId = isShareMode ? `circus-obs-${Math.random().toString(36).substring(2, 6)}` : `circus-master-${roomParam}`;
     let peer = null;
     let isHost = false;
     let hostConn = null;
     let activeConnections = [];
-
-    // Sistema de Sincronização do Log de Histórico
-    window.chatHistory = [];
 
     let scene, camera, renderer, diceList = [], raycaster, mouse;
     let particles = [];
@@ -599,22 +599,17 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         }
     };
 
-    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null, isLocalOnly = false, historicalData = null) => {
+    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null, timestamp = null, mod = null, pct = null, skipSave = false) => {
         const devlog = document.getElementById('devlog');
         if (!devlog) return;
-
-        const time = historicalData ? historicalData.time : new Date().toLocaleTimeString('pt-BR');
-        const displayName = historicalData ? historicalData.author : (author || window.playerName || "Sistema");
-        const mod = historicalData ? historicalData.mod : window.currentModifier;
-        const pct = historicalData ? historicalData.pct : window.currentPercent;
-
-        if (!isLocalOnly && !historicalData) {
-            window.chatHistory.push({ msg, isDanger, trueMsg, author: displayName, time, mod, pct });
-        }
-
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         if(isDanger) entry.style.borderLeftColor = 'var(--danger)';
+
+        const time = timestamp || new Date().toLocaleTimeString('pt-BR');
+        const displayName = author || window.playerName || "Sistema";
+        const entryMod = mod !== null ? mod : window.currentModifier;
+        const entryPct = pct !== null ? pct : window.currentPercent;
         
         entry.innerHTML = `
             <div class="log-time">
@@ -622,11 +617,17 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                     <span>[${time}]</span>
                     <span style="color: var(--accent); font-size: 11px; text-transform: uppercase;">${displayName}</span>
                 </span>
-                <span>Mod: ${mod} | ${pct}%</span>
+                <span>Mod: ${entryMod} | ${entryPct}%</span>
             </div>
             <div>${msg}</div>
+            ${trueMsg ? `<div class="true-log"><i class="fa-solid fa-eye"></i> Realidade: ${trueMsg}</div>` : ''}
         `;
         devlog.prepend(entry);
+
+        if (!skipSave) {
+            window.logHistory.unshift({ msg, isDanger, trueMsg, author: displayName, timestamp: time, mod: entryMod, pct: entryPct });
+            if (window.logHistory.length > 200) window.logHistory.pop();
+        }
     };
 
     function updateUrlParameters() {
@@ -634,6 +635,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         window.history.replaceState({}, '', `${baseUrl}?room=${roomParam}`);
     }
 
+    // --- LÓGICA DO MULTIPLAYER (PEER JS) ---
     if (isShareMode) {
         peer = new Peer();
         peer.on('open', () => {
@@ -650,7 +652,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 document.getElementById('player-name-input').value = window.playerName;
                 localStorage.setItem('circus_player_name', window.playerName);
             }
-            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`, false, null, null, true);
+            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
         });
         
         peer.on('error', (err) => {
@@ -666,7 +668,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 peer.on('open', () => {
                     hostConn = peer.connect(`circus-room-${roomParam}`);
                     hostConn.on('open', () => {
-                        window.logToDevlog(`🎮 Conectado à sala: ${roomParam}`, false, null, null, true);
+                        window.logToDevlog(`🎮 Conectado à sala: ${roomParam}`);
                         hostConn.send({ action: 'request_sync', playerName: window.playerName }); 
                     });
                     hostConn.on('data', (data) => handleIncomingData(data, null));
@@ -684,13 +686,13 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                     type: d.userData.type, sides: d.userData.sides, value: d.userData.value, id: d.userData.id, isRemoving: d.userData.isRemoving
                 })).filter(d => !d.isRemoving);
                 
-                // Mestre envia todo o histórico de mensagens salvo para quem acabou de entrar
+                // Envia dados + histórico atual para o novo jogador conectado
                 conn.send({ 
                     action: 'sync_init', 
                     dice: currentDiceState, 
                     mod: window.currentModifier, 
                     pct: window.currentPercent,
-                    history: window.chatHistory 
+                    logHistory: window.logHistory 
                 });
             });
             
@@ -729,7 +731,15 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         document.getElementById('devlog-container').addEventListener('click', (e) => {
             if (e.ctrlKey) {
                 const logEntry = e.target.closest('.log-entry');
-                if (logEntry) logEntry.remove();
+                if (logEntry) {
+                    const devlog = document.getElementById('devlog');
+                    const index = Array.from(devlog.children).indexOf(logEntry);
+                    
+                    logEntry.remove();
+                    window.logHistory.splice(index, 1);
+
+                    broadcast({ action: 'delete_log', index: index });
+                }
             }
         });
 
@@ -827,7 +837,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const baseUrl = window.location.origin + window.location.pathname;
         const url = baseUrl + `?view=share&room=${roomParam}`;
         navigator.clipboard.writeText(url).then(() => {
-            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado (Estático)</span>`, false, null, null, true);
+            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado (Estático)</span>`);
         });
     };
 
@@ -835,7 +845,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const baseUrl = window.location.origin + window.location.pathname;
         const url = baseUrl + `?room=${roomParam}`;
         navigator.clipboard.writeText(url).then(() => {
-            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado (Envie aos amigos!)</span>`, false, null, null, true);
+            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado (Envie aos amigos!)</span>`);
         });
     };
 
@@ -891,7 +901,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     window.addCustomFromInput = () => {
         const input = document.getElementById('custom-sides-input');
         const sides = parseInt(input.value); if(!sides || sides < 2) return;
-        spawnDice('custom', sides, false);
+        spawnDice('custom', sides, null, false);
     }
 
     function spawnDice(type, sides, forcedValue = null, id = null, isRemote = false, remoteAuthor = null) {
@@ -991,7 +1001,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         
         let res;
 
-        // Sem atalhos ou cheats, todos os dados jogados aqui são inteiramente e puramente aleatórios.
+        // Remoção COMPLETA das trapaças - Tudo 100% Aleatório
         if (forcedValue !== null) {
             res = forcedValue; 
         } else if (dice.userData.type === 'coin') {
@@ -1192,16 +1202,17 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 }
 
                 data.dice.forEach(d => { spawnDice(d.type, d.sides, d.value, d.id, true, remoteAuthor); });
-                window.updateTotal(true);
-
-                // Aplicaçao Centralizada do Historico p/ Recem Conectados
+                
+                // Sincronizar Histórico Completo de Logs
                 const devlog = document.getElementById('devlog');
                 if (devlog) devlog.innerHTML = '';
-                window.chatHistory = data.history || [];
+                window.logHistory = data.logHistory || [];
                 
-                window.chatHistory.forEach(item => {
-                    window.logToDevlog(item.msg, item.isDanger, item.trueMsg, item.author, true, item);
+                [...window.logHistory].reverse().forEach(log => {
+                    window.logToDevlog(log.msg, log.isDanger, log.trueMsg, log.author, log.timestamp, log.mod, log.pct, true);
                 });
+
+                window.updateTotal(true);
             }
         } else if(data.action === 'spawn') {
             spawnDice(data.type, data.sides, data.value, data.id, true, remoteAuthor);
@@ -1211,6 +1222,12 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         } else if(data.action === 'clear') {
             window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa remotamente.</span>`, false, null, remoteAuthor);
             saveAndClearDice(true, remoteAuthor);
+        } else if(data.action === 'delete_log') {
+            const devlog = document.getElementById('devlog');
+            if (devlog && devlog.children[data.index]) {
+                devlog.children[data.index].remove();
+                window.logHistory.splice(data.index, 1);
+            }
         } else if(data.action === 'reroll_single') {
             const target = diceList.find(d => d.userData.id === data.id);
             if(target) rollSingle(target, data.value, true, remoteAuthor);
@@ -1230,7 +1247,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             window.updateTotal(true);
         }
 
-        // Se o Host recebeu de um jogador, repassa para todos os outros
         if (isHost && senderConn) {
             activeConnections.forEach(c => {
                 if (c !== senderConn && c.open) {
