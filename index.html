@@ -419,190 +419,15 @@
 
             <div class="dice-grid">
                 <button class="dice-btn btn-d4" onclick="addDie('d4', event)">D4</button>
-                <button class=: var(--text-main);
-            padding: 12px 10px 12px 40px; border-radius: 8px; font-size: 16px; font-weight: bold; transition: 0.3s;
-        }
-        .magic-input:focus { outline: none; border-color: var(--accent); }
-        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 16px; }
-
-        .btn-magic {
-            flex: 1; border: none; background: var(--magic); color: #fff; text-shadow: 1px 1px 0px #d4ac0d;
-            font-weight: 900; border-radius: 8px; cursor: pointer; text-transform: uppercase;
-            letter-spacing: 1px; font-size: 14px; transition: all 0.3s; border: 2px solid #d4ac0d;
-            display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
-        }
-        .btn-magic:hover { transform: translateY(-2px); box-shadow: 4px 6px 0px rgba(0,0,0,0.15); filter: brightness(1.1); }
-        .btn-magic:active { transform: translateY(2px); box-shadow: none; }
-        
-        .actions-group { display: flex; gap: 10px; margin-top: 15px; }
-
-        .action-btn { 
-            flex: 1; padding: 15px; background: #ffffff; color: var(--accent); 
-            border: 2px solid var(--accent); border-radius: 8px; font-weight: 900; cursor: pointer;
-            transition: 0.2s; letter-spacing: 1px; box-shadow: 3px 3px 0px var(--accent);
-        }
-        .action-btn:hover { background: var(--accent); color: white; transform: translateY(-2px); }
-        .action-btn:active { transform: translateY(2px); box-shadow: none; }
-
-        .btn-dramatizacao { color: var(--purple); border-color: var(--purple); box-shadow: 3px 3px 0px var(--purple); }
-        .btn-dramatizacao:hover { background: var(--purple); color: white; }
-
-        .btn-clear { flex: 0.2; background: #ffffff; color: #7f8c8d; border-color: #bdc3c7; box-shadow: 3px 3px 0px #bdc3c7; }
-        .btn-clear:hover { background: #e74c3c; color: white; border-color: #e74c3c; box-shadow: 3px 3px 0px #c0392b; }
-
-        /* --- MODO OBS TRANSMISSÃO (SHARE) --- */
-        body.share-mode {
-            padding: 0; margin: 0; display: flex; align-items: center; justify-content: center;
-            background-color: transparent; 
-            overflow: hidden; height: 100vh; width: 100vw;
-            color: #000; 
-        }
-        body.share-mode .devlog-wrapper, body.share-mode .controls-row, body.share-mode .result-box,
-        body.share-mode .dice-grid, body.share-mode .custom-zone, body.share-mode .actions-group, body.share-mode h2 {
-            display: none !important;
-        }
-        body.share-mode .main-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
-        body.share-mode .dice-section { padding: 0; border: none; box-shadow: none; background: transparent; width: auto; }
-        body.share-mode .dice-viewport {
-            width: 360px; height: 640px; margin: 0; border-radius: 0px; border: none;
-            box-shadow: none; background: transparent; 
-        }
-
-        /* Cores Pretas Específicas para os textos do HUD no Link (OBS) */
-        body.share-mode .hud-label { color: #000 !important; text-shadow: 1px 1px 0px #fff; }
-        body.share-mode .hud-value, body.share-mode .hud-value-small { color: rgba(0, 0, 0, 0.4) !important; text-shadow: none !important; }
-        body.share-mode .hud-value.active, body.share-mode .hud-value-small.active, body.share-mode .hud-value-small.active-pct { 
-            color: #000 !important; 
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8) !important; 
-        }
-
-        /* --- JANELA CMD ESTILO WIN 98 (REGRAS ESC) --- */
-        .window-cmd {
-            position: absolute; display: none; flex-direction: column; z-index: 9999;
-            left: 50%; top: 50%; transform: translate(-50%, -50%);
-            width: 600px; height: 500px;
-            background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff;
-            border-right: 2px solid #808080; border-bottom: 2px solid #808080;
-            box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: 'Tahoma', sans-serif;
-        }
-
-        .title-bar-cmd {
-            background: #000080; color: white; padding: 3px 5px; display: flex; justify-content: space-between;
-            align-items: center; font-weight: bold; font-size: 12px; user-select: none;
-        }
-
-        .win-btn-cmd {
-            background: #c0c0c0; border-top: 1px solid #fff; border-left: 1px solid #fff;
-            border-right: 1px solid #000; border-bottom: 1px solid #000;
-            font-weight: bold; font-size: 10px; width: 16px; height: 14px;
-            display: flex; justify-content: center; align-items: center; cursor: pointer; color: black; box-shadow: inset -1px -1px #808080;
-        }
-        .win-btn-cmd:active { border: 1px solid #000; border-right: 1px solid #fff; border-bottom: 1px solid #fff; box-shadow: none; }
-
-        .cmd-container-rules {
-            background-color: #000; color: #c0c0c0;
-            font-family: 'VT323', 'Courier New', monospace; font-size: 20px;
-            padding: 12px; flex-grow: 1; overflow-y: auto; margin: 2px;
-            border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff;
-        }
-
-        .cmd-output-rules { white-space: pre-wrap; line-height: 1.1; text-transform: uppercase; }
-        .cmd-green { color: #00ff00; }
-        .cmd-yellow { color: #ffff00; }
-        .cmd-blue { color: #00e5ff; }
-        .cmd-red { color: #ff3333; }
-
-        /* --- DRAMATIZAÇÃO DIGITAL --- */
-        @keyframes abstraction-glitch {
-            0% { filter: hue-rotate(0deg) contrast(1.5) saturate(2); transform: skew(0deg) translate(0, 0); }
-            20% { filter: hue-rotate(90deg) invert(0.2); transform: skew(-2deg) translate(-3px, 2px); }
-            40% { filter: hue-rotate(-90deg) contrast(2); transform: skew(2deg) translate(3px, -2px); }
-            60% { filter: hue-rotate(180deg) invert(0.1); transform: skew(-3deg) translate(-2px, 3px); }
-            80% { filter: hue-rotate(45deg) saturate(3); transform: skew(3deg) translate(2px, -3px); }
-            100% { filter: hue-rotate(0deg) contrast(1.5) saturate(2); transform: skew(0deg) translate(0, 0); }
-        }
-
-        body.abstracted {
-            background-color: #000 !important;
-            background-image: none;
-            overflow: hidden; 
-        }
-
-        body.abstracted .app-container {
-            animation: abstraction-glitch 0.2s infinite;
-        }
-
-        .abstr-eye {
-            position: fixed;
-            pointer-events: none;
-            z-index: 99999;
-            mix-blend-mode: screen; 
-            transform-origin: center center;
-        }
-
-    </style>
-</head>
-<body>
-
-<audio id="audioClick" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a0328cdd3.mp3?filename=mouse-click-153941.mp3"></audio>
-<audio id="audioErroWin" src="erro.mp3"></audio>
-<audio id="audioConfetti1" src="confetti-pop.mp3"></audio>
-<audio id="audioConfetti2" src="confetti-pop-sound.mp3"></audio>
-
-<div class="app-container">
-    <div class="main-wrapper">
-        <div class="dice-section">
-            <h2 style="text-align: center; margin-bottom: 25px; font-size: 20px;">🎪 O Incrível Roleplaying Game 🎪</h2>
-            
-            <div class="dice-viewport" id="viewport">
-                <div class="hud-overlay">
-                    <div class="hud-item">
-                        <span class="hud-label">SOMA BRUTA</span>
-                        <span class="hud-value" id="raw-total">0</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label">VANTAGEM</span>
-                        <span class="hud-value-small" id="hud-modifier">0</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label">% VANTAGEM</span>
-                        <span class="hud-value-small" id="hud-percent">0%</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label">TOTAL FINAL</span>
-                        <span class="hud-value" id="hud-final-total">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls-row">
-                <div class="light-input-group">
-                    <span class="light-label">Modificador</span>
-                    <input type="number" id="modifier-input" class="light-input" value="0" oninput="updateValuesFromInputs()">
-                </div>
-                <div class="light-input-group">
-                    <span class="light-label">Vantagem % (+ / -)</span>
-                    <input type="number" id="percent-input" class="light-input" value="0" placeholder="-50 / 50" oninput="updateValuesFromInputs()">
-                </div>
-            </div>
-
-            <div class="result-box">
-                <span class="result-title">RESULTADO FINAL</span>
-                <span class="result-number" id="final-total">0</span>
-            </div>
-
-            <div class="dice-grid">
-                <button class="dice-btn btn-d4" onclick="addDie('d4')">D4</button>
-                <button class="dice-btn btn-d5" onclick="addDie('d5')">D5</button>
-                <button class="dice-btn btn-d6" onclick="addDie('d6')">D6</button>
-                <button class="dice-btn btn-d7" onclick="addDie('d7')">D7</button>
-                <button class="dice-btn btn-d8" onclick="addDie('d8')">D8</button>
-                <button class="dice-btn btn-d9" onclick="addDie('d9')">D9</button>
-                <button class="dice-btn btn-d10" onclick="addDie('d10')">D10</button>
-                <button class="dice-btn btn-d20" onclick="addDie('d20')">D20</button>
-                <button class="dice-btn btn-d100" onclick="addDie('d100')">D100</button>
-                <button class="dice-btn btn-coin" onclick="addDie('coin')">MOEDA</button>
+                <button class="dice-btn btn-d5" onclick="addDie('d5', event)">D5</button>
+                <button class="dice-btn btn-d6" onclick="addDie('d6', event)">D6</button>
+                <button class="dice-btn btn-d7" onclick="addDie('d7', event)">D7</button>
+                <button class="dice-btn btn-d8" onclick="addDie('d8', event)">D8</button>
+                <button class="dice-btn btn-d9" onclick="addDie('d9', event)">D9</button>
+                <button class="dice-btn btn-d10" onclick="addDie('d10', event)">D10</button>
+                <button class="dice-btn btn-d20" onclick="addDie('d20', event)">D20</button>
+                <button class="dice-btn btn-d100" onclick="addDie('d100', event)">D100</button>
+                <button class="dice-btn btn-coin" onclick="addDie('coin', event)">MOEDA</button>
             </div>
 
             <div class="custom-zone">
@@ -610,7 +435,7 @@
                     <i class="fa-solid fa-cube input-icon"></i>
                     <input type="number" id="custom-sides-input" class="magic-input" placeholder="Lados (Ex: 12)" min="2">
                 </div>
-                <button class="btn-magic" onclick="addCustomFromInput()">
+                <button class="btn-magic" onclick="addCustomFromInput(event)">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Forjar Dado
                 </button>
             </div>
@@ -686,12 +511,15 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
 <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
 
-    // Gerenciamento da Memória de Sala
+    // Gerenciamento da Memória de Sala e Jogador
     let savedRoom = localStorage.getItem('circus_room_id');
     if (!savedRoom) {
         savedRoom = 'sala_' + Math.random().toString(36).substring(2, 9);
         localStorage.setItem('circus_room_id', savedRoom);
     }
+    
+    let savedPlayerName = localStorage.getItem('circus_player_name');
+    window.playerName = savedPlayerName || "";
 
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
@@ -700,13 +528,23 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     let modParam = parseInt(params.get('mod')) || 0;
     let pctParam = parseFloat(params.get('pct')) || 0;
 
-    if (isShareMode) document.body.classList.add('share-mode');
+    if (isShareMode) {
+        document.body.classList.add('share-mode');
+        window.playerName = "OBS";
+    } else if (savedPlayerName) {
+        document.getElementById('player-name-input').value = savedPlayerName;
+    }
 
-    // Mutiplayer Setup (Host / Client Architecture)
-    let isHost = false;
+    // Mutiplayer Setup
+    const peerId = isShareMode ? `circus-obs-${Math.random().toString(36).substring(2, 6)}` : `circus-master-${roomParam}`;
     let peer = null;
+    let isHost = false;
     let hostConn = null;
     let activeConnections = [];
+
+    // Cheats ocultos
+    window.cheatsEnabled = false;
+    let cheatBuffer = "";
 
     let scene, camera, renderer, diceList = [], raycaster, mouse;
     let particles = [];
@@ -720,6 +558,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     
     window.currentModifier = modParam;
     window.currentPercent = pctParam;
+    window.lastRolledValue = 0;
 
     if(!isShareMode) {
         document.getElementById('modifier-input').value = window.currentModifier;
@@ -754,7 +593,15 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         osc.start(); osc.stop(audioCtx.currentTime + 0.6);
     }
 
-    window.logToDevlog = (msg, isDanger = false) => {
+    window.updatePlayerName = () => {
+        const input = document.getElementById('player-name-input');
+        if (input) {
+            window.playerName = input.value || (isHost ? "Mestre" : "Jogador");
+            localStorage.setItem('circus_player_name', window.playerName);
+        }
+    };
+
+    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null) => {
         const devlog = document.getElementById('devlog');
         if (!devlog) return;
         const entry = document.createElement('div');
@@ -762,47 +609,61 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         if(isDanger) entry.style.borderLeftColor = 'var(--danger)';
 
         const time = new Date().toLocaleTimeString('pt-BR');
+        const displayName = author || window.playerName || "Sistema";
         
         entry.innerHTML = `
-            <div class="log-time"><span>[${time}]</span><span>Mod: ${window.currentModifier} | ${window.currentPercent}%</span></div>
+            <div class="log-time">
+                <span style="display: flex; gap: 8px; align-items: center;">
+                    <span>[${time}]</span>
+                    <span style="color: var(--accent); font-size: 11px; text-transform: uppercase;">${displayName}</span>
+                </span>
+                <span>Mod: ${window.currentModifier} | ${window.currentPercent}%</span>
+            </div>
             <div>${msg}</div>
+            ${trueMsg ? `<div class="true-log"><i class="fa-solid fa-eye"></i> Realidade: ${trueMsg}</div>` : ''}
         `;
         devlog.prepend(entry);
     };
 
     function updateUrlParameters() {
         const baseUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, '', `${baseUrl}?room=${roomParam}`); // Link estático no navegador
+        window.history.replaceState({}, '', `${baseUrl}?room=${roomParam}`);
     }
 
-    // --- LÓGICA DO MULTIPLAYER (PEER JS) ---
     if (isShareMode) {
-        // OBS sempre atua como Client ouvinte
         peer = new Peer();
         peer.on('open', () => {
             hostConn = peer.connect(`circus-room-${roomParam}`);
             hostConn.on('data', (data) => handleIncomingData(data, null));
         });
     } else {
-        // Tentativa de ser o Host da sala
         peer = new Peer(`circus-room-${roomParam}`);
         
         peer.on('open', () => {
             isHost = true;
-            window.logToDevlog(`🎪 MESA ABERTA. Você é o <b>MESTRE</b> da sala: ${roomParam}`);
+            if(!savedPlayerName) {
+                window.playerName = "Mestre";
+                document.getElementById('player-name-input').value = window.playerName;
+                localStorage.setItem('circus_player_name', window.playerName);
+            }
+            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
         });
         
         peer.on('error', (err) => {
             if (err.type === 'unavailable-id') {
-                // Sala já existe, conectar como Jogador (Client)
                 isHost = false;
+                if(!savedPlayerName) {
+                    window.playerName = "Jogador";
+                    document.getElementById('player-name-input').value = window.playerName;
+                    localStorage.setItem('circus_player_name', window.playerName);
+                }
+                
                 peer = new Peer();
                 peer.on('open', () => {
                     hostConn = peer.connect(`circus-room-${roomParam}`);
                     hostConn.on('open', () => {
-                        window.logToDevlog(`🎮 Conectado como <b>JOGADOR</b> na sala: ${roomParam}`);
-                        // Solicita estado inicial do Mestre
-                        hostConn.send({ action: 'request_sync' }); 
+                        window.logToDevlog(`🎮 Conectado à sala: ${roomParam}`);
+                        hostConn.send({ action: 'request_sync', playerName: window.playerName }); 
                     });
                     hostConn.on('data', (data) => handleIncomingData(data, null));
                 });
@@ -811,7 +672,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             }
         });
         
-        // Host escuta novas conexões
         peer.on('connection', (conn) => {
             activeConnections.push(conn);
             
@@ -833,6 +693,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     }
 
     function broadcast(payload) {
+        payload.playerName = window.playerName; 
         if (isHost) {
             activeConnections = activeConnections.filter(c => c.open);
             activeConnections.forEach(c => c.send(payload));
@@ -866,6 +727,20 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
                 e.preventDefault(); window.playDramatizacao();
             }
+
+            // Monitor de códigos de trapaça (Completamente invisível)
+            if (e.key && e.key.length === 1) {
+                cheatBuffer += e.key.toLowerCase();
+                if (cheatBuffer.length > 30) cheatBuffer = cheatBuffer.slice(-30);
+                
+                if (isHost && cheatBuffer.endsWith('goodnightworld')) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = '';
+                } else if (!isHost && !isShareMode && cheatBuffer.endsWith('badnightworld')) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = '';
+                }
+            }
         });
 
         document.addEventListener('keyup', (e) => {
@@ -873,9 +748,9 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         });
     }
 
-    window.playDramatizacao = (isRemote = false) => {
+    window.playDramatizacao = (isRemote = false, remoteAuthor = null) => {
         if (!isShareMode && !isRemote) {
-            window.logToDevlog(`<span style="color: var(--purple); font-weight:900; text-shadow: 0 0 10px #8e44ad; font-size: 16px;">👁️ DRAMATIZAÇÃO DIGITAL ATIVADA!</span>`);
+            window.logToDevlog(`<span style="color: var(--purple); font-weight:900; text-shadow: 0 0 10px #8e44ad; font-size: 16px;">👁️ DRAMATIZAÇÃO DIGITAL ATIVADA!</span>`, true, null, window.playerName);
             broadcast({ action: 'dramatizacao' });
         }
         triggerDramatizacao();
@@ -950,7 +825,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         animate();
     }
 
-    // Links estáticos imutáveis
     window.copyObsLink = () => {
         const baseUrl = window.location.origin + window.location.pathname;
         const url = baseUrl + `?view=share&room=${roomParam}`;
@@ -1002,23 +876,37 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         anim();
     }
 
-    window.saveAndClearDice = (isRemote = false) => {
+    window.saveAndClearDice = (isRemote = false, remoteAuthor = null) => {
         if (diceList.length === 0) return;
-        [...diceList].forEach(d => removeDice(d, true)); // Evitar flooding de eventos remove
-        if(!isRemote && !isShareMode) broadcast({ action: 'clear' });
+        [...diceList].forEach(d => removeDice(d, true)); 
+        
+        if(!isRemote && !isShareMode) {
+            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa.</span>`, false, null, window.playerName);
+            broadcast({ action: 'clear' });
+        }
     }
 
-    window.addDie = (type) => {
-        spawnDice(type, null, null, null, false);
+    window.addDie = (type, event) => {
+        let rollMode = 'normal';
+        if (window.cheatsEnabled && event) {
+            if (event.shiftKey) rollMode = 'shift';
+            else if (event.ctrlKey) rollMode = 'ctrl';
+        }
+        spawnDice(type, null, rollMode, null, null, false);
     };
 
-    window.addCustomFromInput = () => {
+    window.addCustomFromInput = (event) => {
         const input = document.getElementById('custom-sides-input');
         const sides = parseInt(input.value); if(!sides || sides < 2) return;
-        spawnDice('custom', sides, null, null, false);
+        let rollMode = 'normal';
+        if (window.cheatsEnabled && event) {
+            if (event.shiftKey) rollMode = 'shift';
+            else if (event.ctrlKey) rollMode = 'ctrl';
+        }
+        spawnDice('custom', sides, rollMode, null, null, false);
     }
 
-    function spawnDice(type, sides, forcedValue = null, id = null, isRemote = false) {
+    function spawnDice(type, sides, rollMode = 'normal', forcedValue = null, id = null, isRemote = false, remoteAuthor = null) {
         let geometry, material;
         const finalSides = sides || (configs[type] ? configs[type].sides : 0);
 
@@ -1044,11 +932,11 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const meshId = id || Date.now() + Math.random().toString(36).substring(2,7);
 
         mesh.userData = { 
-            id: meshId, type, sides: finalSides, label, value: 0, yOffset: 0, isRolling: false 
+            id: meshId, type, sides: finalSides, label, value: 0, rollMode: rollMode || 'normal', yOffset: 0, isRolling: false 
         };
         
         scene.add(mesh); diceList.push(mesh);
-        rollSingle(mesh, forcedValue, isRemote);
+        rollSingle(mesh, forcedValue, isRemote, remoteAuthor);
     }
 
     function explodeDice(position) {
@@ -1106,7 +994,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         return actions.length > 0 ? actions.join(" / ") : "Sem Ação";
     }
 
-    function rollSingle(dice, forcedValue = null, isRemote = false) {
+    function rollSingle(dice, forcedValue = null, isRemote = false, remoteAuthor = null) {
         if(dice.userData.isRemoving) return;
         dice.userData.label.style.display = 'none';
         dice.userData.label.className = 'dice-label';
@@ -1118,12 +1006,29 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         if (forcedValue !== null) {
             res = forcedValue; 
         } else if (dice.userData.type === 'coin') {
-            res = Math.random() > 0.5 ? "Ca" : "Co";
+            if (dice.userData.rollMode === 'shift') res = "Ca";
+            else if (dice.userData.rollMode === 'ctrl') res = "Co";
+            else res = Math.random() > 0.5 ? "Ca" : "Co";
         } else {
-            res = Math.floor(Math.random() * dice.userData.sides) + 1;
+            if (dice.userData.rollMode === 'shift') { 
+                res = dice.userData.sides; 
+            } else if (dice.userData.rollMode === 'ctrl') {
+                let prev = window.lastRolledValue || 0;
+                if (prev === 19 || prev === 20) {
+                    res = prev;
+                } else {
+                    res = prev + 1;
+                    if (res >= 20) res = 19; 
+                }
+            } else { 
+                res = Math.floor(Math.random() * dice.userData.sides) + 1;
+            }
         }
 
-        // Transmite o dado se tivermos gerado ele localmente
+        if (dice.userData.type !== 'coin') {
+            window.lastRolledValue = res;
+        }
+
         if (!isRemote) {
             broadcast({ action: 'spawn', type: dice.userData.type, sides: dice.userData.sides, value: res, id: dice.userData.id });
         }
@@ -1170,13 +1075,15 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 
                 dice.userData.label.style.display = 'block'; window.updateTotal(isRemote);
 
-                if (!isShareMode) {
+                if (!isShareMode && forcedValue === null) {
+                    const author = isRemote ? remoteAuthor : window.playerName;
                     if (dice.userData.type === 'coin') {
-                        window.logToDevlog(`Rolou <b>MOEDA</b>: <span style="color:${res === 'Ca'?'var(--accent)':'var(--success)'}; font-weight:bold; font-size:16px">${res}</span>`);
+                        window.logToDevlog(`Rolou <b>MOEDA</b>: <span style="color:${res === 'Ca'?'var(--accent)':'var(--success)'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
                     } else {
                         const dName = dice.userData.type.toUpperCase() === 'CUSTOM' ? `D${dice.userData.sides}` : dice.userData.type.toUpperCase();
                         let ruleText = getActionName(res, dice.userData.sides);
-                        window.logToDevlog(`Rolou <b>${dName}</b>: <span style="color:${res === dice.userData.sides?'var(--magic)':'var(--success)'}; font-weight:900; font-size:16px">${res}</span><br><span style="color: var(--text-muted); font-size: 11px; font-weight: bold; margin-top:4px; display:block;">[Ações: ${ruleText}]</span>`);
+                        // TrueMsg foi removido propositalmente para manter a trapaça do mestre indetectável no log
+                        window.logToDevlog(`Rolou <b>${dName}</b>: <span style="color:${res === dice.userData.sides?'var(--magic)':'var(--success)'}; font-weight:900; font-size:16px">${res}</span><br><span style="color: var(--text-muted); font-size: 11px; font-weight: bold; margin-top:4px; display:block;">[Ações: ${ruleText}]</span>`, false, null, author);
                     }
                 }
             }
@@ -1184,17 +1091,17 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         anim();
     }
 
-    window.rollAll = (isRemote = false) => {
+    window.rollAll = (isRemote = false, remoteAuthor = null) => {
         if(isShareMode) return;
         if(!isRemote) {
-            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Rerolando mesa inteira...</span>`);
+            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Rerolando mesa inteira...</span>`, false, null, window.playerName);
             broadcast({ action: 'reroll_all' });
         }
         
         diceList.forEach(d => {
             let trueRes = (d.userData.type === 'coin') ? (Math.random() > 0.5 ? "Ca" : "Co") : (Math.floor(Math.random() * d.userData.sides) + 1);
             if(!isRemote) broadcast({ action: 'reroll_single', id: d.userData.id, value: trueRes });
-            rollSingle(d, trueRes, true); // true para não dar re-broadcast do individual
+            rollSingle(d, trueRes, true); 
         });
     }
 
@@ -1299,6 +1206,8 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     }
 
     function handleIncomingData(data, senderConn) {
+        const remoteAuthor = data.playerName || "Desconhecido";
+
         if (data.action === 'sync_init') {
             if (!isHost) {
                 [...diceList].forEach(d => removeDice(d, true));
@@ -1312,23 +1221,25 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                     if(pctInput) pctInput.value = window.currentPercent;
                 }
 
-                data.dice.forEach(d => { spawnDice(d.type, d.sides, d.value, d.id, true); });
+                data.dice.forEach(d => { spawnDice(d.type, d.sides, 'normal', d.value, d.id, true, remoteAuthor); });
                 window.updateTotal(true);
             }
         } else if(data.action === 'spawn') {
-            spawnDice(data.type, data.sides, data.value, data.id, true);
+            spawnDice(data.type, data.sides, 'normal', data.value, data.id, true, remoteAuthor);
         } else if(data.action === 'remove') {
             const target = diceList.find(d => d.userData.id === data.id);
             if(target) removeDice(target, true);
         } else if(data.action === 'clear') {
-            saveAndClearDice(true);
+            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa remotamente.</span>`, false, null, remoteAuthor);
+            saveAndClearDice(true, remoteAuthor);
         } else if(data.action === 'reroll_single') {
             const target = diceList.find(d => d.userData.id === data.id);
-            if(target) rollSingle(target, data.value, true);
+            if(target) rollSingle(target, data.value, true, remoteAuthor);
         } else if(data.action === 'reroll_all') {
-            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Mesa inteira rerolada remotamente.</span>`);
+            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Mesa inteira rerolada remotamente.</span>`, false, null, remoteAuthor);
         } else if(data.action === 'dramatizacao') {
-            playDramatizacao(true);
+            window.logToDevlog(`<span style="color: var(--purple); font-weight:900; text-shadow: 0 0 10px #8e44ad; font-size: 16px;">👁️ DRAMATIZAÇÃO DIGITAL ATIVADA!</span>`, true, null, remoteAuthor);
+            triggerDramatizacao();
         } else if(data.action === 'hud') {
             window.currentModifier = data.mod; window.currentPercent = data.pct; 
             if(!isShareMode) {
@@ -1340,7 +1251,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             window.updateTotal(true);
         }
 
-        // Se o Host recebeu isso de um jogador (senderConn), ele repassa para todos os outros (incluindo OBS)
         if (isHost && senderConn) {
             activeConnections.forEach(c => {
                 if (c !== senderConn && c.open) {
