@@ -476,4 +476,949 @@
                     </div>
                     <div class="hud-item">
                         <span class="hud-label">% VANTAGEM</span>
-         
+                        <span class="hud-value-small" id="hud-percent">0%</span>
+                    </div>
+                    <div class="hud-item">
+                        <span class="hud-label">TOTAL FINAL</span>
+                        <span class="hud-value" id="hud-final-total">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-row">
+                <div class="dark-input-group">
+                    <span class="dark-label">SEU NOME</span>
+                    <input type="text" id="player-name-input" class="dark-input" value="Nome" oninput="updatePlayerName()">
+                </div>
+                <div class="dark-input-group">
+                    <span class="dark-label">MODIFICADOR</span>
+                    <input type="number" id="modifier-input" class="dark-input" value="0" oninput="updateValuesFromInputs()">
+                </div>
+                <div class="dark-input-group">
+                    <span class="dark-label">BÔNUS (+) / REDUÇÃO (-) %</span>
+                    <input type="number" id="percent-input" class="dark-input" value="0" placeholder="-50 / 50" oninput="updateValuesFromInputs()">
+                </div>
+            </div>
+
+            <div class="result-box">
+                <span class="result-title">RESULTADO FINAL</span>
+                <span class="result-number" id="final-total">0</span>
+            </div>
+
+            <!-- Grade de Dados Original + Botão "+" Customizável -->
+            <div class="dice-grid" id="diceGridContainer">
+                <button class="dice-btn btn-coin" onclick="addDie('coin', event)">MOEDA</button>
+                <button class="dice-btn btn-d4" onclick="addDie('d4', event)">D4</button>
+                <button class="dice-btn btn-d6" onclick="addDie('d6', event)">D6</button>
+                <button class="dice-btn btn-d8" onclick="addDie('d8', event)">D8</button>
+                <button class="dice-btn btn-d10" onclick="addDie('d10', event)">D10</button>
+                <button class="dice-btn btn-d12" onclick="addDie('d12', event)">D12</button>
+                <button class="dice-btn btn-d20" onclick="addDie('d20', event)">D20</button>
+                <button class="dice-btn btn-d100" onclick="addDie('d100', event)">D100</button>
+                <button class="dice-btn btn-add-custom" onclick="openCustomModal()" title="Adicionar Dado Customizado">+</button>
+            </div>
+
+            <div class="custom-zone">
+                <div class="custom-input-wrapper">
+                    <i class="fa-solid fa-cube input-icon"></i>
+                    <input type="number" id="custom-sides-input" class="magic-input" placeholder="Lados (Ex: 100)" min="2">
+                </div>
+                <button class="btn-magic" onclick="addCustomFromInput(event)">
+                    <i class="fa-solid fa-fire"></i> Forjar Dado
+                </button>
+            </div>
+            
+            <div class="actions-group">
+                <button class="action-btn" onclick="rollAll()">REROLAR TODOS</button>
+                <button class="action-btn btn-cinematic" onclick="playCinematic(event)">CINEMÁTICO (Shift + ])</button>
+                <button class="action-btn btn-invite" onclick="copyPlayerLink()" title="Convidar Jogadores"><i class="fa-solid fa-user-plus"></i></button>
+                <button class="action-btn btn-clear" onclick="saveAndClearDice()" title="Limpar Mesa"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="devlog-wrapper" id="devlog-container">
+        <h2 class="devlog-header">Devlog</h2>
+        <div class="devlog-content" id="devlog"></div>
+    </div>
+</div>
+
+<!-- Janela estilo CMD que aparece ao apertar ESC -->
+<div class="window-cmd" id="cmdRulesWindow">
+    <div class="title-bar-cmd">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <img src="https://win98icons.alexmeub.com/icons/png/console_prompt-0.png" width="14" alt="CMD">
+            <span>C:\WINDOWS\system32\cmd.exe - REGRAS E AÇÕES</span>
+        </div>
+        <div class="win-btn-cmd" onclick="toggleRulesWindow()">X</div>
+    </div>
+    <div class="cmd-container-rules">
+        <div class="cmd-output-rules" id="cmdOutputRules">
+$: <span class="cmd-yellow">ACESSO RESTRITO - PROTOCOLO DE AÇÕES DO SISTEMA</span>
+$/ CARREGANDO DIRETRIZES DE ROLAGEM... OK.
+
+<span class="cmd-blue">=== AÇÕES PRINCIPAIS ===</span>
+
+<span class="cmd-green">[CÉREBRO] (RESULTADOS 2, 3)</span>
+> AÇÕES MENTAIS, INTELIGÊNCIA, LÓGICA E PERCEPÇÃO DOS 5 SENTIDOS.
+
+<span class="cmd-green">[CORPO] (RESULTADOS 3, 4, 5)</span>
+> AÇÕES FÍSICAS, REFLEXOS, ATLETISMO E ESFORÇO MUSCULAR.
+
+<span class="cmd-green">[COMPORTAMENTO] (RESULTADOS 4, 5, 6, 7)</span>
+> HABILIDADES SOCIAIS, PERSUASÃO, RESOLUÇÃO DE CONFLITOS E MENTIRAS.
+
+<span class="cmd-green">[EQUILÍBRIO] (RESULTADOS 5, 6, 7, 8, 9)</span>
+> MATURIDADE EMOCIONAL, REGULAÇÃO DE SENTIMENTOS E EMPATIA.
+
+<span class="cmd-blue">=== RESULTADOS ESPECIAIS ===</span>
+
+<span class="cmd-yellow">[BOZO] (RESULTADO 1)</span>
+> SUCESSO UTILIZANDO LÓGICA DE DESENHO ANIMADO (CARTOON). 
+> PODE GERAR CONSEQUÊNCIAS NEGATIVAS OU DESGASTE.
+
+<span class="cmd-yellow">[MELHOR / BLOWUP] (RESULTADO MÁXIMO DO DADO)</span>
+> SUCESSO PERFEITO! O JOGADOR ESCOLHE A AÇÃO UTILIZADA. 
+> O DADO EXPLODE, PERMITINDO ROLAR NOVAMENTE E SOMAR OS VALORES.
+
+<span class="cmd-blue">=== TIPOS DE ROLAGEM ===</span>
+
+<span class="cmd-green">[DADOS DE VANTAGEM]</span>
+> GIRA 2 DO MESMO DADO E PEGUE O MELHOR PARA A ACTION DO JOGADOR/SITUAÇÃO.
+
+<span class="cmd-red">[DADOS DE DESVANTAGEM]</span>
+> GIRE 2 DADOS DO MESMO E PEGUE O PIOR DADO PARA A ACTION DO JOGADOR/SITUAÇÃO.
+
+<span class="cmd-yellow">[DADOS NORMAIS/NEUTROS]</span>
+> . . . APENAS OS GÍRIOS :]
+
+$/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
+
+    let savedRoom = localStorage.getItem('circus_room_id');
+    if (!savedRoom) {
+        savedRoom = 'sala_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('circus_room_id', savedRoom);
+    }
+    
+    let savedPlayerName = localStorage.getItem('circus_player_name');
+    window.playerName = savedPlayerName || "";
+
+    // Dados customizados salvos localmente
+    window.customDiceList = JSON.parse(localStorage.getItem('saved_custom_dice') || '[]');
+
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    const isShareMode = (viewParam === 'share');
+    let roomParam = params.get('room') || savedRoom;
+    let modParam = parseInt(params.get('mod')) || 0;
+    let pctParam = parseFloat(params.get('pct')) || 0;
+
+    if (isShareMode) {
+        document.body.classList.add('share-mode');
+        window.playerName = "OBS";
+    } else if (savedPlayerName) {
+        document.getElementById('player-name-input').value = savedPlayerName;
+    }
+
+    const peerId = isShareMode ? `blackout-obs-${Math.random().toString(36).substring(2, 6)}` : `blackout-master-${roomParam}`;
+    let peer = null;
+    let isHost = false;
+    let hostConn = null;
+    let activeConnections = [];
+
+    window.cheatsEnabled = false;
+    let cheatBuffer = "";
+
+    let scene, camera, renderer, diceList = [], raycaster, mouse;
+    let particles = [];
+    let isCPressed = false;
+    const container = document.getElementById('viewport');
+    const audioErroWin = document.getElementById('audioErroWin');
+    const cmdRulesWindow = document.getElementById('cmdRulesWindow');
+    
+    window.currentModifier = modParam;
+    window.currentPercent = pctParam;
+    window.lastRolledValue = 0;
+
+    if(!isShareMode) {
+        document.getElementById('modifier-input').value = window.currentModifier;
+        document.getElementById('percent-input').value = window.currentPercent;
+        renderCustomDiceButtons();
+    }
+
+    const configs = {
+        'coin':  { geo: new THREE.CylinderGeometry(1.2, 1.2, 0.15, 32), color: 0xcccccc, emissive: 0x555555, intensity: 0.2, sides: 2 },
+        'd4':    { geo: new THREE.TetrahedronGeometry(1.2), color: 0x34495e, emissive: 0x1abc9c, intensity: 0.2, sides: 4 },
+        'd6':    { geo: new THREE.BoxGeometry(1.3, 1.3, 1.3), color: 0x1a5276, emissive: 0x3498db, intensity: 0.4, sides: 6 },
+        'd8':    { geo: new THREE.OctahedronGeometry(1.3), color: 0x4a235a, emissive: 0x9b59b6, intensity: 0.5, sides: 8 },
+        'd10':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0x78281f, emissive: 0xe74c3c, intensity: 0.6, sides: 10 },
+        'd12':   { geo: new THREE.DodecahedronGeometry(1.3), color: 0x7e5109, emissive: 0xd35400, intensity: 0.7, sides: 12 },
+        'd20':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0x9a7d0a, emissive: 0xf1c40f, intensity: 1.0, sides: 20 },
+        'd100':  { geo: new THREE.IcosahedronGeometry(1.3, 1), color: 0x111111, emissive: 0xbdc3c7, intensity: 0.8, sides: 100 },
+    };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playCritSound() {
+        if(isShareMode) return; 
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+    }
+
+    window.updatePlayerName = () => {
+        const input = document.getElementById('player-name-input');
+        if (input) {
+            window.playerName = input.value || (isHost ? "Mestre" : "Jogador");
+            localStorage.setItem('circus_player_name', window.playerName);
+        }
+    };
+
+    // Histórico atualizado: sem o texto "ações"
+    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null) => {
+        const devlog = document.getElementById('devlog');
+        if (!devlog) return;
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        if(isDanger) entry.style.borderLeftColor = 'var(--danger)';
+
+        const time = new Date().toLocaleTimeString('pt-BR');
+        const displayName = author || window.playerName || "Sistema";
+        
+        entry.innerHTML = `
+            <div class="log-time">
+                <span style="display: flex; gap: 8px; align-items: center;">
+                    <span>[${time}]</span>
+                    <span style="color: var(--accent); font-size: 11px; text-transform: uppercase;">${displayName}</span>
+                </span>
+                <span>Mod: ${window.currentModifier} | ${window.currentPercent}%</span>
+            </div>
+            <div>${msg}</div>
+            ${trueMsg ? `<div class="true-log"><i class="fa-solid fa-eye"></i> Realidade: ${trueMsg}</div>` : ''}
+        `;
+        devlog.prepend(entry);
+    };
+
+    function updateUrlParameters() {
+        const baseUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, '', `${baseUrl}?room=${roomParam}`);
+    }
+
+    if (isShareMode) {
+        peer = new Peer();
+        peer.on('open', () => {
+            hostConn = peer.connect(`blackout-room-${roomParam}`);
+            hostConn.on('data', (data) => handleIncomingData(data, null));
+        });
+    } else {
+        peer = new Peer(`blackout-room-${roomParam}`);
+        
+        peer.on('open', () => {
+            isHost = true;
+            if(!savedPlayerName) {
+                window.playerName = "Mestre";
+                document.getElementById('player-name-input').value = window.playerName;
+                localStorage.setItem('circus_player_name', window.playerName);
+            }
+            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
+        });
+        
+        peer.on('error', (err) => {
+            if (err.type === 'unavailable-id') {
+                isHost = false;
+                if(!savedPlayerName) {
+                    window.playerName = "Jogador";
+                    document.getElementById('player-name-input').value = window.playerName;
+                    localStorage.setItem('circus_player_name', window.playerName);
+                }
+                
+                peer = new Peer();
+                peer.on('open', () => {
+                    hostConn = peer.connect(`blackout-room-${roomParam}`);
+                    hostConn.on('open', () => {
+                        hostConn.send({ action: 'request_sync', playerName: window.playerName, customDice: window.customDiceList }); 
+                    });
+                    hostConn.on('data', (data) => handleIncomingData(data, null));
+                });
+            } else {
+                console.error("PeerJS error:", err);
+            }
+        });
+        
+        peer.on('connection', (conn) => {
+            activeConnections.push(conn);
+            
+            conn.on('open', () => {
+                const currentDiceState = diceList.map(d => ({
+                    type: d.userData.type, sides: d.userData.sides, value: d.userData.value, id: d.userData.id, isRemoving: d.userData.isRemoving, rollMode: d.userData.rollMode, customConfig: d.userData.customConfig
+                })).filter(d => !d.isRemoving);
+                
+                const devlogHtml = document.getElementById('devlog').innerHTML;
+                
+                conn.send({ action: 'sync_init', dice: currentDiceState, mod: window.currentModifier, pct: window.currentPercent, devlog: devlogHtml, customDice: window.customDiceList });
+            });
+            
+            conn.on('data', (data) => {
+                handleIncomingData(data, conn);
+            });
+            
+            conn.on('close', () => {
+                activeConnections = activeConnections.filter(c => c !== conn);
+            });
+        });
+    }
+
+    function broadcast(payload) {
+        payload.playerName = window.playerName; 
+        if (isHost) {
+            activeConnections = activeConnections.filter(c => c.open);
+            activeConnections.forEach(c => c.send(payload));
+        } else if (hostConn && hostConn.open) {
+            hostConn.send(payload);
+        }
+    }
+
+    window.toggleRulesWindow = () => {
+        if(isShareMode) return;
+        if(cmdRulesWindow.style.display === 'flex') {
+            cmdRulesWindow.style.display = 'none';
+        } else {
+            cmdRulesWindow.style.display = 'flex';
+            audioErroWin.currentTime = 0;
+            audioErroWin.play().catch(e => console.log(e));
+        }
+    }
+
+    const videoUpload = document.getElementById('video-upload');
+    const cinematicVideo = document.getElementById('cinematic-video');
+
+    if(!isShareMode && cinematicVideo) {
+        videoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                cinematicVideo.src = URL.createObjectURL(file);
+                window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-video"></i> Vídeo Cinemático alterado!</span>`);
+            }
+        });
+    }
+
+    if(!isShareMode) {
+        document.getElementById('devlog-container').addEventListener('click', (e) => {
+            if (e.ctrlKey) {
+                const logEntry = e.target.closest('.log-entry');
+                if (logEntry) logEntry.remove();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'c') isCPressed = true;
+            if (e.key === 'Escape') window.toggleRulesWindow(); 
+            
+            // Shift + Espaço abre a aba de customização de dados
+            if (e.shiftKey && e.code === 'Space') {
+                e.preventDefault();
+                openCustomModal();
+            }
+
+            if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
+                e.preventDefault(); window.playCinematic(null);
+            }
+
+            if (e.key && e.key.length === 1) {
+                cheatBuffer += e.key.toLowerCase();
+                if (cheatBuffer.length > 30) cheatBuffer = cheatBuffer.slice(-30);
+                
+                if (isHost && cheatBuffer.endsWith('goodnightworld')) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = '';
+                } else if (!isHost && !isShareMode && cheatBuffer.endsWith('badnightworld')) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = '';
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key.toLowerCase() === 'c') isCPressed = false;
+        });
+    }
+
+    // Modal de Customização de Dados
+    window.openCustomModal = () => {
+        if(isShareMode) return;
+        document.getElementById('customDiceModal').style.display = 'flex';
+    };
+
+    window.closeCustomModal = () => {
+        document.getElementById('customDiceModal').style.display = 'none';
+    };
+
+    window.saveCustomDice = () => {
+        const name = document.getElementById('modal-dice-name').value || "Custom";
+        const sides = parseInt(document.getElementById('modal-dice-sides').value) || 6;
+        const color = document.getElementById('modal-dice-color').value || "#ff00ff";
+        const gif = document.getElementById('modal-dice-gif').value || "confetti.gif";
+        const audio = document.getElementById('modal-dice-audio').value || "confetti-pop.mp3";
+
+        const newDice = { id: 'custom_' + Date.now(), name, sides, color, gif, audio };
+        window.customDiceList.push(newDice);
+        localStorage.setItem('saved_custom_dice', JSON.stringify(window.customDiceList));
+
+        renderCustomDiceButtons();
+        closeCustomModal();
+        broadcast({ action: 'sync_custom_dice', customDice: window.customDiceList });
+    };
+
+    function renderCustomDiceButtons() {
+        const grid = document.getElementById('diceGridContainer');
+        // Remove botões customizados antigos para re-renderizar
+        grid.querySelectorAll('.btn-custom-dice').forEach(el => el.remove());
+
+        // Insere antes do botão "+"
+        const addBtn = grid.querySelector('.btn-add-custom');
+
+        window.customDiceList.forEach(d => {
+            const btn = document.createElement('button');
+            btn.className = 'dice-btn btn-custom-dice';
+            btn.innerText = d.name.toUpperCase();
+            btn.title = `${d.sides} lados`;
+            btn.style.borderColor = d.color;
+            btn.style.color = d.color;
+            btn.onclick = (e) => addCustomDieObject(d, e);
+            grid.insertBefore(btn, addBtn);
+        });
+    }
+
+    window.addCustomDieObject = (diceConfig, event) => {
+        let rollMode = 'normal';
+        if (window.cheatsEnabled && event) {
+            if (event.shiftKey) rollMode = 'shift';
+            else if (event.ctrlKey) rollMode = 'ctrl';
+        }
+        spawnDice('custom_obj', diceConfig.sides, rollMode, null, null, false, null, false, diceConfig);
+    };
+
+    window.playCinematic = (event, isRemote = false) => {
+        if (!isShareMode && event && event.type === 'click' && event.shiftKey) { 
+            videoUpload.click(); 
+            return; 
+        }
+
+        const overlay = document.getElementById('video-overlay');
+        const video = document.getElementById('cinematic-video');
+        overlay.style.display = 'flex'; 
+        video.currentTime = 0; 
+        video.play().catch(e => console.log(e));
+        video.onended = () => { overlay.style.display = 'none'; };
+
+        if (!isShareMode && !isRemote) {
+            window.logToDevlog(`<span style="color: #ff0000; font-weight:bold; text-shadow: 0 0 10px #ff0000; font-size: 16px;">⚡ CINEMÁTICO ATIVADO!</span>`, true, null, window.playerName);
+            broadcast({ action: 'cinematic' });
+        }
+    };
+
+    function init3D() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); 
+        scene.fog = new THREE.Fog(0x000000, 12, 30);
+        
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.z = isShareMode ? 17 : 13; 
+        
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); 
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.outputEncoding = THREE.sRGBEncoding; 
+        container.appendChild(renderer.domElement);
+        
+        scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+        const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+        spotLight.position.set(5, 10, 5); spotLight.castShadow = true; spotLight.penumbra = 0.5;
+        scene.add(spotLight);
+
+        if(!isShareMode) {
+            raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
+            container.addEventListener('mousedown', (event) => {
+                if (event.ctrlKey && isCPressed) { 
+                    event.preventDefault(); 
+                    copyObsLink(); 
+                    return; 
+                }
+                onDiceClick(event);
+            });
+        }
+        
+        window.updateTotal();
+        animate();
+    }
+
+    window.copyObsLink = () => {
+        const baseUrl = window.location.origin + window.location.pathname;
+        const url = baseUrl + `?view=share&room=${roomParam}`;
+        navigator.clipboard.writeText(url).then(() => {
+            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado (Estático)</span>`);
+        });
+    };
+
+    window.copyPlayerLink = () => {
+        const baseUrl = window.location.origin + window.location.pathname;
+        const url = baseUrl + `?room=${roomParam}`;
+        navigator.clipboard.writeText(url).then(() => {
+            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado (Envie aos amigos!)</span>`);
+        });
+    };
+
+    function onDiceClick(event) {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(diceList);
+        if (intersects.length > 0) {
+            const clickedDice = intersects[0].object;
+            removeDice(clickedDice);
+        }
+    }
+
+    function removeDice(dice, isRemote = false) {
+        if(dice.userData.isRemoving) return;
+        dice.userData.isRemoving = true;
+        dice.userData.label.style.display = 'none';
+
+        if (!isRemote) {
+            broadcast({ action: 'remove', id: dice.userData.id });
+        }
+
+        const startScale = dice.scale.x; let startTime = Date.now();
+        const anim = () => {
+            let elapsed = Date.now() - startTime; let progress = elapsed / 300;
+            if (progress < 1) {
+                const s = startScale * (1 - progress); dice.scale.set(s, s, s); dice.rotation.y += 0.2;
+                requestAnimationFrame(anim);
+            } else {
+                scene.remove(dice); dice.userData.label.remove();
+                diceList = diceList.filter(d => d !== dice); window.updateTotal(isRemote); 
+            }
+        };
+        anim();
+    }
+
+    window.saveAndClearDice = (isRemote = false, remoteAuthor = null) => {
+        if (diceList.length === 0) return;
+        [...diceList].forEach(d => removeDice(d, true)); 
+        
+        if(!isRemote && !isShareMode) {
+            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa.</span>`, false, null, window.playerName);
+            broadcast({ action: 'clear' });
+        }
+    }
+
+    window.addDie = (type, event) => {
+        let rollMode = 'normal';
+        if (window.cheatsEnabled && event) {
+            if (event.shiftKey) rollMode = 'shift';
+            else if (event.ctrlKey) rollMode = 'ctrl';
+        }
+        spawnDice(type, null, rollMode, null, null, false);
+    };
+
+    window.addCustomFromInput = (event) => {
+        const input = document.getElementById('custom-sides-input');
+        const sides = parseInt(input.value); if(!sides || sides < 2) return;
+        let rollMode = 'normal';
+        if (window.cheatsEnabled && event) {
+            if (event.shiftKey) rollMode = 'shift';
+            else if (event.ctrlKey) rollMode = 'ctrl';
+        }
+        spawnDice('custom', sides, rollMode, null, null, false);
+    }
+
+    function spawnDice(type, sides, rollMode = 'normal', forcedValue = null, id = null, isRemote = false, remoteAuthor = null, isSyncInit = false, customConfig = null) {
+        let geometry, material;
+        const finalSides = sides || (configs[type] ? configs[type].sides : 0);
+
+        if (type === 'custom' || type === 'custom_obj') {
+            const hexColor = customConfig ? customConfig.color : '#ff4500';
+            const matColor = new THREE.Color(hexColor);
+            material = new THREE.MeshStandardMaterial({ 
+                color: matColor, emissive: matColor, emissiveIntensity: 0.5, roughness: 0.15, metalness: 0.8, flatShading: true 
+            }); 
+            geometry = new THREE.SphereGeometry(1.2, 24, 24); 
+        } else {
+            const conf = configs[type]; geometry = conf.geo;
+            material = new THREE.MeshStandardMaterial({ 
+                color: conf.color, emissive: conf.emissive, emissiveIntensity: conf.intensity,
+                roughness: type === 'coin' ? 0.4 : 0.2, metalness: type === 'coin' ? 0.9 : 0.5, flatShading: type !== 'coin'
+            });
+        }
+        
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true; mesh.receiveShadow = true;
+        const label = document.createElement('div'); label.className = 'dice-label'; container.appendChild(label);
+        
+        const meshId = id || Date.now() + Math.random().toString(36).substring(2,7);
+
+        mesh.userData = { 
+            id: meshId, type, sides: finalSides, label, value: 0, rollMode: rollMode || 'normal', yOffset: 0, isRolling: false, isSyncInit: isSyncInit, customConfig: customConfig
+        };
+        
+        scene.add(mesh); diceList.push(mesh);
+        rollSingle(mesh, forcedValue, isRemote, remoteAuthor);
+    }
+
+    // Comportamento do Crítico ajustado: não some o dado e não dispara automaticamente os efeitos globais padrão a menos que configurado
+    function triggerCritCustomEffects(dice) {
+        playCritSound();
+        const audio1 = document.getElementById('audioConfetti1');
+        const audio2 = document.getElementById('audioConfetti2');
+        audio1.currentTime = 0; audio2.currentTime = 0;
+        audio1.play().catch(()=>{}); audio2.play().catch(()=>{});
+
+        const gifSrc = (dice.userData.customConfig && dice.userData.customConfig.gif) ? dice.userData.customConfig.gif : 'confetti.gif';
+
+        const gif = document.createElement('img');
+        gif.src = gifSrc + '?t=' + Date.now(); 
+        gif.style.position = 'absolute';
+        gif.style.width = '180px';
+        gif.style.height = '180px';
+        gif.style.pointerEvents = 'none';
+        gif.style.zIndex = '99';
+        gif.style.transform = 'translate(-50%, -50%)';
+
+        const updateGifPos = () => {
+            if(!gif.parentNode) return;
+            const vector = dice.position.clone().project(camera);
+            if(vector.z < 1) {
+                gif.style.left = `${(vector.x + 1) * container.clientWidth / 2}px`;
+                gif.style.top = `${(-vector.y + 1) * container.clientHeight / 2}px`;
+            }
+            requestAnimationFrame(updateGifPos);
+        };
+
+        container.appendChild(gif);
+        updateGifPos();
+
+        setTimeout(() => {
+            if(gif.parentNode) gif.remove();
+        }, 2000); 
+    }
+
+    function getActionName(val, max) {
+        if (val === max) return "<span style='color:var(--magic)'>MELHOR! (Escolha + Blowup)</span>";
+        if (val === 1) return "<span style='color:var(--danger)'>BOZO (Lógica de Cartoon)</span>";
+        let actions = [];
+        if (val === 2 || val === 3) actions.push("Cérebro");
+        if (val >= 3 && val <= 5) actions.push("Corpo");
+        if (val >= 4 && val <= 7) actions.push("Comportamento");
+        if (val >= 5 && val <= 9) actions.push("Equilíbrio");
+        return actions.length > 0 ? actions.join(" / ") : "Sem Ação";
+    }
+
+    function rollSingle(dice, forcedValue = null, isRemote = false, remoteAuthor = null) {
+        if(dice.userData.isRemoving) return;
+        dice.userData.label.style.display = 'none';
+        dice.userData.label.className = 'dice-label';
+        dice.userData.isRolling = true;
+        dice.visible = true; // O dado permanece visível mesmo no crítico!
+        
+        let trueRes, res;
+
+        if (forcedValue !== null) {
+            res = forcedValue; trueRes = res;
+        } else if (dice.userData.type === 'coin') {
+            if (dice.userData.rollMode === 'shift') res = "Ca";
+            else if (dice.userData.rollMode === 'ctrl') res = "Co";
+            else res = Math.random() > 0.5 ? "Ca" : "Co";
+            trueRes = res;
+        } else {
+            trueRes = Math.floor(Math.random() * dice.userData.sides) + 1;
+            
+            if (dice.userData.rollMode === 'shift') { 
+                res = dice.userData.sides; 
+            } else if (dice.userData.rollMode === 'ctrl') {
+                let prev = window.lastRolledValue || 0;
+                if (prev === 19 || prev === 20) {
+                    res = prev;
+                } else {
+                    res = prev + 1;
+                    if (res >= 20) res = 19; 
+                }
+            } else { 
+                res = trueRes; 
+            }
+        }
+
+        if (dice.userData.type !== 'coin') {
+            window.lastRolledValue = res;
+        }
+
+        if (!isRemote) {
+            broadcast({ action: 'spawn', type: dice.userData.type, sides: dice.userData.sides, value: res, id: dice.userData.id, rollMode: dice.userData.rollMode, customConfig: dice.userData.customConfig });
+        }
+
+        let start = Date.now();
+        const duration = (forcedValue !== null && diceList.length > 0 && !dice.userData.isRolling) ? 0 : (dice.userData.type === 'coin' ? 800 : 500); 
+        const randRotX = (Math.random() - 0.5) * 0.5; const randRotY = (Math.random() - 0.5) * 0.5;
+
+        const anim = () => {
+            const elapsed = Date.now() - start;
+            if (elapsed < duration) {
+                if (dice.userData.type === 'coin') {
+                    dice.rotation.x += 0.5; dice.rotation.y += 0.1;
+                    dice.userData.yOffset = Math.sin((elapsed / duration) * Math.PI) * 4.5; 
+                } else {
+                    dice.rotation.x += 0.3 + randRotX; dice.rotation.y += 0.3 + randRotY; dice.rotation.z += 0.1;
+                }
+                requestAnimationFrame(anim);
+            } else {
+                dice.userData.isRolling = false; dice.userData.yOffset = 0;
+                
+                if (dice.userData.type === 'coin') {
+                    dice.rotation.set(Math.PI / 2, 0, 0); 
+                } else {
+                    dice.rotation.set(0,0,0);
+                }
+
+                if (dice.userData.type === 'coin') {
+                    dice.userData.value = 0; dice.userData.label.innerText = res;  
+                    dice.userData.label.className = res === "Ca" ? 'dice-label text-blue' : 'dice-label text-green';
+                } else {
+                    dice.userData.value = res; dice.userData.label.innerText = res;
+                    if (res === dice.userData.sides) {
+                        dice.visible = true; // O dado NUNCA some no crítico agora
+                        dice.userData.label.className = 'dice-label crit-text';
+                        if(forcedValue === null || duration > 0) {
+                            triggerCritCustomEffects(dice);
+                        }
+                    } else {
+                        dice.userData.label.style.textShadow = `0 0 10px white, 0 0 20px #${dice.material.emissive.getHexString()}`;
+                    }
+                }
+                
+                dice.userData.label.style.display = 'block'; window.updateTotal(isRemote);
+
+                if (!isShareMode && !dice.userData.isSyncInit) {
+                    const author = isRemote ? remoteAuthor : window.playerName;
+                    if (dice.userData.type === 'coin') {
+                        window.logToDevlog(`Rolou <b>MOEDA</b>: <span style="color:${res === 'Ca'?'#00e5ff':'#00ff66'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
+                    } else {
+                        const dName = dice.userData.customConfig ? dice.userData.customConfig.name.toUpperCase() : (dice.userData.type.toUpperCase() === 'CUSTOM' ? `D${dice.userData.sides}` : dice.userData.type.toUpperCase());
+                        window.logToDevlog(`Rolou <b>${dName}</b>: <span style="color:${res === dice.userData.sides?'var(--danger)':'var(--success)'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
+                    }
+                }
+                dice.userData.isSyncInit = false; 
+            }
+        };
+        anim();
+    }
+
+    window.rollAll = (isRemote = false, remoteAuthor = null) => {
+        if(isShareMode) return;
+        if(!isRemote) {
+            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Rerolando mesa inteira...</span>`, false, null, window.playerName);
+            broadcast({ action: 'reroll_all' });
+        }
+        
+        diceList.forEach(d => {
+            let trueRes = (d.userData.type === 'coin') ? (Math.random() > 0.5 ? "Ca" : "Co") : (Math.floor(Math.random() * d.userData.sides) + 1);
+            if(!isRemote) broadcast({ action: 'reroll_single', id: d.userData.id, value: trueRes });
+            rollSingle(d, trueRes, true); 
+        });
+    }
+
+    window.updateValuesFromInputs = () => {
+        const modInput = document.getElementById('modifier-input');
+        const pctInput = document.getElementById('percent-input');
+        
+        if (modInput) window.currentModifier = parseInt(modInput.value) || 0;
+        if (pctInput) window.currentPercent = parseFloat(pctInput.value) || 0;
+
+        window.updateTotal(false);
+    }
+
+    window.updateTotal = (isRemote = false) => {
+        const diceSum = diceList.reduce((acc, d) => acc + (d.userData.isRemoving ? 0 : (d.userData.value || 0)), 0);
+        
+        const rawEl = document.getElementById('raw-total');
+        if(rawEl) {
+            rawEl.innerText = diceSum;
+            if(diceSum > 0) rawEl.classList.add('active'); else rawEl.classList.remove('active');
+        }
+
+        const hudModEl = document.getElementById('hud-modifier');
+        const hudPctEl = document.getElementById('hud-percent');
+        const hudFinalEl = document.getElementById('hud-final-total');
+        const finEl = document.getElementById('final-total');
+
+        let total = diceSum + window.currentModifier;
+        if(window.currentPercent !== 0) total += total * (window.currentPercent / 100);
+        const finalRounded = Math.round(total);
+
+        if(finEl) finEl.innerText = finalRounded;
+        
+        if(hudFinalEl) {
+            hudFinalEl.innerText = finalRounded;
+            if(finalRounded > 0) hudFinalEl.classList.add('active'); else hudFinalEl.classList.remove('active');
+        }
+        
+        if(hudModEl) {
+            hudModEl.innerText = window.currentModifier >= 0 ? `+${window.currentModifier}` : window.currentModifier;
+            if(window.currentModifier !== 0) hudModEl.classList.add('active'); else hudModEl.classList.remove('active');
+        }
+        
+        if(hudPctEl) {
+            hudPctEl.innerText = window.currentPercent >= 0 ? `+${window.currentPercent}%` : `${window.currentPercent}%`;
+            if(window.currentPercent !== 0) hudPctEl.classList.add('active-pct'); else hudPctEl.classList.remove('active-pct');
+        }
+        
+        if(!isShareMode && !isRemote) {
+            broadcast({ action: 'hud', mod: window.currentModifier, pct: window.currentPercent });
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i]; p.position.add(p.userData.velocity); p.userData.life -= 0.02; 
+            const scale = p.userData.life * 0.15; p.scale.set(scale, scale, scale);
+            if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+        }
+
+        const cols = isShareMode ? 2 : 4; 
+        const spacingX = isShareMode ? 2.0 : 2.5;
+        const spacingY = isShareMode ? 2.1 : 2.5;
+
+        diceList.forEach((dice, i) => {
+            if(!dice.userData.isRemoving) {
+                const time = Date.now() * 0.001;
+                const rowCount = Math.ceil(diceList.length / cols);
+                const col = i % cols; const row = Math.floor(i / cols);
+
+                const tx = (col - (Math.min(diceList.length, cols) - 1) / 2) * spacingX;
+                const ty = (((rowCount - 1) / 2) - row) * spacingY + Math.sin(time + i) * 0.1;
+                
+                dice.position.x += (tx - dice.position.x) * 0.1;
+                if (dice.userData.isRolling && dice.userData.type === 'coin') {
+                    dice.position.y = ty + dice.userData.yOffset;
+                } else {
+                    dice.position.y += (ty - dice.position.y) * 0.1;
+                }
+                
+                if (!dice.userData.isRolling) {
+                    if (dice.userData.type === 'coin') {
+                        dice.rotation.x = Math.PI / 2 + Math.sin(time * 2 + i) * 0.1;
+                        dice.rotation.y = Math.cos(time * 2 + i) * 0.1; dice.rotation.z += 0.01;
+                    } else if (['d5','d7','d9'].includes(dice.userData.type)) {
+                        dice.rotation.x = Math.PI / 2; dice.rotation.y += 0.005; dice.rotation.z += 0.002;
+                    } else {
+                        dice.rotation.y += 0.005; dice.rotation.z += 0.002;
+                    }
+                }
+            }
+            
+            const vector = dice.position.clone().project(camera);
+            if (vector.z < 1) {
+                dice.userData.label.style.left = `${(vector.x + 1) * container.clientWidth / 2}px`;
+                dice.userData.label.style.top = `${(-vector.y + 1) * container.clientHeight / 2}px`;
+            }
+        });
+        renderer.render(scene, camera);
+    }
+
+    function handleIncomingData(data, senderConn) {
+        const remoteAuthor = data.playerName || "Desconhecido";
+
+        if (data.action === 'sync_init') {
+            if (!isHost) {
+                [...diceList].forEach(d => removeDice(d, true));
+                window.currentModifier = parseInt(data.mod) || 0;
+                window.currentPercent = parseFloat(data.pct) || 0;
+                
+                if(data.customDice) {
+                    window.customDiceList = data.customDice;
+                    renderCustomDiceButtons();
+                }
+
+                if(!isShareMode) {
+                    const modInput = document.getElementById('modifier-input');
+                    const pctInput = document.getElementById('percent-input');
+                    if(modInput) modInput.value = window.currentModifier;
+                    if(pctInput) pctInput.value = window.currentPercent;
+                }
+
+                const devlogEl = document.getElementById('devlog');
+                if (devlogEl && data.devlog) {
+                    devlogEl.innerHTML = data.devlog;
+                }
+                
+                window.logToDevlog(`🎮 Conectado e sincronizado à sala: ${roomParam}`);
+
+                data.dice.forEach(d => { spawnDice(d.type, d.sides, d.rollMode || 'normal', d.value, d.id, true, remoteAuthor, true, d.customConfig); });
+                window.updateTotal(true);
+            }
+        } else if(data.action === 'sync_custom_dice') {
+            if(data.customDice) {
+                window.customDiceList = data.customDice;
+                renderCustomDiceButtons();
+            }
+        } else if(data.action === 'spawn') {
+            spawnDice(data.type, data.sides, data.rollMode || 'normal', data.value, data.id, true, remoteAuthor, false, data.customConfig);
+        } else if(data.action === 'remove') {
+            const target = diceList.find(d => d.userData.id === data.id);
+            if(target) removeDice(target, true);
+        } else if(data.action === 'clear') {
+            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa remotamente.</span>`, false, null, remoteAuthor);
+            saveAndClearDice(true, remoteAuthor);
+        } else if(data.action === 'reroll_single') {
+            const target = diceList.find(d => d.userData.id === data.id);
+            if(target) rollSingle(target, data.value, true, remoteAuthor);
+        } else if(data.action === 'reroll_all') {
+            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Mesa inteira rerolada remotamente.</span>`, false, null, remoteAuthor);
+        } else if(data.action === 'cinematic') {
+            window.logToDevlog(`<span style="color: #ff0000; font-weight:900; text-shadow: 0 0 10px #ff0000; font-size: 16px;">⚡ CINEMÁTICO ATIVADO!</span>`, true, null, remoteAuthor);
+            
+            const overlay = document.getElementById('video-overlay');
+            const video = document.getElementById('cinematic-video');
+            overlay.style.display = 'flex'; 
+            video.currentTime = 0; 
+            video.play().catch(e => console.log(e));
+            video.onended = () => { overlay.style.display = 'none'; };
+
+        } else if(data.action === 'hud') {
+            window.currentModifier = data.mod; window.currentPercent = data.pct; 
+            if(!isShareMode) {
+                const modInput = document.getElementById('modifier-input');
+                const pctInput = document.getElementById('percent-input');
+                if(modInput) modInput.value = window.currentModifier;
+                if(pctInput) pctInput.value = window.currentPercent;
+            }
+            window.updateTotal(true);
+        }
+
+        if (isHost && senderConn) {
+            activeConnections.forEach(c => {
+                if (c !== senderConn && c.open) {
+                    c.send(data);
+                }
+            });
+        }
+    }
+    
+    init3D();
+</script>
+</body>
+</html>
