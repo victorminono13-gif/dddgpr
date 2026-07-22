@@ -3,47 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesa do Mestre - O Incrível Roleplaying Digital</title>
+    <title>Dados do Mestre - Blackout & Fire</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-        /* --- TEMA O INCRÍVEL CIRCO DIGITAL --- */
+        /* --- TEMA BLACKOUT --- */
         :root {
-            --bg-body: #ffb6c1; 
-            --bg-panel: #fffdf5; 
-            --border: #e74c3c; 
-            --accent: #3498db; 
-            --success: #2ecc71; 
-            --magic: #f1c40f; 
-            --danger: #e74c3c; 
-            --purple: #9b59b6;
-            --text-main: #2c3e50;
-            --text-muted: #7f8c8d;
+            --bg-body: #000000;
+            --bg-panel: #050505;
+            --border: #1a1a1a;
+            --accent: #00ffcc;
+            --success: #00ff66;
+            --magic: #ffaa00;
+            --danger: #ff0000;
+            --text-muted: #444;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         
         body { 
             background-color: var(--bg-body); 
-            background-image: radial-gradient(#ff9ead 20%, transparent 20%), radial-gradient(#ff9ead 20%, transparent 20%);
-            background-position: 0 0, 25px 25px;
-            background-size: 50px 50px;
-            color: var(--text-main); 
+            color: #fff; 
             min-height: 100vh; 
             padding: 40px 20px;
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            transition: background-color 0.1s;
-        }
-
-        h2, h3 {
-            color: var(--danger);
-            text-shadow: 2px 2px 0px var(--magic);
-            font-weight: 900;
-            letter-spacing: 2px;
-            text-transform: uppercase;
         }
 
         .app-container {
@@ -51,7 +37,6 @@
             gap: 20px;
             width: 100%;
             max-width: 1100px; 
-            transition: 0.1s;
         }
 
         .main-wrapper {
@@ -62,17 +47,17 @@
         .devlog-wrapper {
             flex: 1;
             background-color: var(--bg-panel); 
-            border-radius: 15px; 
+            border-radius: 12px; 
             padding: 25px;
-            border: 4px solid var(--accent);
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            box-shadow: 0 0 60px rgba(0,0,0,1);
             display: flex;
             flex-direction: column;
             max-height: 855px;
         }
 
         .devlog-header {
-            text-align: center; margin-bottom: 15px; font-size: 18px;
+            text-align: center; margin-bottom: 15px; font-size: 14px; color: #333; letter-spacing: 2px; text-transform: uppercase;
         }
 
         .devlog-content {
@@ -84,24 +69,23 @@
             padding-right: 5px;
         }
 
-        .devlog-content::-webkit-scrollbar { width: 8px; }
-        .devlog-content::-webkit-scrollbar-track { background: #eee; border-radius: 4px; }
-        .devlog-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+        .devlog-content::-webkit-scrollbar { width: 6px; }
+        .devlog-content::-webkit-scrollbar-track { background: #000; }
+        .devlog-content::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
         .log-entry {
-            background: #ffffff;
+            background: #0a0a0a;
             padding: 12px;
-            border-left: 5px solid var(--accent);
-            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
             font-size: 13px;
-            color: var(--text-main);
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+            color: #ddd;
             animation: fadeIn 0.3s ease-out;
             cursor: pointer;
             transition: 0.2s;
         }
         
-        .log-entry:hover { transform: translateY(-2px); box-shadow: 4px 4px 0px rgba(0,0,0,0.1); }
+        .log-entry:hover { background: #111; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 
@@ -118,10 +102,10 @@
 
         .true-log {
             display: none;
-            color: var(--accent);
+            color: var(--magic);
             font-size: 11px;
             margin-top: 8px;
-            border-top: 2px dashed #eee;
+            border-top: 1px dashed #331a00;
             padding-top: 6px;
             font-weight: bold;
             animation: fadeIn 0.3s ease-out;
@@ -131,20 +115,20 @@
 
         .dice-section {
             background-color: var(--bg-panel); 
-            border-radius: 15px; 
+            border-radius: 12px; 
             padding: 25px;
-            border: 4px solid var(--danger);
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            box-shadow: 0 0 60px rgba(0,0,0,1);
         }
         
         .dice-viewport {
             width: 100%; 
             height: 380px; 
-            background: #1a1a3a; 
-            border-radius: 12px;
+            background: #000;
+            border-radius: 8px;
             position: relative; 
             overflow: hidden; 
-            border: 4px solid var(--magic); 
+            border: 1px solid #111; 
             cursor: crosshair;
             margin-bottom: 25px;
             box-shadow: inset 0 0 30px #000;
@@ -162,141 +146,237 @@
         }
         
         .crit-text {
-            color: var(--magic) !important;
+            color: #ff0000 !important;
             font-size: 40px !important;
-            text-shadow: 0 0 20px var(--danger), 0 0 40px #000 !important;
+            text-shadow: 0 0 20px #ff0000, 0 0 40px #000 !important;
             animation: pulseCrit 0.5s infinite alternate;
         }
         @keyframes pulseCrit { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.2); } }
 
-        .text-blue { color: #00e5ff !important; font-size: 36px !important; text-shadow: 0 0 15px #00e5ff, 0 0 30px #000 !important; }
-        .text-green { color: #00ff66 !important; font-size: 36px !important; text-shadow: 0 0 15px #00ff66, 0 0 30px #000 !important; }
+        .text-blue {
+            color: #00e5ff !important;
+            font-size: 36px !important;
+            text-shadow: 0 0 15px #00e5ff, 0 0 30px #000 !important;
+        }
+        .text-green {
+            color: #00ff66 !important;
+            font-size: 36px !important;
+            text-shadow: 0 0 15px #00ff66, 0 0 30px #000 !important;
+        }
 
         /* --- HUD DE EXIBIÇÃO EM TEMPO REAL --- */
         .hud-overlay {
-            position: absolute; bottom: 55px; right: 20px; text-align: right; 
-            pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+            position: absolute; 
+            bottom: 55px; 
+            right: 20px; 
+            text-align: right; 
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
         }
-        .hud-item { display: flex; flex-direction: column; align-items: flex-end; }
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
         .hud-value { 
-            font-size: 44px; font-weight: 900; color: rgba(255,255,255,0.2); line-height: 0.9; transition: color 0.3s;
+            font-size: 44px; 
+            font-weight: 800; 
+            color: rgba(255,255,255,0.1);
+            line-height: 0.9; 
+            transition: color 0.3s;
         }
-        .hud-value.active { color: var(--magic); text-shadow: 0 0 15px rgba(241, 196, 15, 0.6); }
+        .hud-value.active { color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
         
-        .hud-value-small { font-size: 22px; font-weight: 800; color: rgba(255,255,255,0.2); line-height: 0.9; transition: color 0.3s; }
-        .hud-value-small.active { color: var(--accent); text-shadow: 0 0 10px rgba(52, 152, 219, 0.8); }
-        .hud-value-small.active-pct { color: var(--danger); text-shadow: 0 0 10px rgba(231, 76, 60, 0.8); }
+        .hud-value-small {
+            font-size: 22px; 
+            font-weight: 700;
+            color: rgba(255,255,255,0.1);
+            line-height: 0.9;
+            transition: color 0.3s;
+        }
+        .hud-value-small.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
+        .hud-value-small.active-pct { color: var(--magic); text-shadow: 0 0 10px rgba(255,170,0,0.4); }
         
-        .hud-label { font-size: 10px; color: #ddd; letter-spacing: 1.5px; font-weight: bold; text-transform: uppercase; }
+        .hud-label { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
 
-        .controls-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .controls-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
 
-        .light-input-group {
-            background: #ffffff; padding: 12px; border-radius: 10px; border: 2px solid var(--accent);
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+        .dark-input-group {
+            background: #0a0a0a;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #222;
         }
-        .light-label { font-size: 11px; font-weight: 900; color: var(--accent); display: block; margin-bottom: 5px; text-transform: uppercase;}
+        .dark-label { font-size: 10px; font-weight: bold; color: var(--accent); display: block; margin-bottom: 5px; opacity: 0.7; }
         
-        .light-input {
-            background: transparent; border: none; border-bottom: 2px solid #ccc;
-            color: var(--text-main); width: 100%; text-align: center; font-size: 20px; font-weight: 900; padding: 5px;
+        .dark-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #333;
+            color: white;
+            width: 100%;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 5px;
         }
-        .light-input:focus { outline: none; border-color: var(--danger); }
+        .dark-input:focus { outline: none; border-color: var(--accent); }
 
         .result-box {
-            background: #ffffff; border: 3px solid var(--success);
-            padding: 15px 25px; border-radius: 10px; display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 30px; box-shadow: 4px 4px 0px rgba(46, 204, 113, 0.2);
+            background: #080808;
+            border: 1px solid #222;
+            border-left: 4px solid var(--success);
+            padding: 15px 25px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
         }
-        .result-title { font-weight: 900; color: var(--success); font-size: 16px; letter-spacing: 1px; }
-        .result-number { font-size: 38px; font-weight: 900; color: var(--success); }
+        .result-title { font-weight: bold; color: var(--success); font-size: 14px; letter-spacing: 1px; }
+        .result-number { font-size: 36px; font-weight: bold; color: #fff; text-shadow: 0 0 20px var(--success); }
 
-        .dice-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+        .dice-grid { 
+            display: grid; 
+            grid-template-columns: repeat(9, 1fr); 
+            gap: 6px; 
+            margin-bottom: 20px;
+        }
 
         .dice-btn { 
-            padding: 12px 0; background: #fff; border: 2px solid #ccc; color: var(--text-main);
-            font-weight: 900; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-            font-size: 13px; user-select: none; box-shadow: 2px 2px 0px #ccc;
+            padding: 12px 0; background: #111; border: 1px solid #222; color: #666;
+            font-weight: bold; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+            font-size: 12px; user-select: none;
         }
         
-        .dice-btn:active { transform: translateY(2px); box-shadow: none; }
-        .btn-d4:hover  { background: #e8f4f8; border-color: var(--accent); color: var(--accent); box-shadow: 2px 2px 0px var(--accent);}
-        .btn-d5:hover  { background: #e8f8f0; border-color: #16a085; color: #16a085; box-shadow: 2px 2px 0px #16a085;}
-        .btn-d6:hover  { background: #fdf2e9; border-color: #e67e22; color: #e67e22; box-shadow: 2px 2px 0px #e67e22;}
-        .btn-d7:hover  { background: #fef5e7; border-color: #f39c12; color: #f39c12; box-shadow: 2px 2px 0px #f39c12;}
-        .btn-d8:hover  { background: #f4ecf7; border-color: #9b59b6; color: #9b59b6; box-shadow: 2px 2px 0px #9b59b6;}
-        .btn-d9:hover  { background: #f9ebea; border-color: #c0392b; color: #c0392b; box-shadow: 2px 2px 0px #c0392b;}
-        .btn-d10:hover { background: #fdedec; border-color: var(--danger); color: var(--danger); box-shadow: 2px 2px 0px var(--danger);}
-        .btn-d20 { border-color: var(--magic); color: #d4ac0d; }
-        .btn-d20:hover { background: #fef9e7; color: #d4ac0d; box-shadow: 2px 2px 0px var(--magic); }
-        .btn-d100:hover { background: #eaeded; border-color: #34495e; color: #34495e; box-shadow: 2px 2px 0px #34495e; }
-        .btn-coin:hover { background: #ecf0f1; border-color: #7f8c8d; color: #7f8c8d; box-shadow: 2px 2px 0px #bdc3c7;}
+        .btn-coin { border-color: #bdc3c7; color: #bdc3c7; }
+        .btn-coin:hover { background: #bdc3c7; color: #000; box-shadow: 0 0 15px #bdc3c7; }
+        .btn-d4:hover  { background: #2c3e50; color: #fff; box-shadow: 0 0 10px #2c3e50; border-color: #2c3e50;}
+        .btn-d6:hover  { background: #2980b9; color: #fff; box-shadow: 0 0 10px #2980b9; border-color: #2980b9;}
+        .btn-d8:hover  { background: #8e44ad; color: #fff; box-shadow: 0 0 10px #8e44ad; border-color: #8e44ad;}
+        .btn-d10:hover { background: #d35400; color: #fff; box-shadow: 0 0 10px #d35400; border-color: #d35400;}
+        .btn-d12:hover { background: #c0392b; color: #fff; box-shadow: 0 0 10px #c0392b; border-color: #c0392b;}
+        .btn-d20 { border-color: #f1c40f; color: #f1c40f; font-weight: 900; }
+        .btn-d20:hover { background: #f1c40f; color: #000; box-shadow: 0 0 20px #f1c40f; }
+        .btn-d100 { border-color: #bdc3c7; color: #bdc3c7; }
+        .btn-d100:hover { background: #bdc3c7; color: #000; box-shadow: 0 0 20px #bdc3c7; }
+        .btn-custom-dice { border-color: var(--magic); color: var(--magic); }
+        .btn-custom-dice:hover { background: var(--magic); color: #000; box-shadow: 0 0 15px var(--magic); }
+        .btn-add-custom { border-color: var(--success); color: var(--success); font-size: 16px; font-weight: 900; }
+        .btn-add-custom:hover { background: var(--success); color: #000; box-shadow: 0 0 15px var(--success); }
 
         .custom-zone {
-            display: flex; gap: 10px; background: #ffffff; padding: 10px; border: 2px dashed var(--accent); 
-            border-radius: 10px; margin-bottom: 20px; align-items: center;
+            display: flex; gap: 10px; background: linear-gradient(90deg, #150800, #000);
+            padding: 5px; border: 1px solid #331a00; border-radius: 8px; position: relative;
+            overflow: hidden; margin-bottom: 10px;
+        }
+        
+        .custom-zone::before {
+            content: ''; position: absolute; top:0; left:0; width: 2px; height: 100%;
+            background: var(--magic); box-shadow: 0 0 15px var(--magic); opacity: 0.6;
         }
 
         .custom-input-wrapper { position: relative; flex: 1; }
         
         .magic-input {
-            width: 100%; background: #f4f6f7; border: 2px solid #bdc3c7; color: var(--text-main);
-            padding: 12px 10px 12px 40px; border-radius: 8px; font-size: 16px; font-weight: bold; transition: 0.3s;
+            width: 100%; background: #000; border: 1px solid #442200; color: var(--magic);
+            padding: 12px 10px 12px 40px; border-radius: 6px; font-size: 16px; font-weight: bold; transition: 0.3s;
         }
-        .magic-input:focus { outline: none; border-color: var(--accent); }
-        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 16px; }
+        .magic-input:focus { outline: none; border-color: var(--magic); box-shadow: 0 0 15px rgba(255, 170, 0, 0.2); }
+        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666; font-size: 14px; }
 
         .btn-magic {
-            flex: 1; border: none; background: var(--magic); color: #fff; text-shadow: 1px 1px 0px #d4ac0d;
-            font-weight: 900; border-radius: 8px; cursor: pointer; text-transform: uppercase;
-            letter-spacing: 1px; font-size: 14px; transition: all 0.3s; border: 2px solid #d4ac0d;
-            display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+            flex: 1; border: none; background: linear-gradient(135deg, #4a2500, #2a1200); color: white;
+            font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 1px; font-size: 12px; transition: all 0.3s; border: 1px solid #663300;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn-magic:hover { transform: translateY(-2px); box-shadow: 4px 6px 0px rgba(0,0,0,0.15); filter: brightness(1.1); }
-        .btn-magic:active { transform: translateY(2px); box-shadow: none; }
+        .btn-magic:hover { background: var(--magic); color: #000; box-shadow: 0 0 30px var(--magic); border-color: white; }
         
         .actions-group { display: flex; gap: 10px; margin-top: 15px; }
 
         .action-btn { 
-            flex: 1; padding: 15px; background: #ffffff; color: var(--accent); 
-            border: 2px solid var(--accent); border-radius: 8px; font-weight: 900; cursor: pointer;
-            transition: 0.2s; letter-spacing: 1px; box-shadow: 3px 3px 0px var(--accent);
+            flex: 1; padding: 15px; background:#080808; color: var(--accent); 
+            border: 1px solid var(--accent); border-radius: 4px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; letter-spacing: 2px;
         }
-        .action-btn:hover { background: var(--accent); color: white; transform: translateY(-2px); }
-        .action-btn:active { transform: translateY(2px); box-shadow: none; }
+        .action-btn:hover { background: var(--accent); color: black; box-shadow: 0 0 30px var(--accent); }
 
-        .btn-dramatizacao { color: var(--purple); border-color: var(--purple); box-shadow: 3px 3px 0px var(--purple); }
-        .btn-dramatizacao:hover { background: var(--purple); color: white; }
+        .btn-cinematic { background: #1a0000; color: var(--danger); border-color: var(--danger); }
+        .btn-cinematic:hover { background: var(--danger); color: white; box-shadow: 0 0 30px var(--danger); }
 
-        .btn-clear { flex: 0.2; background: #ffffff; color: #7f8c8d; border-color: #bdc3c7; box-shadow: 3px 3px 0px #bdc3c7; }
-        .btn-clear:hover { background: #e74c3c; color: white; border-color: #e74c3c; box-shadow: 3px 3px 0px #c0392b; }
+        .btn-invite { flex: 0.2; background: #001a33; color: var(--accent); border-color: var(--accent); }
+        .btn-invite:hover { background: var(--accent); color: black; box-shadow: 0 0 30px var(--accent); }
+
+        .btn-clear { flex: 0.2; background: #2a0000; color: var(--danger); border-color: var(--danger); }
+        .btn-clear:hover { background: var(--danger); color: white; box-shadow: 0 0 30px var(--danger); }
+
+        /* --- VIDEO OVERLAY --- */
+        #video-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.95); z-index: 9999; align-items: center; justify-content: center;
+        }
+
+        #cinematic-video {
+            max-width: 90%; max-height: 90%; box-shadow: 0 0 50px var(--danger);
+            border: 2px solid var(--danger); border-radius: 8px; cursor: pointer;
+        }
+
+        /* --- MODAL DE CUSTOMIZAÇÃO DE DADOS (Shift + Espaço) --- */
+        #customDiceModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vw;
+            background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--bg-panel); border: 2px solid var(--magic); border-radius: 12px;
+            padding: 30px; width: 450px; max-width: 90%; box-shadow: 0 0 40px rgba(255,170,0,0.3);
+        }
+        .modal-content h3 { color: var(--magic); margin-bottom: 20px; text-align: center; }
+        .modal-group { margin-bottom: 15px; }
+        .modal-group label { display: block; font-size: 11px; color: var(--accent); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .modal-group input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 6px; font-size: 14px; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
 
         /* --- MODO OBS TRANSMISSÃO (SHARE) --- */
         body.share-mode {
             padding: 0; margin: 0; display: flex; align-items: center; justify-content: center;
-            background-color: transparent; 
+            background-color: #000000; 
             overflow: hidden; height: 100vh; width: 100vw;
-            color: #000; 
-        }
-        body.share-mode .devlog-wrapper, body.share-mode .controls-row, body.share-mode .result-box,
-        body.share-mode .dice-grid, body.share-mode .custom-zone, body.share-mode .actions-group, body.share-mode h2 {
-            display: none !important;
-        }
-        body.share-mode .main-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
-        body.share-mode .dice-section { padding: 0; border: none; box-shadow: none; background: transparent; width: auto; }
-        body.share-mode .dice-viewport {
-            width: 360px; height: 640px; margin: 0; border-radius: 0px; border: none;
-            box-shadow: none; background: transparent; 
         }
 
-        /* Cores Pretas Específicas para os textos do HUD no Link (OBS) */
-        body.share-mode .hud-label { color: #000 !important; text-shadow: 1px 1px 0px #fff; }
-        body.share-mode .hud-value, body.share-mode .hud-value-small { color: rgba(0, 0, 0, 0.4) !important; text-shadow: none !important; }
-        body.share-mode .hud-value.active, body.share-mode .hud-value-small.active, body.share-mode .hud-value-small.active-pct { 
-            color: #000 !important; 
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8) !important; 
+        body.share-mode .devlog-wrapper,
+        body.share-mode .controls-row,
+        body.share-mode .result-box,
+        body.share-mode .dice-grid,
+        body.share-mode .custom-zone,
+        body.share-mode .actions-group,
+        body.share-mode h2,
+        body.share-mode #customDiceModal {
+            display: none !important;
         }
+
+        body.share-mode .main-wrapper {
+            display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;
+        }
+
+        body.share-mode .dice-section { padding: 0; border: none; box-shadow: none; background: transparent; width: auto; }
+
+        body.share-mode .dice-viewport {
+            width: 360px; 
+            height: 640px; 
+            margin: 0; border-radius: 0px; border: none;
+            box-shadow: none; background: #000000;
+        }
+
+        body.share-mode .app-container { max-width: 100%; justify-content: center; }
 
         /* --- JANELA CMD ESTILO WIN 98 (REGRAS ESC) --- */
         .window-cmd {
@@ -305,7 +385,7 @@
             width: 600px; height: 500px;
             background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff;
             border-right: 2px solid #808080; border-bottom: 2px solid #808080;
-            box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: 'Tahoma', sans-serif;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: 'Tahoma', sans-serif; color: #000;
         }
 
         .title-bar-cmd {
@@ -334,37 +414,45 @@
         .cmd-blue { color: #00e5ff; }
         .cmd-red { color: #ff3333; }
 
-        /* --- DRAMATIZAÇÃO DIGITAL --- */
-        @keyframes abstraction-glitch {
-            0% { filter: hue-rotate(0deg) contrast(1.5) saturate(2); transform: skew(0deg) translate(0, 0); }
-            20% { filter: hue-rotate(90deg) invert(0.2); transform: skew(-2deg) translate(-3px, 2px); }
-            40% { filter: hue-rotate(-90deg) contrast(2); transform: skew(2deg) translate(3px, -2px); }
-            60% { filter: hue-rotate(180deg) invert(0.1); transform: skew(-3deg) translate(-2px, 3px); }
-            80% { filter: hue-rotate(45deg) saturate(3); transform: skew(3deg) translate(2px, -3px); }
-            100% { filter: hue-rotate(0deg) contrast(1.5) saturate(2); transform: skew(0deg) translate(0, 0); }
-        }
-
-        body.abstracted {
-            background-color: #000 !important;
-            background-image: none;
-            overflow: hidden; 
-        }
-
-        body.abstracted .app-container {
-            animation: abstraction-glitch 0.2s infinite;
-        }
-
-        .abstr-eye {
-            position: fixed;
-            pointer-events: none;
-            z-index: 99999;
-            mix-blend-mode: screen; 
-            transform-origin: center center;
-        }
-
     </style>
 </head>
 <body>
+
+<div id="video-overlay">
+    <input type="file" id="video-upload" accept="video/*" style="display: none;">
+    <video id="cinematic-video" src="Kokusen.mp4"></video>
+</div>
+
+<!-- Modal de Customização de Dados (Shift + Espaço) -->
+<div id="customDiceModal">
+    <div class="modal-content">
+        <h3><i class="fa-solid fa-dice"></i> Criar Dado Customizado</h3>
+        <div class="modal-group">
+            <label>Nome do Dado (Ex: D16)</label>
+            <input type="text" id="modal-dice-name" value="D16">
+        </div>
+        <div class="modal-group">
+            <label>Número de Lados</label>
+            <input type="number" id="modal-dice-sides" value="16" min="2">
+        </div>
+        <div class="modal-group">
+            <label>Cor Hexadecimal (Ex: #ff00ff)</label>
+            <input type="text" id="modal-dice-color" value="#ff00ff">
+        </div>
+        <div class="modal-group">
+            <label>Link ou URL do GIF (Crítico/Efeito)</label>
+            <input type="text" id="modal-dice-gif" placeholder="confetti.gif">
+        </div>
+        <div class="modal-group">
+            <label>Link ou URL do Áudio (Efeito)</label>
+            <input type="text" id="modal-dice-audio" placeholder="confetti-pop.mp3">
+        </div>
+        <div class="modal-buttons">
+            <button class="action-btn" onclick="saveCustomDice()">Salvar e Adicionar</button>
+            <button class="action-btn btn-cinematic" onclick="closeCustomModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
 
 <audio id="audioClick" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a0328cdd3.mp3?filename=mouse-click-153941.mp3"></audio>
 <audio id="audioErroWin" src="erro.mp3"></audio>
@@ -374,7 +462,7 @@
 <div class="app-container">
     <div class="main-wrapper">
         <div class="dice-section">
-            <h2 style="text-align: center; margin-bottom: 25px; font-size: 20px;">🎪 O Incrível Roleplaying Game 🎪</h2>
+            <h2 style="text-align: center; margin-bottom: 25px; font-size: 16px; color: #fff; letter-spacing: 4px; text-transform: uppercase;">Mesa do Mestre</h2>
             
             <div class="dice-viewport" id="viewport">
                 <div class="hud-overlay">
@@ -388,892 +476,4 @@
                     </div>
                     <div class="hud-item">
                         <span class="hud-label">% VANTAGEM</span>
-                        <span class="hud-value-small" id="hud-percent">0%</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label">TOTAL FINAL</span>
-                        <span class="hud-value" id="hud-final-total">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls-row">
-                <div class="light-input-group">
-                    <span class="light-label">Seu Nome</span>
-                    <input type="text" id="player-name-input" class="light-input" value="Nome" oninput="updatePlayerName()">
-                </div>
-                <div class="light-input-group">
-                    <span class="light-label">Modificador</span>
-                    <input type="number" id="modifier-input" class="light-input" value="0" oninput="updateValuesFromInputs()">
-                </div>
-                <div class="light-input-group">
-                    <span class="light-label">Vantagem % (+ / -)</span>
-                    <input type="number" id="percent-input" class="light-input" value="0" placeholder="-50 / 50" oninput="updateValuesFromInputs()">
-                </div>
-            </div>
-
-            <div class="result-box">
-                <span class="result-title">RESULTADO FINAL</span>
-                <span class="result-number" id="final-total">0</span>
-            </div>
-
-            <div class="dice-grid">
-                <button class="dice-btn btn-d4" onclick="addDie('d4', event)">D4</button>
-                <button class="dice-btn btn-d5" onclick="addDie('d5', event)">D5</button>
-                <button class="dice-btn btn-d6" onclick="addDie('d6', event)">D6</button>
-                <button class="dice-btn btn-d7" onclick="addDie('d7', event)">D7</button>
-                <button class="dice-btn btn-d8" onclick="addDie('d8', event)">D8</button>
-                <button class="dice-btn btn-d9" onclick="addDie('d9', event)">D9</button>
-                <button class="dice-btn btn-d10" onclick="addDie('d10', event)">D10</button>
-                <button class="dice-btn btn-d20" onclick="addDie('d20', event)">D20</button>
-                <button class="dice-btn btn-d100" onclick="addDie('d100', event)">D100</button>
-                <button class="dice-btn btn-coin" onclick="addDie('coin', event)">MOEDA</button>
-            </div>
-
-            <div class="custom-zone">
-                <div class="custom-input-wrapper">
-                    <i class="fa-solid fa-cube input-icon"></i>
-                    <input type="number" id="custom-sides-input" class="magic-input" placeholder="Lados (Ex: 12)" min="2">
-                </div>
-                <button class="btn-magic" onclick="addCustomFromInput(event)">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Forjar Dado
-                </button>
-            </div>
-            
-            <div class="actions-group">
-                <button class="action-btn" onclick="rollAll()">REROLAR TODOS</button>
-                <button class="action-btn btn-dramatizacao" onclick="playDramatizacao()">Dramatização digital!!! (Shift + ])</button>
-                <button class="action-btn btn-clear" onclick="copyPlayerLink()" title="Convidar Jogadores"><i class="fa-solid fa-user-plus"></i></button>
-                <button class="action-btn btn-clear" onclick="saveAndClearDice()" title="Limpar Mesa"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div class="devlog-wrapper" id="devlog-container">
-        <h2 class="devlog-header">Log do Mestre</h2>
-        <div class="devlog-content" id="devlog"></div>
-    </div>
-</div>
-
-<div class="window-cmd" id="cmdRulesWindow">
-    <div class="title-bar-cmd">
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <img src="https://win98icons.alexmeub.com/icons/png/console_prompt-0.png" width="14" alt="CMD">
-            <span>C:\WINDOWS\system32\cmd.exe - REGRAS E AÇÕES</span>
-        </div>
-        <div class="win-btn-cmd" onclick="toggleRulesWindow()">X</div>
-    </div>
-    <div class="cmd-container-rules">
-        <div class="cmd-output-rules" id="cmdOutputRules">
-$: <span class="cmd-yellow">ACESSO RESTRITO - PROTOCOLO DE AÇÕES DO SISTEMA</span>
-$/ CARREGANDO DIRETRIZES DE ROLAGEM... OK.
-
-<span class="cmd-blue">=== AÇÕES PRINCIPAIS ===</span>
-
-<span class="cmd-green">[CÉREBRO] (RESULTADOS 2, 3)</span>
-> AÇÕES MENTAIS, INTELIGÊNCIA, LÓGICA E PERCEPÇÃO DOS 5 SENTIDOS.
-
-<span class="cmd-green">[CORPO] (RESULTADOS 3, 4, 5)</span>
-> AÇÕES FÍSICAS, REFLEXOS, ATLETISMO E ESFORÇO MUSCULAR.
-
-<span class="cmd-green">[COMPORTAMENTO] (RESULTADOS 4, 5, 6, 7)</span>
-> HABILIDADES SOCIAIS, PERSUASÃO, RESOLUÇÃO DE CONFLITOS E MENTIRAS.
-
-<span class="cmd-green">[EQUILÍBRIO] (RESULTADOS 5, 6, 7, 8, 9)</span>
-> MATURIDADE EMOCIONAL, REGULAÇÃO DE SENTIMENTOS E EMPATIA.
-
-<span class="cmd-blue">=== RESULTADOS ESPECIAIS ===</span>
-
-<span class="cmd-yellow">[BOZO] (RESULTADO 1)</span>
-> SUCESSO UTILIZANDO LÓGICA DE DESENHO ANIMADO (CARTOON). 
-> PODE GERAR CONSEQUÊNCIAS NEGATIVAS OU DESGASTE.
-
-<span class="cmd-yellow">[MELHOR / BLOWUP] (RESULTADO MÁXIMO DO DADO)</span>
-> SUCESSO PERFEITO! O JOGADOR ESCOLHE A AÇÃO UTILIZADA. 
-> O DADO EXPLODE, PERMITINDO ROLAR NOVAMENTE E SOMAR OS VALORES.
-
-<span class="cmd-blue">=== TIPOS DE ROLAGEM ===</span>
-
-<span class="cmd-green">[DADOS DE VANTAGEM]</span>
-> GIRA 2 DO MESMO DADO E PEGUE O MELHOR PARA A AÇÃO DO JOGADOR/SITUAÇÃO.
-
-<span class="cmd-red">[DADOS DE DESVANTAGEM]</span>
-> GIRE 2 DADOS DO MESMO E PEGUE O PIOR DADO PARA AÇÃO DO JOGADOR/SITUAÇÃO.
-
-<span class="cmd-yellow">[DADOS NORMAIS/NEUTROS]</span>
-> . . . APENAS OS GÍRIOS :]
-
-$/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
-        </div>
-    </div>
-</div>
-
-<script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
-
-    // Gerenciamento da Memória de Sala e Jogador
-    let savedRoom = localStorage.getItem('circus_room_id');
-    if (!savedRoom) {
-        savedRoom = 'sala_' + Math.random().toString(36).substring(2, 9);
-        localStorage.setItem('circus_room_id', savedRoom);
-    }
-    
-    let savedPlayerName = localStorage.getItem('circus_player_name');
-    window.playerName = savedPlayerName || "";
-
-    const params = new URLSearchParams(window.location.search);
-    const viewParam = params.get('view');
-    const isShareMode = (viewParam === 'share');
-    let roomParam = params.get('room') || savedRoom;
-    let modParam = parseInt(params.get('mod')) || 0;
-    let pctParam = parseFloat(params.get('pct')) || 0;
-
-    if (isShareMode) {
-        document.body.classList.add('share-mode');
-        window.playerName = "OBS";
-    } else if (savedPlayerName) {
-        document.getElementById('player-name-input').value = savedPlayerName;
-    }
-
-    // Mutiplayer Setup
-    const peerId = isShareMode ? `circus-obs-${Math.random().toString(36).substring(2, 6)}` : `circus-master-${roomParam}`;
-    let peer = null;
-    let isHost = false;
-    let hostConn = null;
-    let activeConnections = [];
-
-    // Cheats ocultos
-    window.cheatsEnabled = false;
-    let cheatBuffer = "";
-
-    let scene, camera, renderer, diceList = [], raycaster, mouse;
-    let particles = [];
-    let isCPressed = false;
-    const container = document.getElementById('viewport');
-    const audioErroWin = document.getElementById('audioErroWin');
-    const cmdRulesWindow = document.getElementById('cmdRulesWindow');
-    
-    let dramatizacaoTimeout = null;
-    let eyeTimeouts = [];
-    
-    window.currentModifier = modParam;
-    window.currentPercent = pctParam;
-    window.lastRolledValue = 0;
-
-    if(!isShareMode) {
-        document.getElementById('modifier-input').value = window.currentModifier;
-        document.getElementById('percent-input').value = window.currentPercent;
-    }
-
-    const configs = {
-        'coin':  { geo: new THREE.CylinderGeometry(1.2, 1.2, 0.15, 32), color: 0xcccccc, emissive: 0x555555, intensity: 0.2, sides: 2 },
-        'd4':    { geo: new THREE.TetrahedronGeometry(1.2), color: 0x2980b9, emissive: 0x3498db, intensity: 0.4, sides: 4 },
-        'd5':    { geo: new THREE.CylinderGeometry(1.2, 1.2, 1.4, 5), color: 0x16a085, emissive: 0x1abc9c, intensity: 0.4, sides: 5 },
-        'd6':    { geo: new THREE.BoxGeometry(1.3, 1.3, 1.3), color: 0xd35400, emissive: 0xe67e22, intensity: 0.4, sides: 6 },
-        'd7':    { geo: new THREE.CylinderGeometry(1.2, 1.2, 1.4, 7), color: 0xd35400, emissive: 0xf39c12, intensity: 0.4, sides: 7 },
-        'd8':    { geo: new THREE.OctahedronGeometry(1.3), color: 0x8e44ad, emissive: 0x9b59b6, intensity: 0.5, sides: 8 },
-        'd9':    { geo: new THREE.CylinderGeometry(1.2, 1.2, 1.4, 9), color: 0x922b21, emissive: 0xc0392b, intensity: 0.5, sides: 9 },
-        'd10':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0xc0392b, emissive: 0xe74c3c, intensity: 0.6, sides: 10 },
-        'd20':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0xd4ac0d, emissive: 0xf1c40f, intensity: 0.8, sides: 20 },
-        'd100':  { geo: new THREE.IcosahedronGeometry(1.3, 1), color: 0x2c3e50, emissive: 0x34495e, intensity: 0.6, sides: 100 },
-    };
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    function playCritSound() {
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime); 
-        osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.6);
-    }
-
-    window.updatePlayerName = () => {
-        const input = document.getElementById('player-name-input');
-        if (input) {
-            window.playerName = input.value || (isHost ? "Mestre" : "Jogador");
-            localStorage.setItem('circus_player_name', window.playerName);
-        }
-    };
-
-    // Atualizado: Log agora salva e sincroniza o histórico mantendo o nome de quem rolou
-    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null) => {
-        const devlog = document.getElementById('devlog');
-        if (!devlog) return;
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        if(isDanger) entry.style.borderLeftColor = 'var(--danger)';
-
-        const time = new Date().toLocaleTimeString('pt-BR');
-        const displayName = author || window.playerName || "Sistema";
-        
-        entry.innerHTML = `
-            <div class="log-time">
-                <span style="display: flex; gap: 8px; align-items: center;">
-                    <span>[${time}]</span>
-                    <span style="color: var(--accent); font-size: 11px; text-transform: uppercase;">${displayName}</span>
-                </span>
-                <span>Mod: ${window.currentModifier} | ${window.currentPercent}%</span>
-            </div>
-            <div>${msg}</div>
-            ${trueMsg ? `<div class="true-log"><i class="fa-solid fa-eye"></i> Realidade: ${trueMsg}</div>` : ''}
-        `;
-        devlog.prepend(entry);
-    };
-
-    function updateUrlParameters() {
-        const baseUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, '', `${baseUrl}?room=${roomParam}`);
-    }
-
-    if (isShareMode) {
-        peer = new Peer();
-        peer.on('open', () => {
-            hostConn = peer.connect(`circus-room-${roomParam}`);
-            hostConn.on('data', (data) => handleIncomingData(data, null));
-        });
-    } else {
-        peer = new Peer(`circus-room-${roomParam}`);
-        
-        peer.on('open', () => {
-            isHost = true;
-            if(!savedPlayerName) {
-                window.playerName = "Mestre";
-                document.getElementById('player-name-input').value = window.playerName;
-                localStorage.setItem('circus_player_name', window.playerName);
-            }
-            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
-        });
-        
-        peer.on('error', (err) => {
-            if (err.type === 'unavailable-id') {
-                isHost = false;
-                if(!savedPlayerName) {
-                    window.playerName = "Jogador";
-                    document.getElementById('player-name-input').value = window.playerName;
-                    localStorage.setItem('circus_player_name', window.playerName);
-                }
-                
-                peer = new Peer();
-                peer.on('open', () => {
-                    hostConn = peer.connect(`circus-room-${roomParam}`);
-                    hostConn.on('data', (data) => handleIncomingData(data, null));
-                });
-            } else {
-                console.error("PeerJS error:", err);
-            }
-        });
-        
-        peer.on('connection', (conn) => {
-            activeConnections.push(conn);
-            
-            conn.on('open', () => {
-                const currentDiceState = diceList.map(d => ({
-                    type: d.userData.type, sides: d.userData.sides, value: d.userData.value, id: d.userData.id, isRemoving: d.userData.isRemoving, rollMode: d.userData.rollMode
-                })).filter(d => !d.isRemoving);
-                
-                // Mestre envia todo o HTML do histórico salvo no momento
-                const devlogHtml = document.getElementById('devlog').innerHTML;
-                
-                conn.send({ action: 'sync_init', dice: currentDiceState, mod: window.currentModifier, pct: window.currentPercent, devlog: devlogHtml });
-            });
-            
-            conn.on('data', (data) => {
-                handleIncomingData(data, conn);
-            });
-            
-            conn.on('close', () => {
-                activeConnections = activeConnections.filter(c => c !== conn);
-            });
-        });
-    }
-
-    function broadcast(payload) {
-        payload.playerName = window.playerName; 
-        if (isHost) {
-            activeConnections = activeConnections.filter(c => c.open);
-            activeConnections.forEach(c => c.send(payload));
-        } else if (hostConn && hostConn.open) {
-            hostConn.send(payload);
-        }
-    }
-
-    window.toggleRulesWindow = () => {
-        if(isShareMode) return;
-        if(cmdRulesWindow.style.display === 'flex') {
-            cmdRulesWindow.style.display = 'none';
-        } else {
-            cmdRulesWindow.style.display = 'flex';
-            audioErroWin.currentTime = 0;
-            audioErroWin.play().catch(e => console.log(e));
-        }
-    }
-
-    if(!isShareMode) {
-        document.getElementById('devlog-container').addEventListener('click', (e) => {
-            if (e.ctrlKey) {
-                const logEntry = e.target.closest('.log-entry');
-                if (logEntry) logEntry.remove();
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'c') isCPressed = true;
-            if (e.key === 'Escape') window.toggleRulesWindow(); 
-            if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
-                e.preventDefault(); window.playDramatizacao();
-            }
-
-            // Monitoramento oculto de trapaças
-            if (e.key && e.key.length === 1) {
-                cheatBuffer += e.key.toLowerCase();
-                if (cheatBuffer.length > 30) cheatBuffer = cheatBuffer.slice(-30);
-                
-                if (isHost && cheatBuffer.endsWith('goodnightworld')) {
-                    window.cheatsEnabled = true;
-                    cheatBuffer = '';
-                } else if (!isHost && !isShareMode && cheatBuffer.endsWith('badnightworld')) {
-                    window.cheatsEnabled = true;
-                    cheatBuffer = '';
-                }
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            if (e.key.toLowerCase() === 'c') isCPressed = false;
-        });
-    }
-
-    window.playDramatizacao = (isRemote = false, remoteAuthor = null) => {
-        if (!isShareMode && !isRemote) {
-            window.logToDevlog(`<span style="color: var(--purple); font-weight:900; text-shadow: 0 0 10px #8e44ad; font-size: 16px;">👁️ DRAMATIZAÇÃO DIGITAL ATIVADA!</span>`, true, null, window.playerName);
-            broadcast({ action: 'dramatizacao' });
-        }
-        triggerDramatizacao();
-    };
-
-    function triggerDramatizacao() {
-        document.body.classList.add('abstracted');
-        
-        if (dramatizacaoTimeout) clearTimeout(dramatizacaoTimeout);
-        eyeTimeouts.forEach(t => clearTimeout(t));
-        eyeTimeouts = [];
-        document.querySelectorAll('.abstr-eye').forEach(e => e.remove());
-
-        for(let i=0; i<15; i++) {
-            let t1 = setTimeout(() => {
-                if(!document.body.classList.contains('abstracted')) return;
-                const eye = document.createElement('img');
-                eye.src = 'image_0b84bc.png';
-                eye.className = 'abstr-eye';
-                const size = 150 + Math.random() * 200;
-                eye.style.width = size + 'px';
-                eye.style.left = (Math.random() * 100) + 'vw';
-                eye.style.top = (Math.random() * 100) + 'vh';
-                eye.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg) scale(${0.5 + Math.random()})`;
-                document.body.appendChild(eye);
-                
-                let t2 = setTimeout(() => { if(eye.parentNode) eye.remove(); }, 600 + Math.random() * 500);
-                eyeTimeouts.push(t2);
-            }, Math.random() * 2000);
-            eyeTimeouts.push(t1);
-        }
-        
-        dramatizacaoTimeout = setTimeout(() => {
-            document.body.classList.remove('abstracted');
-            document.querySelectorAll('.abstr-eye').forEach(e => e.remove());
-            eyeTimeouts.forEach(t => clearTimeout(t));
-            eyeTimeouts = [];
-        }, 3000);
-    }
-
-    function init3D() {
-        scene = new THREE.Scene();
-        scene.background = null; 
-        
-        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-        camera.position.z = isShareMode ? 17 : 13; 
-        
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.outputEncoding = THREE.sRGBEncoding; 
-        container.appendChild(renderer.domElement);
-        
-        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-        const spotLight = new THREE.SpotLight(0xffffff, 1.2);
-        spotLight.position.set(5, 10, 5); spotLight.castShadow = true; spotLight.penumbra = 0.5;
-        scene.add(spotLight);
-
-        if(!isShareMode) {
-            raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
-            container.addEventListener('mousedown', (event) => {
-                if (event.ctrlKey && isCPressed) { 
-                    event.preventDefault(); 
-                    copyObsLink(); 
-                    return; 
-                }
-                onDiceClick(event);
-            });
-        }
-        
-        window.updateTotal();
-        animate();
-    }
-
-    window.copyObsLink = () => {
-        const baseUrl = window.location.origin + window.location.pathname;
-        const url = baseUrl + `?view=share&room=${roomParam}`;
-        navigator.clipboard.writeText(url).then(() => {
-            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado (Estático)</span>`);
-        });
-    };
-
-    window.copyPlayerLink = () => {
-        const baseUrl = window.location.origin + window.location.pathname;
-        const url = baseUrl + `?room=${roomParam}`;
-        navigator.clipboard.writeText(url).then(() => {
-            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado (Envie aos amigos!)</span>`);
-        });
-    };
-
-    function onDiceClick(event) {
-        const rect = container.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(diceList);
-        if (intersects.length > 0) {
-            const clickedDice = intersects[0].object;
-            removeDice(clickedDice);
-        }
-    }
-
-    function removeDice(dice, isRemote = false) {
-        if(dice.userData.isRemoving) return;
-        dice.userData.isRemoving = true;
-        dice.userData.label.style.display = 'none';
-
-        if (!isRemote) {
-            broadcast({ action: 'remove', id: dice.userData.id });
-        }
-
-        const startScale = dice.scale.x; let startTime = Date.now();
-        const anim = () => {
-            let elapsed = Date.now() - startTime; let progress = elapsed / 300;
-            if (progress < 1) {
-                const s = startScale * (1 - progress); dice.scale.set(s, s, s); dice.rotation.y += 0.2;
-                requestAnimationFrame(anim);
-            } else {
-                scene.remove(dice); dice.userData.label.remove();
-                diceList = diceList.filter(d => d !== dice); window.updateTotal(isRemote); 
-            }
-        };
-        anim();
-    }
-
-    window.saveAndClearDice = (isRemote = false, remoteAuthor = null) => {
-        if (diceList.length === 0) return;
-        [...diceList].forEach(d => removeDice(d, true)); 
-        
-        if(!isRemote && !isShareMode) {
-            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa.</span>`, false, null, window.playerName);
-            broadcast({ action: 'clear' });
-        }
-    }
-
-    window.addDie = (type, event) => {
-        let rollMode = 'normal';
-        if (window.cheatsEnabled && event) {
-            if (event.shiftKey) rollMode = 'shift';
-            else if (event.ctrlKey) rollMode = 'ctrl';
-        }
-        spawnDice(type, null, rollMode, null, null, false);
-    };
-
-    window.addCustomFromInput = (event) => {
-        const input = document.getElementById('custom-sides-input');
-        const sides = parseInt(input.value); if(!sides || sides < 2) return;
-        let rollMode = 'normal';
-        if (window.cheatsEnabled && event) {
-            if (event.shiftKey) rollMode = 'shift';
-            else if (event.ctrlKey) rollMode = 'ctrl';
-        }
-        spawnDice('custom', sides, rollMode, null, null, false);
-    }
-
-    // A flag isSyncInit = true impede que os dados gerados no momento que a pessoa entra na sala floodem o histórico
-    function spawnDice(type, sides, rollMode = 'normal', forcedValue = null, id = null, isRemote = false, remoteAuthor = null, isSyncInit = false) {
-        let geometry, material;
-        const finalSides = sides || (configs[type] ? configs[type].sides : 0);
-
-        if (type === 'custom') {
-            const ratio = Math.min((finalSides - 2) / 100, 1); 
-            const finalColor = new THREE.Color(0xf1c40f).lerp(new THREE.Color(0xe74c3c), ratio);
-            const finalEmissive = new THREE.Color(0x3498db).lerp(new THREE.Color(0x9b59b6), ratio);
-            material = new THREE.MeshStandardMaterial({ 
-                color: finalColor, emissive: finalEmissive, emissiveIntensity: 0.5, roughness: 0.15, metalness: 0.8, flatShading: true 
-            }); geometry = new THREE.SphereGeometry(1.2, 24, 24); 
-        } else {
-            const conf = configs[type]; geometry = conf.geo;
-            material = new THREE.MeshStandardMaterial({ 
-                color: conf.color, emissive: conf.emissive, emissiveIntensity: conf.intensity,
-                roughness: type === 'coin' ? 0.4 : 0.2, metalness: type === 'coin' ? 0.9 : 0.5, flatShading: type !== 'coin'
-            });
-        }
-        
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.castShadow = true; mesh.receiveShadow = true;
-        const label = document.createElement('div'); label.className = 'dice-label'; container.appendChild(label);
-        
-        const meshId = id || Date.now() + Math.random().toString(36).substring(2,7);
-
-        mesh.userData = { 
-            id: meshId, type, sides: finalSides, label, value: 0, rollMode: rollMode || 'normal', yOffset: 0, isRolling: false, isSyncInit: isSyncInit
-        };
-        
-        scene.add(mesh); diceList.push(mesh);
-        rollSingle(mesh, forcedValue, isRemote, remoteAuthor);
-    }
-
-    function explodeDice(position) {
-        playCritSound();
-        for (let i = 0; i < 40; i++) {
-            const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15); const isYellow = Math.random() > 0.5;
-            const mat = new THREE.MeshStandardMaterial({ color: isYellow ? 0xf1c40f : 0xe74c3c, emissive: isYellow ? 0xf1c40f : 0xe74c3c, emissiveIntensity: 2 });
-            const p = new THREE.Mesh(geo, mat); p.position.copy(position);
-            p.userData.velocity = new THREE.Vector3((Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4);
-            p.userData.life = 1.0; scene.add(p); particles.push(p);
-        }
-    }
-
-    function showConfetti(dice) {
-        const audio1 = document.getElementById('audioConfetti1');
-        const audio2 = document.getElementById('audioConfetti2');
-        audio1.currentTime = 0; audio2.currentTime = 0;
-        audio1.play().catch(()=>{}); audio2.play().catch(()=>{});
-
-        const gif = document.createElement('img');
-        gif.src = 'confetti.gif?t=' + Date.now(); 
-        gif.style.position = 'absolute';
-        gif.style.width = '180px';
-        gif.style.height = '180px';
-        gif.style.pointerEvents = 'none';
-        gif.style.zIndex = '99';
-        gif.style.transform = 'translate(-50%, -50%)';
-
-        const updateGifPos = () => {
-            if(!gif.parentNode) return;
-            const vector = dice.position.clone().project(camera);
-            if(vector.z < 1) {
-                gif.style.left = `${(vector.x + 1) * container.clientWidth / 2}px`;
-                gif.style.top = `${(-vector.y + 1) * container.clientHeight / 2}px`;
-            }
-            requestAnimationFrame(updateGifPos);
-        };
-
-        container.appendChild(gif);
-        updateGifPos();
-
-        setTimeout(() => {
-            if(gif.parentNode) gif.remove();
-        }, 2000); 
-    }
-
-    function getActionName(val, max) {
-        if (val === max) return "<span style='color:var(--magic)'>MELHOR! (Escolha + Blowup)</span>";
-        if (val === 1) return "<span style='color:var(--danger)'>BOZO (Lógica de Cartoon)</span>";
-        let actions = [];
-        if (val === 2 || val === 3) actions.push("Cérebro");
-        if (val >= 3 && val <= 5) actions.push("Corpo");
-        if (val >= 4 && val <= 7) actions.push("Comportamento");
-        if (val >= 5 && val <= 9) actions.push("Equilíbrio");
-        return actions.length > 0 ? actions.join(" / ") : "Sem Ação";
-    }
-
-    function rollSingle(dice, forcedValue = null, isRemote = false, remoteAuthor = null) {
-        if(dice.userData.isRemoving) return;
-        dice.userData.label.style.display = 'none';
-        dice.userData.label.className = 'dice-label';
-        dice.userData.isRolling = true;
-        dice.visible = true; 
-        
-        let res;
-
-        if (forcedValue !== null) {
-            res = forcedValue; 
-        } else if (dice.userData.type === 'coin') {
-            if (dice.userData.rollMode === 'shift') res = "Ca";
-            else if (dice.userData.rollMode === 'ctrl') res = "Co";
-            else res = Math.random() > 0.5 ? "Ca" : "Co";
-        } else {
-            if (dice.userData.rollMode === 'shift') { 
-                res = dice.userData.sides; 
-            } else if (dice.userData.rollMode === 'ctrl') {
-                let prev = window.lastRolledValue || 0;
-                if (prev === 19 || prev === 20) {
-                    res = prev;
-                } else {
-                    res = prev + 1;
-                    if (res >= 20) res = 19; 
-                }
-            } else { 
-                res = Math.floor(Math.random() * dice.userData.sides) + 1;
-            }
-        }
-
-        if (dice.userData.type !== 'coin') {
-            window.lastRolledValue = res;
-        }
-
-        if (!isRemote) {
-            broadcast({ action: 'spawn', type: dice.userData.type, sides: dice.userData.sides, value: res, id: dice.userData.id, rollMode: dice.userData.rollMode });
-        }
-
-        let start = Date.now();
-        const duration = (forcedValue !== null && diceList.length > 0 && !dice.userData.isRolling) ? 0 : (dice.userData.type === 'coin' ? 800 : 500); 
-        const randRotX = (Math.random() - 0.5) * 0.5; const randRotY = (Math.random() - 0.5) * 0.5;
-
-        const anim = () => {
-            const elapsed = Date.now() - start;
-            if (elapsed < duration) {
-                if (dice.userData.type === 'coin') {
-                    dice.rotation.x += 0.5; dice.rotation.y += 0.1;
-                    dice.userData.yOffset = Math.sin((elapsed / duration) * Math.PI) * 4.5; 
-                } else {
-                    dice.rotation.x += 0.3 + randRotX; dice.rotation.y += 0.3 + randRotY; dice.rotation.z += 0.1;
-                }
-                requestAnimationFrame(anim);
-            } else {
-                dice.userData.isRolling = false; dice.userData.yOffset = 0;
-                
-                if (dice.userData.type === 'coin' || ['d5','d7','d9'].includes(dice.userData.type)) {
-                    dice.rotation.set(Math.PI / 2, 0, 0); 
-                } else {
-                    dice.rotation.set(0,0,0);
-                }
-
-                if (dice.userData.type === 'coin') {
-                    dice.userData.value = 0; dice.userData.label.innerText = res;  
-                    dice.userData.label.className = res === "Ca" ? 'dice-label text-blue' : 'dice-label text-green';
-                } else {
-                    dice.userData.value = res; dice.userData.label.innerText = res;
-                    if (res === dice.userData.sides) {
-                        dice.visible = false; 
-                        dice.userData.label.className = 'dice-label crit-text';
-                        if(forcedValue === null || duration > 0) {
-                            explodeDice(dice.position);
-                            showConfetti(dice);
-                        }
-                    } else {
-                        dice.userData.label.style.textShadow = `0 0 10px white, 0 0 20px #${dice.material.emissive.getHexString()}`;
-                    }
-                }
-                
-                dice.userData.label.style.display = 'block'; window.updateTotal(isRemote);
-
-                // O devlog não atualiza a rolagem caso ela venha do Sync Init (para não duplicar quando entra na sala)
-                if (!isShareMode && !dice.userData.isSyncInit) {
-                    const author = isRemote ? remoteAuthor : window.playerName;
-                    if (dice.userData.type === 'coin') {
-                        window.logToDevlog(`Rolou <b>MOEDA</b>: <span style="color:${res === 'Ca'?'var(--accent)':'var(--success)'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
-                    } else {
-                        const dName = dice.userData.type.toUpperCase() === 'CUSTOM' ? `D${dice.userData.sides}` : dice.userData.type.toUpperCase();
-                        let ruleText = getActionName(res, dice.userData.sides);
-                        window.logToDevlog(`Rolou <b>${dName}</b>: <span style="color:${res === dice.userData.sides?'var(--magic)':'var(--success)'}; font-weight:900; font-size:16px">${res}</span><br><span style="color: var(--text-muted); font-size: 11px; font-weight: bold; margin-top:4px; display:block;">[Ações: ${ruleText}]</span>`, false, null, author);
-                    }
-                }
-                dice.userData.isSyncInit = false; // Desativa a trava caso este dado venha a ser rolado de novo
-            }
-        };
-        anim();
-    }
-
-    window.rollAll = (isRemote = false, remoteAuthor = null) => {
-        if(isShareMode) return;
-        if(!isRemote) {
-            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Rerolando mesa inteira...</span>`, false, null, window.playerName);
-            broadcast({ action: 'reroll_all' });
-        }
-        
-        diceList.forEach(d => {
-            let trueRes = (d.userData.type === 'coin') ? (Math.random() > 0.5 ? "Ca" : "Co") : (Math.floor(Math.random() * d.userData.sides) + 1);
-            if(!isRemote) broadcast({ action: 'reroll_single', id: d.userData.id, value: trueRes });
-            rollSingle(d, trueRes, true); // passa true em isRemote para evitar loop infinito
-        });
-    }
-
-    window.updateValuesFromInputs = () => {
-        const modInput = document.getElementById('modifier-input');
-        const pctInput = document.getElementById('percent-input');
-        
-        if (modInput) window.currentModifier = parseInt(modInput.value) || 0;
-        if (pctInput) window.currentPercent = parseFloat(pctInput.value) || 0;
-
-        window.updateTotal(false);
-    }
-
-    window.updateTotal = (isRemote = false) => {
-        const diceSum = diceList.reduce((acc, d) => acc + (d.userData.isRemoving ? 0 : (d.userData.value || 0)), 0);
-        
-        const rawEl = document.getElementById('raw-total');
-        if(rawEl) {
-            rawEl.innerText = diceSum;
-            if(diceSum > 0) rawEl.classList.add('active'); else rawEl.classList.remove('active');
-        }
-
-        const hudModEl = document.getElementById('hud-modifier');
-        const hudPctEl = document.getElementById('hud-percent');
-        const hudFinalEl = document.getElementById('hud-final-total');
-        const finEl = document.getElementById('final-total');
-
-        let total = diceSum + window.currentModifier;
-        if(window.currentPercent !== 0) total += total * (window.currentPercent / 100);
-        const finalRounded = Math.round(total);
-
-        if(finEl) finEl.innerText = finalRounded;
-        
-        if(hudFinalEl) {
-            hudFinalEl.innerText = finalRounded;
-            if(finalRounded > 0) hudFinalEl.classList.add('active'); else hudFinalEl.classList.remove('active');
-        }
-        
-        if(hudModEl) {
-            hudModEl.innerText = window.currentModifier >= 0 ? `+${window.currentModifier}` : window.currentModifier;
-            if(window.currentModifier !== 0) hudModEl.classList.add('active'); else hudModEl.classList.remove('active');
-        }
-        
-        if(hudPctEl) {
-            hudPctEl.innerText = window.currentPercent >= 0 ? `+${window.currentPercent}%` : `${window.currentPercent}%`;
-            if(window.currentPercent !== 0) hudPctEl.classList.add('active-pct'); else hudPctEl.classList.remove('active-pct');
-        }
-        
-        if(!isShareMode && !isRemote) {
-            broadcast({ action: 'hud', mod: window.currentModifier, pct: window.currentPercent });
-        }
-    }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        
-        for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i]; p.position.add(p.userData.velocity); p.userData.life -= 0.02; 
-            const scale = p.userData.life * 0.15; p.scale.set(scale, scale, scale);
-            if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
-        }
-
-        const cols = isShareMode ? 2 : 4; 
-        const spacingX = isShareMode ? 2.0 : 2.5;
-        const spacingY = isShareMode ? 2.1 : 2.5;
-
-        diceList.forEach((dice, i) => {
-            if(!dice.userData.isRemoving) {
-                const time = Date.now() * 0.001;
-                const rowCount = Math.ceil(diceList.length / cols);
-                const col = i % cols; const row = Math.floor(i / cols);
-
-                const tx = (col - (Math.min(diceList.length, cols) - 1) / 2) * spacingX;
-                const ty = (((rowCount - 1) / 2) - row) * spacingY + Math.sin(time + i) * 0.1;
-                
-                dice.position.x += (tx - dice.position.x) * 0.1;
-                if (dice.userData.isRolling && dice.userData.type === 'coin') {
-                    dice.position.y = ty + dice.userData.yOffset;
-                } else {
-                    dice.position.y += (ty - dice.position.y) * 0.1;
-                }
-                
-                if (!dice.userData.isRolling) {
-                    if (dice.userData.type === 'coin') {
-                        dice.rotation.x = Math.PI / 2 + Math.sin(time * 2 + i) * 0.1;
-                        dice.rotation.y = Math.cos(time * 2 + i) * 0.1; dice.rotation.z += 0.01;
-                    } else if (['d5','d7','d9'].includes(dice.userData.type)) {
-                        dice.rotation.x = Math.PI / 2; dice.rotation.y += 0.005; dice.rotation.z += 0.002;
-                    } else {
-                        dice.rotation.y += 0.005; dice.rotation.z += 0.002;
-                    }
-                }
-            }
-            
-            const vector = dice.position.clone().project(camera);
-            if (vector.z < 1) {
-                dice.userData.label.style.left = `${(vector.x + 1) * container.clientWidth / 2}px`;
-                dice.userData.label.style.top = `${(-vector.y + 1) * container.clientHeight / 2}px`;
-            }
-        });
-        renderer.render(scene, camera);
-    }
-
-    function handleIncomingData(data, senderConn) {
-        const remoteAuthor = data.playerName || "Desconhecido";
-
-        if (data.action === 'sync_init') {
-            if (!isHost) {
-                [...diceList].forEach(d => removeDice(d, true));
-                window.currentModifier = parseInt(data.mod) || 0;
-                window.currentPercent = parseFloat(data.pct) || 0;
-                
-                if(!isShareMode) {
-                    const modInput = document.getElementById('modifier-input');
-                    const pctInput = document.getElementById('percent-input');
-                    if(modInput) modInput.value = window.currentModifier;
-                    if(pctInput) pctInput.value = window.currentPercent;
-                }
-
-                // Sincroniza o HTML do devlog passado pelo host
-                const devlogEl = document.getElementById('devlog');
-                if (devlogEl && data.devlog) {
-                    devlogEl.innerHTML = data.devlog;
-                }
-                
-                window.logToDevlog(`🎮 Conectado e sincronizado à sala: ${roomParam}`);
-
-                // Spawna os dados com a flag isSyncInit = true (para não aparecerem novamente no log)
-                data.dice.forEach(d => { spawnDice(d.type, d.sides, d.rollMode || 'normal', d.value, d.id, true, remoteAuthor, true); });
-                window.updateTotal(true);
-            }
-        } else if(data.action === 'spawn') {
-            spawnDice(data.type, data.sides, data.rollMode || 'normal', data.value, data.id, true, remoteAuthor, false);
-        } else if(data.action === 'remove') {
-            const target = diceList.find(d => d.userData.id === data.id);
-            if(target) removeDice(target, true);
-        } else if(data.action === 'clear') {
-            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa remotamente.</span>`, false, null, remoteAuthor);
-            saveAndClearDice(true, remoteAuthor);
-        } else if(data.action === 'reroll_single') {
-            const target = diceList.find(d => d.userData.id === data.id);
-            if(target) rollSingle(target, data.value, true, remoteAuthor);
-        } else if(data.action === 'reroll_all') {
-            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Mesa inteira rerolada remotamente.</span>`, false, null, remoteAuthor);
-        } else if(data.action === 'dramatizacao') {
-            window.logToDevlog(`<span style="color: var(--purple); font-weight:900; text-shadow: 0 0 10px #8e44ad; font-size: 16px;">👁️ DRAMATIZAÇÃO DIGITAL ATIVADA!</span>`, true, null, remoteAuthor);
-            triggerDramatizacao();
-        } else if(data.action === 'hud') {
-            window.currentModifier = data.mod; window.currentPercent = data.pct; 
-            if(!isShareMode) {
-                const modInput = document.getElementById('modifier-input');
-                const pctInput = document.getElementById('percent-input');
-                if(modInput) modInput.value = window.currentModifier;
-                if(pctInput) pctInput.value = window.currentPercent;
-            }
-            window.updateTotal(true);
-        }
-
-        // Se o Host recebeu de um jogador, repassa para todos os outros
-        if (isHost && senderConn) {
-            activeConnections.forEach(c => {
-                if (c !== senderConn && c.open) {
-                    c.send(data);
-                }
-            });
-        }
-    }
-    
-    init3D();
-</script>
-</body>
-</html>
+         
