@@ -289,6 +289,9 @@
 </head>
 <body>
 
+<!-- Preload Container Invisível (Fim dos Delays nos GIFs) -->
+<div id="gif-preload-container" style="display: none;"></div>
+
 <!-- Ponto vermelho de teste de coordenadas de GIF -->
 <div id="testRedDot"></div>
 
@@ -359,15 +362,23 @@
                     <input type="number" id="skinTempTime" class="form-input" value="3" min="1" max="60">
                 </div>
                 <div class="form-row">
-                    <span class="form-label">Posição X e Y do GIF (Enter = Testar):</span>
+                    <span class="form-label">Efeito de Aura no Crítico:</span>
+                    <select id="skinAuraType" class="form-input" onchange="toggleAuraInput()">
+                        <option value="none">Nenhum</option>
+                        <option value="redlock">Fogo Red-lock (Usa a cor global acima)</option>
+                        <option value="custom">GIF Customizado (Upload de Arquivo)</option>
+                    </select>
+                </div>
+                <div class="form-row" id="customGifRow" style="display:none;">
+                    <span class="form-label">GIF (Aura/Explosão):</span>
+                    <input type="file" id="skinGifFile" accept="image/gif,image/*" class="form-input">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Posição X e Y do Efeito (Enter = Testar):</span>
                     <div style="display:flex; gap:5px; flex:2;">
                         <input type="number" id="skinPosX" class="form-input" placeholder="X (0)" value="0" title="Aperte Enter para ver o ponto vermelho">
                         <input type="number" id="skinPosY" class="form-input" placeholder="Y (0)" value="0" title="Aperte Enter para ver o ponto vermelho">
                     </div>
-                </div>
-                <div class="form-row">
-                    <span class="form-label">GIF de Efeito (Aura/Explosão):</span>
-                    <input type="file" id="skinGifFile" accept="image/gif,image/*" class="form-input">
                 </div>
                 <div class="form-row">
                     <span class="form-label">Áudio de Crítico (MP3/WAV):</span>
@@ -535,10 +546,11 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
 
     // Histórico persistente de mensagens do Chat da Mesa
     window.terminalChatMessages = JSON.parse(localStorage.getItem('terminal_chat_history')) || [];
+    window.showSecretMessages = false; // Controle de visibilidade do /tell
 
-    // Dicionário Oficial de Skins do Sistema
+    // Dicionário Oficial de Skins do Sistema (Agora Padrão tem popSound: true)
     window.diceSkins = {
-        'default': { id: 'default', name: 'Padrão', desc: 'Sem efeitos extras, apenas o brilho natural.', badge: '', dieColor: null, normColor: '#ffffff', numColor: null, critType: 'none', critHideMode: 'none', popSound: false },
+        'default': { id: 'default', name: 'Padrão', desc: 'Com som clássico, apenas brilho natural.', badge: '', dieColor: null, normColor: '#ffffff', numColor: null, critType: 'none', critHideMode: 'none', popSound: true },
         'digital': { id: 'digital', name: 'Digital', desc: 'Dado some no crítico, número dourado e confetes.', badge: '', dieColor: null, normColor: '#ffffff', numColor: '#ffd700', critType: 'digital', critHideMode: 'permanent', popSound: true },
         'redlock': { id: 'redlock', name: 'Red-lock', desc: 'Aura de fogo customizável de Blue Lock e som egoísta.', badge: '', dieColor: '#050c18', normColor: '#ffffff', numColor: '#00ffff', critType: 'redlock', critHideMode: 'none', popSound: false }
     };
@@ -555,6 +567,52 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     window.redlockHex = localStorage.getItem('redlock_color') || '#00e5ff';
     document.getElementById('redlockColorInput').value = window.redlockHex;
 
+    // Função para pré-carregar os GIFs das skins para evitar Delay
+    function preloadGifs() {
+        const container = document.getElementById('gif-preload-container');
+        container.innerHTML = '';
+        Object.values(window.diceSkins).forEach(skin => {
+            if (skin.gifData) {
+                const img = document.createElement('img');
+                img.src = skin.gifData;
+                container.appendChild(img);
+            }
+        });
+    }
+    preloadGifs();
+
+    // --- BANCO DE DADOS INDEXEDDB PARA VÍDEO CINEMÁTICO ---
+    const dbName = "BlackoutMasterDB";
+    let db;
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("videos")) db.createObjectStore("videos");
+    };
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        loadCinematicVideo();
+    };
+
+    function saveCinematicVideo(file) {
+        if (!db) return;
+        const tx = db.transaction("videos", "readwrite");
+        tx.objectStore("videos").put(file, "dramatizacao");
+    }
+
+    function loadCinematicVideo() {
+        if (!db) return;
+        const tx = db.transaction("videos", "readonly");
+        const req = tx.objectStore("videos").get("dramatizacao");
+        req.onsuccess = (e) => {
+            const file = e.target.result;
+            const dramVideo = document.getElementById('dramatizacao-video');
+            if (file && !document.body.classList.contains('share-mode') && dramVideo) {
+                dramVideo.src = URL.createObjectURL(file);
+            }
+        };
+    }
+
     const cmdRulesEl = document.getElementById('cmdOutputRules');
     const defaultRulesHtml = cmdRulesEl.innerHTML;
 
@@ -567,7 +625,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             rawHtml = rawHtml.replace(zoneRegex, `
                 <div id="playerChatZone" class="terminal-chat-zone">
                     <div style="font-size:11px; color:#00e5ff; border-bottom:1px solid rgba(0,136,255,0.3); padding-bottom:4px; margin-bottom:4px;">
-                        <i class="fa-solid fa-users"></i> CANAL DE COMUNICAÇÃO DOS JOGADORES (ÁREA LIVRE)
+                        <i class="fa-solid fa-users"></i> CANAL DE COMUNICAÇÃO ( /limpar | /tell "nome" msg )
                     </div>
                     <div id="terminalChatLog" class="terminal-chat-log"></div>
                     <div class="terminal-chat-input-row">
@@ -584,13 +642,28 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     function renderChatMessages() {
         const logEl = document.getElementById('terminalChatLog');
         if (!logEl) return;
-        logEl.innerHTML = window.terminalChatMessages.map(m => `
-            <div style="word-break: break-word; line-height: 1.2;">
-                <span style="color: #666; font-size: 14px;">[${m.time}]</span>
-                <span style="color: var(--accent); font-weight: bold;">${m.sender}:</span>
-                <span style="color: #fff;">${m.text}</span>
-            </div>
-        `).join('');
+        logEl.innerHTML = window.terminalChatMessages.map(m => {
+            // Regra do tell focado e sombra do mestre
+            if (m.secret) {
+                const isSender = m.sender === window.playerName;
+                const isTarget = m.target === window.playerName;
+                const isMasterSeeingAll = window.showSecretMessages;
+                
+                // Se não é o alvo, nem quem enviou, nem o mestre no modo espião, oculta a mensagem
+                if (!isSender && !isTarget && !isMasterSeeingAll) return ''; 
+            }
+            
+            const secStyle = m.secret ? 'color: #ffaa00; font-style: italic;' : 'color: #fff;';
+            const targetText = m.secret ? ` [Sussurro para ${m.target}]` : '';
+            
+            return `
+                <div style="word-break: break-word; line-height: 1.2;">
+                    <span style="color: #666; font-size: 14px;">[${m.time}]</span>
+                    <span style="color: var(--accent); font-weight: bold;">${m.sender}${targetText}:</span>
+                    <span style="${secStyle}">${m.text}</span>
+                </div>
+            `;
+        }).join('');
         logEl.scrollTop = logEl.scrollHeight;
     }
 
@@ -600,12 +673,59 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             const input = event.target;
             const text = input.value.trim();
             if (!text) return;
+
+            // Comando Secreto do Mestre
+            if (text.toLowerCase() === 'shadowumbra' || text.toLowerCase() === '/shadowumbra') {
+                window.showSecretMessages = !window.showSecretMessages;
+                window.logToDevlog(`<span style="color: #ffaa00;"><i class="fa-solid fa-eye-slash"></i> Visibilidade de sussurros: <b>${window.showSecretMessages ? 'ATIVADA' : 'DESATIVADA'}</b></span>`);
+                renderChatMessages();
+                input.value = '';
+                return;
+            }
+
+            // Comando Limpar
+            if (text === '/clear' || text === '/limpar') {
+                window.terminalChatMessages = [];
+                localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
+                renderChatMessages();
+                broadcast({ action: 'terminal_chat_clear' });
+                input.value = '';
+                return;
+            }
+
+            // Comando Tell
+            let isSecret = false;
+            let targetName = null;
+            let finalSender = window.playerName || "Jogador";
+            let finalText = text;
+
+            if (text.toLowerCase().startsWith('/tell ')) {
+                // Tenta pegar com aspas duplas (ideal para nomes compostos): /tell "Nome do Jogador" mensagem
+                let match = text.match(/^\/tell\s+"([^"]+)"\s+(.+)$/i);
+                
+                if (!match) {
+                    // Tenta pegar sem aspas (pega a primeira palavra do nome apenas): /tell Nome mensagem
+                    match = text.match(/^\/tell\s+(\S+)\s+(.+)$/i);
+                }
+
+                if (match) {
+                    isSecret = true;
+                    targetName = match[1];
+                    finalText = match[2].trim();
+                } else {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Uso incorreto. Digite: /tell "Nome do Jogador" Sua mensagem</span>`);
+                    input.value = '';
+                    return;
+                }
+            }
             
             const msgObj = {
                 id: Date.now() + Math.random().toString(36).substr(2, 4),
-                sender: window.playerName || "Jogador",
-                text: text,
-                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                sender: finalSender,
+                target: targetName,
+                text: finalText,
+                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                secret: isSecret
             };
             
             window.terminalChatMessages.push(msgObj);
@@ -694,7 +814,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         window.logToDevlog(`<span style="color: ${window.redlockHex}; font-weight:bold;">🔥 Cor da aura Red-lock atualizada!</span>`);
     };
 
-    // Fórmula matemática calibrada para o GIF Verde Puro (Hue = 120°)
     function getRedlockFireFilter(hexHex) {
         let hex = hexHex || '#00e5ff';
         let r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -711,7 +830,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             h /= 6;
         }
         let targetHue = Math.round(h * 360);
-        // O fogo original é verde (Hue = 120 deg). Calculamos o ângulo de rotação exato:
         let rotateDeg = (targetHue - 120 + 360) % 360;
         let satPercent = Math.round(Math.max(200, s * 400));
         return `hue-rotate(${rotateDeg}deg) saturate(${satPercent}%) brightness(1.3) contrast(1.1)`;
@@ -737,6 +855,11 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         document.getElementById('tempTimeRow').style.display = (val === 'temp') ? 'flex' : 'none';
     };
 
+    window.toggleAuraInput = () => {
+        const val = document.getElementById('skinAuraType').value;
+        document.getElementById('customGifRow').style.display = (val === 'custom') ? 'flex' : 'none';
+    };
+
     function renderSkinList() {
         const containerEl = document.getElementById('skinListContainer');
         containerEl.innerHTML = '';
@@ -757,6 +880,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                         if(window.currentSkinId === skin.id) window.selectSkin('default');
                         else renderSkinList();
                         window.logToDevlog(`🗑️ Skin "${skin.name}" foi deletada com sucesso!`);
+                        preloadGifs();
                     }
                 } else {
                     selectSkin(skin.id);
@@ -790,6 +914,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const numColor = document.getElementById('skinNumColor').value;
         const critHideMode = document.getElementById('skinCritHide').value;
         const tempTime = parseInt(document.getElementById('skinTempTime').value) || 3;
+        const auraType = document.getElementById('skinAuraType').value;
         const posX = parseInt(document.getElementById('skinPosX').value) || 0;
         const posY = parseInt(document.getElementById('skinPosY').value) || 0;
         const popSound = document.getElementById('skinPopSound').checked;
@@ -805,14 +930,18 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
 
         let gifBase64 = null;
         let audioBase64 = null;
-        if(gifFile) gifBase64 = await toBase64(gifFile);
+        if(auraType === 'custom' && gifFile) gifBase64 = await toBase64(gifFile);
         if(audioFile) audioBase64 = await toBase64(audioFile);
+
+        let critType = 'custom';
+        if (auraType === 'redlock') critType = 'redlock_custom';
+        else if (auraType === 'none') critType = 'none';
 
         const id = 'custom_' + Date.now();
         const newSkin = {
             id, name, desc: 'Efeitos e cores customizados para sua mesa.',
             badge, dieColor, normColor, numColor, critHideMode, tempTime, posX, posY, popSound,
-            critType: 'custom', gifData: gifBase64, audioData: audioBase64
+            critType: critType, gifData: gifBase64, audioData: audioBase64
         };
 
         window.diceSkins[id] = newSkin;
@@ -821,6 +950,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         localStorage.setItem('custom_dice_skins', JSON.stringify(customSkins));
 
         window.selectSkin(id);
+        preloadGifs();
         document.getElementById('customSkinForm').style.display = 'none';
         window.toggleSkinModal();
     };
@@ -949,7 +1079,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         }
     }
 
-    // --- AUTO-COMPLETAR COM TAB NO TERMINAL ---
     if(cmdRulesEl) {
         cmdRulesEl.addEventListener('keydown', (e) => {
             if (e.key === 'Tab' && cmdRulesEl.getAttribute('contenteditable') === 'true') {
@@ -1039,7 +1168,8 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             const file = e.target.files[0];
             if (file) {
                 dramVideo.src = URL.createObjectURL(file);
-                window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-video"></i> Vídeo Cinemático alterado na sessão!</span>`);
+                saveCinematicVideo(file);
+                window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-video"></i> Vídeo Cinemático alterado e salvo com sucesso!</span>`);
             }
         });
     }
@@ -1072,7 +1202,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                     const isEditing = cmdRulesEl.getAttribute('contenteditable') === 'true';
                     
                     if (!isEditing) {
-                        // Converte a zona de chat interativa de volta para as marcações de texto puras
                         let editHtml = cmdRulesEl.innerHTML;
                         const chatBoxRegex = /<div id="playerChatZone"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gi;
                         editHtml = editHtml.replace(chatBoxRegex, '\n[area1=jogador]\n[area2=jogador]\n');
@@ -1390,7 +1519,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                             if (skin.critType === 'digital') {
                                 explodeParticles(dice.position, 0xff0000, 0xff0000);
                                 showConfetti(dice);
-                            } else if (skin.critType === 'redlock') {
+                            } else if (skin.critType === 'redlock' || skin.critType === 'redlock_custom') {
                                 playCritSound(200, 0.01, 'sawtooth');
                                 explodeParticles(dice.position, parseInt(window.redlockHex.replace('#','0x')), parseInt(window.redlockHex.replace('#','0x')));
                                 showAura(dice, 'redlock', null, skin.posX, skin.posY);
@@ -1572,6 +1701,10 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 if(modInput) modInput.value = window.currentModifier; if(pctInput) pctInput.value = window.currentPercent;
             }
             window.updateTotal(true);
+        } else if (data.action === 'terminal_chat_clear') {
+            window.terminalChatMessages = [];
+            localStorage.setItem('terminal_chat_history', JSON.stringify([]));
+            renderChatMessages();
         } else if (data.action === 'terminal_chat') {
             window.terminalChatMessages.push(data.message);
             if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
