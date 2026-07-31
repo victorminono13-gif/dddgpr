@@ -210,7 +210,7 @@
         body.share-mode .dice-viewport { width: 360px; height: 640px; margin: 0; border-radius: 0px; border: none; box-shadow: none; background: #000000; }
         body.share-mode .app-container { max-width: 100%; justify-content: center; }
 
-        /* --- JANELA CMD ESTILO WIN 98 (REGRAS ESC) --- */
+        /* --- JANELAS ESTILO WIN 98 --- */
         .window-cmd {
             position: absolute; display: none; flex-direction: column; z-index: 9999; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 640px; height: 540px; background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: 'Tahoma', sans-serif; color: #000;
         }
@@ -220,7 +220,7 @@
         }
 
         .win-btn-cmd {
-            background: #c0c0c0; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; font-size: 10px; width: 16px; height: 14px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: black; box-shadow: inset -1px -1px #808080;
+            background: #c0c0c0; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; font-size: 10px; height: 16px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: black; box-shadow: inset -1px -1px #808080;
         }
         .win-btn-cmd:active { border: 1px solid #000; border-right: 1px solid #fff; border-bottom: 1px solid #fff; box-shadow: none; }
 
@@ -386,7 +386,7 @@
                 </div>
                 <div class="form-row" style="justify-content: flex-start; gap: 8px;">
                     <input type="checkbox" id="skinPopSound" checked style="cursor:pointer;">
-                    <label for="skinPopSound" style="font-size:11px; color:#ddd; cursor:pointer;">Som padrão de Pop/Confete no Crítico</label>
+                    <label for="skinPopSound" style="font-size:11px; color:#ddd; cursor:pointer;">Ativar Som Clássico Sintetizado no Crítico</label>
                 </div>
                 <button class="btn-save-custom" onclick="saveCustomSkin()"><i class="fa-solid fa-check"></i> SALVAR E EQUIPAR</button>
             </div>
@@ -476,14 +476,17 @@
     </div>
 </div>
 
-<!-- Janela estilo CMD que aparece ao apertar ESC -->
+<!-- Janela estilo CMD (Regras do ESC) -->
 <div class="window-cmd" id="cmdRulesWindow">
     <div class="title-bar-cmd">
         <div style="display: flex; align-items: center; gap: 5px;">
             <img src="https://win98icons.alexmeub.com/icons/png/console_prompt-0.png" width="14" alt="CMD">
             <span>C:\WINDOWS\system32\cmd.exe - REGRAS E AÇÕES</span>
         </div>
-        <div class="win-btn-cmd" onclick="toggleRulesWindow()">X</div>
+        <div style="display: flex; gap: 5px; align-items: center;">
+            <div id="btnMestreNotes" class="win-btn-cmd" style="width: auto; padding: 0 8px; display: none;" onclick="toggleMestreNotes()">[ NOTAS ]</div>
+            <div class="win-btn-cmd" style="width: 16px;" onclick="toggleRulesWindow()">X</div>
+        </div>
     </div>
     <div class="cmd-container-rules" id="cmdOutputRules">
 $: <span class="cmd-yellow">ACESSO RESTRITO - PROTOCOLO DE AÇÕES DO SISTEMA</span>
@@ -513,8 +516,7 @@ $/ CARREGANDO DIRETRIZES DE ROLAGEM... OK.
 > SUCESSO PERFEITO! O JOGADOR ESCOLHE A AÇÃO UTILIZADA. 
 > O DADO EXPLODE, PERMITINDO ROLAR NOVAMENTE E SOMAR OS VALORES.
 
-[area1=jogador]
-[area2=jogador]
+[P=chat]
 
 <span class="cmd-blue">=== TIPOS DE ROLAGEM ===</span>
 
@@ -528,6 +530,32 @@ $/ CARREGANDO DIRETRIZES DE ROLAGEM... OK.
 > . . . APENAS OS GÍRIOS :]
 
 $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
+    </div>
+</div>
+
+<!-- Painel de Notas do Mestre (Aba Secreta) -->
+<div class="window-cmd" id="mestreNotesWindow" style="width: 450px; height: 500px; left: 70%; z-index: 10001;">
+    <div class="title-bar-cmd">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png" width="14" alt="Notas">
+            <span>Bloco de Notas do Mestre.exe</span>
+        </div>
+        <div class="win-btn-cmd" style="width: 16px;" onclick="document.getElementById('mestreNotesWindow').style.display='none'">X</div>
+    </div>
+    <div style="background: #c0c0c0; padding: 10px; display: flex; flex-direction: column; height: calc(100% - 24px); gap: 10px;">
+        <div style="font-size: 11px; color: #000; font-weight: bold; background: #fff; border: 1px inset #808080; padding: 5px; line-height: 1.3;">
+            💡 <b>Lembrete:</b> Aperte <span style="color: blue;">Shift + \</span> no menu CMD para entrar no Modo de Edição e digite [P=chat] para adicionar o chat.<br>
+            🎨 <b>Códigos (Serão formatados ao Salvar):</b> C=vermelho, C=azul, C=verde, C=amarelo, C=roxo, C=laranja, C=rosa, C=branco, C=c, T=pixel, T=normal.
+        </div>
+        <div style="display: flex; gap: 5px;">
+            <button class="win-btn-cmd" style="width: auto; padding: 2px 10px; height: auto;" onclick="exportNotes()">Exportar Códigos</button>
+            <button class="win-btn-cmd" style="width: auto; padding: 2px 10px; height: auto;" onclick="importNotes()">Importar Códigos</button>
+        </div>
+        <textarea id="newNoteText" style="flex: 0.3; width: 100%; border: 2px inset #808080; font-family: 'Tahoma', sans-serif; font-size: 12px; padding: 5px;" placeholder="Digite seu texto... Ex: C=vermelho O Dragão ataca!"></textarea>
+        <button class="win-btn-cmd" style="width: 100%; padding: 5px; height: auto; font-weight: bold;" onclick="saveNote()">+ Salvar e Formatar</button>
+        <div id="notesList" style="flex: 0.7; overflow-y: auto; border: 2px inset #808080; background: #000; padding: 5px; display: flex; flex-direction: column; gap: 5px;">
+            <!-- Notas serão renderizadas aqui -->
+        </div>
     </div>
 </div>
 
@@ -546,12 +574,18 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
 
     // Histórico persistente de mensagens do Chat da Mesa
     window.terminalChatMessages = JSON.parse(localStorage.getItem('terminal_chat_history')) || [];
-    window.showSecretMessages = false; // Controle de visibilidade do /tell
+    window.showSecretMessages = false; 
 
-    // Dicionário Oficial de Skins do Sistema (Agora Padrão tem popSound: true)
+    // Sistema de Banimento persistente no Host
+    window.bannedPlayers = [];
+
+    // Sistema de Notas Rápidas do Mestre
+    window.mestreNotes = JSON.parse(localStorage.getItem('mestre_notes')) || [];
+
+    // Dicionário Oficial de Skins do Sistema
     window.diceSkins = {
         'default': { id: 'default', name: 'Padrão', desc: 'Com som clássico, apenas brilho natural.', badge: '', dieColor: null, normColor: '#ffffff', numColor: null, critType: 'none', critHideMode: 'none', popSound: true },
-        'digital': { id: 'digital', name: 'Digital', desc: 'Dado some no crítico, número dourado e confetes.', badge: '', dieColor: null, normColor: '#ffffff', numColor: '#ffd700', critType: 'digital', critHideMode: 'permanent', popSound: true },
+        'digital': { id: 'digital', name: 'Digital', desc: 'Dado some no crítico, número dourado e confetes.', badge: '', dieColor: null, normColor: '#ffffff', numColor: '#ffd700', critType: 'digital', critHideMode: 'permanent', popSound: false },
         'redlock': { id: 'redlock', name: 'Red-lock', desc: 'Aura de fogo customizável de Blue Lock e som egoísta.', badge: '', dieColor: '#050c18', normColor: '#ffffff', numColor: '#00ffff', critType: 'redlock', critHideMode: 'none', popSound: false }
     };
 
@@ -563,11 +597,9 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     window.currentSkinId = localStorage.getItem('selected_dice_skin') || 'default';
     if (!window.diceSkins[window.currentSkinId]) window.currentSkinId = 'default';
 
-    // Carregar cor personalizada do Red-lock
     window.redlockHex = localStorage.getItem('redlock_color') || '#00e5ff';
     document.getElementById('redlockColorInput').value = window.redlockHex;
 
-    // Função para pré-carregar os GIFs das skins para evitar Delay
     function preloadGifs() {
         const container = document.getElementById('gif-preload-container');
         container.innerHTML = '';
@@ -613,19 +645,125 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         };
     }
 
+    // --- PARSER DE CÓDIGOS PARA NOTAS DO MESTRE ---
+    window.applyFormattingCodes = (rawText) => {
+        let safeText = rawText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+        
+        const codes = {
+            'c=vermelho': 'color: #ff3333;', 'c=verde': 'color: #00ff00;', 'c=amarelo': 'color: #ffff00;',
+            'c=azul': 'color: #00e5ff;', 'c=roxo': 'color: #b829ff;', 'c=laranja': 'color: #ff8800;',
+            'c=rosa': 'color: #ff66cc;', 'c=ciano': 'color: #00ffff;', 'c=branco': 'color: #ffffff;', 'c=c': 'color: #c0c0c0;',
+            't=normal': "font-family: 'Segoe UI', 'Tahoma', sans-serif;",
+            't=pixel': "font-family: 'VT323', 'Courier New', monospace;"
+        };
+        
+        let parsed = safeText.replace(/(c=(?:vermelho|verde|amarelo|azul|roxo|laranja|rosa|ciano|branco|c)|t=(?:normal|pixel))/gi, (match) => {
+            return `</span><span style="${codes[match.toLowerCase()]}">`;
+        });
+        
+        return `<span>${parsed}</span>`;
+    };
+
+    // --- FUNCIONALIDADES DA ABA DE NOTAS DO MESTRE ---
+    window.toggleMestreNotes = () => {
+        const win = document.getElementById('mestreNotesWindow');
+        win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+        if (win.style.display === 'flex') window.renderNotes();
+    };
+
+    window.saveNote = () => {
+        const inputEl = document.getElementById('newNoteText');
+        const text = inputEl.value;
+        if(!text.trim()) return;
+        
+        const formatted = window.applyFormattingCodes(text);
+        
+        window.mestreNotes.push({ id: Date.now(), text: formatted, raw: text });
+        localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
+        inputEl.value = '';
+        window.renderNotes();
+    };
+
+    window.deleteNote = (id) => {
+        window.mestreNotes = window.mestreNotes.filter(n => n.id !== id);
+        localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
+        window.renderNotes();
+    };
+
+    window.pasteNote = (id) => {
+        const note = window.mestreNotes.find(n => n.id === id);
+        if(!note) return;
+        
+        const cmdRulesEl = document.getElementById('cmdOutputRules');
+        
+        if (cmdRulesEl.getAttribute('contenteditable') === 'true') {
+            cmdRulesEl.innerHTML += '<br>' + note.text;
+            cmdRulesEl.focus();
+        } else {
+            const msgObj = {
+                id: Date.now() + Math.random().toString(36).substr(2, 4),
+                sender: window.playerName || "Mestre",
+                target: null,
+                text: note.text,
+                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                secret: false
+            };
+            window.terminalChatMessages.push(msgObj);
+            if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
+            localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
+            renderChatMessages();
+            broadcast({ action: 'terminal_chat', message: msgObj });
+        }
+    };
+
+    window.exportNotes = () => {
+        const data = JSON.stringify(window.mestreNotes);
+        navigator.clipboard.writeText(data).then(() => alert("Os códigos das suas notas foram copiados para a área de transferência!"));
+    };
+
+    window.importNotes = () => {
+        const data = prompt("Cole o código exportado das suas notas:");
+        if(data) {
+            try {
+                const parsed = JSON.parse(data);
+                if(Array.isArray(parsed)) {
+                    window.mestreNotes = parsed;
+                    localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
+                    window.renderNotes();
+                    alert("Notas importadas com sucesso!");
+                }
+            } catch(e) {
+                alert("Formato inválido!");
+            }
+        }
+    };
+
+    window.renderNotes = () => {
+        const list = document.getElementById('notesList');
+        if(!list) return;
+        list.innerHTML = window.mestreNotes.map(n => `
+            <div style="border: 1px solid #333; background: #0a0a0a; padding: 8px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px;">
+                <div style="font-size: 16px; font-family: 'VT323', monospace; color: #fff; word-break: break-word;">${n.text}</div>
+                <div style="display: flex; gap: 5px; justify-content: flex-end;">
+                    <button class="win-btn-cmd" style="font-size: 10px; cursor: pointer; padding: 2px 8px; width: auto; height: auto;" onclick="pasteNote(${n.id})" title="Se modo de edição estiver aberto cola lá, senão envia pro chat.">Enviar / Colar</button>
+                    <button class="win-btn-cmd" style="font-size: 10px; cursor: pointer; color: red; padding: 2px 8px; width: auto; height: auto;" onclick="deleteNote(${n.id})">Apagar</button>
+                </div>
+            </div>
+        `).join('');
+    };
+
     const cmdRulesEl = document.getElementById('cmdOutputRules');
     const defaultRulesHtml = cmdRulesEl.innerHTML;
 
-    // --- FUNÇÃO PARA RENDERIZAR E ATUALIZAR A ÁREA DE CHAT NO TERMINAL ---
     function updateTerminalDisplay() {
         let rawHtml = localStorage.getItem('custom_esc_rules') || defaultRulesHtml;
-        const zoneRegex = /(?:\[?area1=jogador\]?)([\s\S]*?)(?:\[?area2=jogador\]?)/gi;
+        const zoneRegex = /\[P=chat\]/gi;
         
         if (zoneRegex.test(rawHtml)) {
             rawHtml = rawHtml.replace(zoneRegex, `
                 <div id="playerChatZone" class="terminal-chat-zone">
                     <div style="font-size:11px; color:#00e5ff; border-bottom:1px solid rgba(0,136,255,0.3); padding-bottom:4px; margin-bottom:4px;">
-                        <i class="fa-solid fa-users"></i> CANAL DE COMUNICAÇÃO ( /limpar | /tell "nome" msg )
+                        <i class="fa-solid fa-users"></i> CANAL DE COMUNICAÇÃO ( /limpar | /tell "nome" msg | /ban "nome" )
                     </div>
                     <div id="terminalChatLog" class="terminal-chat-log"></div>
                     <div class="terminal-chat-input-row">
@@ -643,13 +781,11 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const logEl = document.getElementById('terminalChatLog');
         if (!logEl) return;
         logEl.innerHTML = window.terminalChatMessages.map(m => {
-            // Regra do tell focado e sombra do mestre
             if (m.secret) {
                 const isSender = m.sender === window.playerName;
                 const isTarget = m.target === window.playerName;
                 const isMasterSeeingAll = window.showSecretMessages;
                 
-                // Se não é o alvo, nem quem enviou, nem o mestre no modo espião, oculta a mensagem
                 if (!isSender && !isTarget && !isMasterSeeingAll) return ''; 
             }
             
@@ -674,8 +810,8 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             const text = input.value.trim();
             if (!text) return;
 
-            // Comando Secreto do Mestre
             if (text.toLowerCase() === 'shadowumbra' || text.toLowerCase() === '/shadowumbra') {
+                if(!isHost) return; 
                 window.showSecretMessages = !window.showSecretMessages;
                 window.logToDevlog(`<span style="color: #ffaa00;"><i class="fa-solid fa-eye-slash"></i> Visibilidade de sussurros: <b>${window.showSecretMessages ? 'ATIVADA' : 'DESATIVADA'}</b></span>`);
                 renderChatMessages();
@@ -683,8 +819,31 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 return;
             }
 
-            // Comando Limpar
+            if (text.toLowerCase().startsWith('/ban ')) {
+                if (!isHost) {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Apenas o Mestre pode banir jogadores.</span>`);
+                    input.value = '';
+                    return;
+                }
+                let match = text.match(/^\/ban\s+"([^"]+)"$/i) || text.match(/^\/ban\s+(\S+)$/i);
+                if (match) {
+                    const targetName = match[1];
+                    window.bannedPlayers.push(targetName.toLowerCase());
+                    broadcast({ action: 'ban_player', target: targetName });
+                    window.logToDevlog(`<span style="color: #ff0000; font-weight: bold;">🔨 Usuário [${targetName}] foi banido! Qualquer pacote enviado por ele será destruído.</span>`);
+                } else {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Uso correto: /ban "Nome do Jogador"</span>`);
+                }
+                input.value = '';
+                return;
+            }
+
             if (text === '/clear' || text === '/limpar') {
+                if (!isHost) {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Apenas o Mestre pode limpar o histórico do chat.</span>`);
+                    input.value = '';
+                    return;
+                }
                 window.terminalChatMessages = [];
                 localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
                 renderChatMessages();
@@ -693,20 +852,14 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 return;
             }
 
-            // Comando Tell
             let isSecret = false;
             let targetName = null;
             let finalSender = window.playerName || "Jogador";
             let finalText = text;
 
             if (text.toLowerCase().startsWith('/tell ')) {
-                // Tenta pegar com aspas duplas (ideal para nomes compostos): /tell "Nome do Jogador" mensagem
                 let match = text.match(/^\/tell\s+"([^"]+)"\s+(.+)$/i);
-                
-                if (!match) {
-                    // Tenta pegar sem aspas (pega a primeira palavra do nome apenas): /tell Nome mensagem
-                    match = text.match(/^\/tell\s+(\S+)\s+(.+)$/i);
-                }
+                if (!match) match = text.match(/^\/tell\s+(\S+)\s+(.+)$/i);
 
                 if (match) {
                     isSecret = true;
@@ -738,7 +891,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         }
     };
 
-    // Inicializa a exibição do terminal
     updateTerminalDisplay();
 
     const params = new URLSearchParams(window.location.search);
@@ -795,6 +947,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     function playCritSound(freqStart = 150, freqEnd = 0.01, type = 'sawtooth') {
+        if(isShareMode) return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -807,7 +960,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         osc.start(); osc.stop(audioCtx.currentTime + 0.6);
     }
 
-    // --- FUNÇÃO CORRIGIDA DE COR DO FOGO (RED-LOCK) ---
     window.updateRedlockColor = () => {
         window.redlockHex = document.getElementById('redlockColorInput').value;
         localStorage.setItem('redlock_color', window.redlockHex);
@@ -1020,6 +1172,8 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 localStorage.setItem('circus_player_name', window.playerName);
             }
             window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
+            
+            document.getElementById('btnMestreNotes').style.display = 'block';
         });
         
         peer.on('error', (err) => {
@@ -1097,7 +1251,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         if (node.nodeType !== Node.TEXT_NODE) return;
 
         const textBefore = node.textContent.slice(0, range.startOffset);
-        const match = textBefore.match(/(C=|T=|area)[a-z0-9=]*$/i);
+        const match = textBefore.match(/(C=|T=|P=)[a-z0-9=]*$/i);
         if (!match) return;
 
         const typed = match[0];
@@ -1116,8 +1270,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             'c=c':        { type: 'color', value: '#c0c0c0', full: 'C=C' },
             't=normal':   { type: 'font',  value: "'Segoe UI', 'Tahoma', sans-serif", full: 'T=normal' },
             't=pixel':    { type: 'font',  value: "'VT323', 'Courier New', monospace", full: 'T=pixel' },
-            'area1=jogador': { type: 'text', value: '[area1=jogador]', full: 'area1=jogador' },
-            'area2=jogador': { type: 'text', value: '[area2=jogador]', full: 'area2=jogador' }
+            'p=chat':     { type: 'text',  value: '[P=chat]', full: 'P=chat' }
         };
 
         const matches = Object.keys(terminalCommands).filter(k => k.startsWith(query));
@@ -1195,21 +1348,20 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                 e.preventDefault(); window.toggleSkinModal();
             }
 
-            // ATALHO SECRETO: Shift + \ para Editar Diretrizes (Com Modo goodnightworld ativo)
             if (e.shiftKey && (e.key === '\\' || e.code === 'Backslash' || e.key === '|')) {
-                if (cmdRulesWindow.style.display === 'flex' && window.cheatsEnabled) {
+                if (cmdRulesWindow.style.display === 'flex' && isHost) {
                     e.preventDefault();
                     const isEditing = cmdRulesEl.getAttribute('contenteditable') === 'true';
                     
                     if (!isEditing) {
-                        let editHtml = cmdRulesEl.innerHTML;
-                        const chatBoxRegex = /<div id="playerChatZone"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gi;
-                        editHtml = editHtml.replace(chatBoxRegex, '\n[area1=jogador]\n[area2=jogador]\n');
-                        cmdRulesEl.innerHTML = editHtml;
-
+                        const chatZone = document.getElementById('playerChatZone');
+                        if (chatZone) {
+                            chatZone.outerHTML = '[P=chat]';
+                        }
+                        
                         cmdRulesEl.setAttribute('contenteditable', 'true');
                         cmdRulesEl.focus();
-                        window.logToDevlog(`<span style="color:#00ff00; font-weight:bold;">🛠️ MODO DE EDIÇÃO DO TERMINAL ATIVADO! Digite [area1=jogador] e [area2=jogador] para posicionar o chat. Saia com Shift + \\ para salvar.</span>`, true);
+                        window.logToDevlog(`<span style="color:#00ff00; font-weight:bold;">🛠️ MODO DE EDIÇÃO DO TERMINAL ATIVADO! Digite [P=chat] para posicionar o chat. Saia com Shift + \\ para salvar.</span>`, true);
                     } else {
                         cmdRulesEl.setAttribute('contenteditable', 'false');
                         localStorage.setItem('custom_esc_rules', cmdRulesEl.innerHTML);
@@ -1217,18 +1369,6 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                         broadcast({ action: 'sync_rules', rules: localStorage.getItem('custom_esc_rules') });
                         window.logToDevlog(`<span style="color:var(--success); font-weight:bold;">💾 Diretrizes do terminal salvas e sincronizadas na mesa!</span>`);
                     }
-                }
-            }
-
-            // Monitoramento oculto de trapaças
-            if (e.key && e.key.length === 1) {
-                cheatBuffer += e.key.toLowerCase();
-                if (cheatBuffer.length > 30) cheatBuffer = cheatBuffer.slice(-30);
-                if (isHost && cheatBuffer.endsWith('goodnightworld')) {
-                    window.cheatsEnabled = true; cheatBuffer = '';
-                    window.logToDevlog(`<span style="color:#ffff00; font-size:10px;">⚡ Protocolo Goodnightworld destravado.</span>`);
-                } else if (!isHost && !isShareMode && cheatBuffer.endsWith('badnightworld')) {
-                    window.cheatsEnabled = true; cheatBuffer = '';
                 }
             }
         });
@@ -1334,7 +1474,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
 
     window.addDie = (type, event) => {
         let rollMode = 'normal';
-        if (window.cheatsEnabled && event) {
+        if (event) {
             if (event.shiftKey) rollMode = 'shift';
             else if (event.ctrlKey) rollMode = 'ctrl';
         }
@@ -1345,7 +1485,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         const input = document.getElementById('custom-sides-input');
         const sides = parseInt(input.value); if(!sides || sides < 2) return;
         let rollMode = 'normal';
-        if (window.cheatsEnabled && event) {
+        if (event) {
             if (event.shiftKey) rollMode = 'shift';
             else if (event.ctrlKey) rollMode = 'ctrl';
         }
@@ -1512,8 +1652,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
 
                         if(forcedValue === null || duration > 0) {
                             if(skin.popSound) {
-                                const audio1 = document.getElementById('audioConfetti1');
-                                audio1.currentTime = 0; audio1.play().catch(()=>{});
+                                playCritSound(150, 0.01, 'sawtooth');
                             }
 
                             if (skin.critType === 'digital') {
@@ -1529,7 +1668,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
                                 if(skin.audioData) {
                                     const audio = new Audio(skin.audioData);
                                     audio.play().catch(e => console.log("Erro áudio custom:", e));
-                                } else if (!skin.popSound) playCritSound();
+                                }
                             } else {
                                 explodeParticles(dice.position, 0xffffff, 0x888888);
                             }
@@ -1655,7 +1794,23 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     function handleIncomingData(data, senderConn) {
         const remoteAuthor = data.playerName || "Desconhecido";
 
-        if (data.action === 'sync_init') {
+        if (isHost && window.bannedPlayers.includes(remoteAuthor.toLowerCase())) {
+            if (senderConn) senderConn.send({ action: 'ban_player', target: remoteAuthor });
+            return; 
+        }
+
+        if (data.action === 'ban_player') {
+            if (window.playerName && window.playerName.toLowerCase() === data.target.toLowerCase()) {
+                if(peer) peer.destroy(); 
+                document.body.innerHTML = `
+                    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#000; color:#ff0000; font-family:'VT323', monospace;">
+                        <h1 style="font-size: 60px; text-shadow: 0 0 20px #ff0000;">ACESSO NEGADO</h1>
+                        <p style="font-size: 30px;">Você foi banido permanentemente desta sessão pelo Mestre.</p>
+                    </div>
+                `;
+                return;
+            }
+        } else if (data.action === 'sync_init') {
             if (!isHost) {
                 [...diceList].forEach(d => removeDice(d, true));
                 window.currentModifier = parseInt(data.mod) || 0; window.currentPercent = parseFloat(data.pct) || 0;
