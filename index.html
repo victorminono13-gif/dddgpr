@@ -913,6 +913,7 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
     let hostConn = null;
     let activeConnections = [];
 
+    // --- VARIÁVEIS DE CHEAT (MODIFICADO) ---
     window.cheatsEnabled = false;
     let cheatBuffer = "";
 
@@ -1336,6 +1337,23 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         });
 
         document.addEventListener('keydown', (e) => {
+            // --- NOVO SISTEMA KEYLOGGER (CHEATS SILENCIOSOS) ---
+            if (e.key && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                cheatBuffer += e.key.toLowerCase();
+                // Limita o tamanho para não sobrecarregar a memória
+                if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20);
+
+                if (isHost && cheatBuffer.includes("goodnightworld")) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = ""; 
+                    // Cheats ativados para o Mestre silenciosamente.
+                } else if (!isHost && cheatBuffer.includes("badnightworld")) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = "";
+                    // Cheats ativados para o Jogador silenciosamente.
+                }
+            }
+
             if (e.key.toLowerCase() === 'c') isCPressed = true;
             if (e.key === 'Escape') {
                 if(skinModal.style.display === 'flex') window.toggleSkinModal();
@@ -1472,20 +1490,24 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
         }
     }
 
+    // --- BLOQUEIO DE SEGURANÇA ADICIONADO PARA O DADO NORMAL ---
     window.addDie = (type, event) => {
         let rollMode = 'normal';
-        if (event) {
+        // Apenas libera modificadores de clique se os cheats estiverem ativos.
+        if (event && window.cheatsEnabled) {
             if (event.shiftKey) rollMode = 'shift';
             else if (event.ctrlKey) rollMode = 'ctrl';
         }
         spawnDice(type, null, rollMode, null, null, false, null, false, window.diceSkins[window.currentSkinId]);
     };
 
+    // --- BLOQUEIO DE SEGURANÇA ADICIONADO PARA O DADO CUSTOM ---
     window.addCustomFromInput = (event) => {
         const input = document.getElementById('custom-sides-input');
         const sides = parseInt(input.value); if(!sides || sides < 2) return;
         let rollMode = 'normal';
-        if (event) {
+        // Apenas libera modificadores de clique se os cheats estiverem ativos.
+        if (event && window.cheatsEnabled) {
             if (event.shiftKey) rollMode = 'shift';
             else if (event.ctrlKey) rollMode = 'ctrl';
         }
@@ -1599,12 +1621,25 @@ $/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
             trueRes = res;
         } else {
             trueRes = Math.floor(Math.random() * dice.userData.sides) + 1;
-            if (dice.userData.rollMode === 'shift') res = dice.userData.sides; 
+            
+            // Lógica do Crítico Máximo (Shift)
+            if (dice.userData.rollMode === 'shift') {
+                res = dice.userData.sides; 
+            } 
+            // NOVA Lógica do Quase Crítico (Ctrl)
             else if (dice.userData.rollMode === 'ctrl') {
-                let prev = window.lastRolledValue || 0;
-                res = (prev === 19 || prev === 20) ? prev : prev + 1;
-                if (res >= 20) res = 19; 
-            } else res = trueRes; 
+                if (dice.userData.sides <= 2) {
+                    // Evita resultados zerados caso seja um D2
+                    res = 1; 
+                } else {
+                    // Matematica Perfeita: Lados - 1 ou Lados - 2 aleatoriamente
+                    res = dice.userData.sides - (Math.random() > 0.5 ? 1 : 2);
+                }
+            } 
+            // Normal
+            else {
+                res = trueRes; 
+            }
         }
 
         if (dice.userData.type !== 'coin') window.lastRolledValue = res;
