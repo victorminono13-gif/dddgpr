@@ -1,1920 +1,1888 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dados do Mestre - Blackout & Fire (V5 Ultimate Chat & Color)</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
-        /* --- TEMA BLACKOUT --- */
-        :root {
-            --bg-body: #000000;
-            --bg-panel: #050505;
-            --border: #1a1a1a;
-            --accent: #00ffcc;
-            --success: #00ff66;
-            --magic: #ffaa00;
-            --danger: #ff0000;
-            --text-muted: #444;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        
-        body { 
-            background-color: var(--bg-body); 
-            color: #fff; 
-            min-height: 100vh; 
-            padding: 40px 20px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-
-        .app-container {
-            display: flex;
-            gap: 20px;
-            width: 100%;
-            max-width: 1100px; 
-        }
-
-        .main-wrapper { flex: 2; }
-
-        /* --- DEVLOG --- */
-        .devlog-wrapper {
-            flex: 1;
-            background-color: var(--bg-panel); 
-            border-radius: 12px; 
-            padding: 25px;
-            border: 1px solid var(--border);
-            box-shadow: 0 0 60px rgba(0,0,0,1);
-            display: flex;
-            flex-direction: column;
-            max-height: 855px;
-        }
-
-        .devlog-header {
-            text-align: center; margin-bottom: 15px; font-size: 14px; color: #333; letter-spacing: 2px; text-transform: uppercase;
-        }
-
-        .devlog-content {
-            flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;
-        }
-
-        .devlog-content::-webkit-scrollbar { width: 6px; }
-        .devlog-content::-webkit-scrollbar-track { background: #000; }
-        .devlog-content::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-
-        .log-entry {
-            background: #0a0a0a; padding: 12px; border-left: 3px solid var(--accent);
-            border-radius: 4px; font-size: 13px; color: #ddd; animation: fadeIn 0.3s ease-out; cursor: pointer; transition: 0.2s;
-        }
-        .log-entry:hover { background: #111; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
-
-        .log-time {
-            color: var(--text-muted); font-size: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; pointer-events: none;
-        }
-
-        .true-log {
-            display: none; color: var(--magic); font-size: 11px; margin-top: 8px; border-top: 1px dashed #331a00; padding-top: 6px; font-weight: bold; animation: fadeIn 0.3s ease-out;
-        }
-        body.show-true-log .true-log { display: block; }
-
-        .dice-section {
-            background-color: var(--bg-panel); border-radius: 12px; padding: 25px; border: 1px solid var(--border); box-shadow: 0 0 60px rgba(0,0,0,1);
-        }
-        
-        .dice-viewport {
-            width: 100%; height: 380px; background: #000; border-radius: 8px; position: relative; overflow: hidden; border: 1px solid #111; cursor: crosshair; margin-bottom: 25px; box-shadow: inset 0 0 30px #000;
-        }
-
-        .dice-label {
-            position: absolute; font-weight: 900; color: #fff; pointer-events: none; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(0,0,0,1); font-size: 28px; z-index: 100; transform: translate(-50%, -50%);
-        }
-        
-        .crit-text {
-            color: #ff0000 !important; font-size: 40px !important; text-shadow: 0 0 20px #ff0000, 0 0 40px #000 !important; animation: pulseCrit 0.5s infinite alternate;
-        }
-        @keyframes pulseCrit { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.2); } }
-
-        /* Aura visual de GIF no dado */
-        .crit-aura {
-            position: absolute; pointer-events: none; z-index: 50; width: 280px; transform: translate(-50%, -85%); mix-blend-mode: screen; opacity: 0.95; transition: filter 0.1s;
-        }
-
-        .text-blue { color: #00e5ff !important; font-size: 36px !important; text-shadow: 0 0 15px #00e5ff, 0 0 30px #000 !important; }
-        .text-green { color: #00ff66 !important; font-size: 36px !important; text-shadow: 0 0 15px #00ff66, 0 0 30px #000 !important; }
-
-        /* --- HUD DE EXIBIÇÃO EM TEMPO REAL --- */
-        .hud-overlay {
-            position: absolute; bottom: 55px; right: 20px; text-align: right; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
-        }
-        .hud-item { display: flex; flex-direction: column; align-items: flex-end; }
-        .hud-value { font-size: 44px; font-weight: 800; color: rgba(255,255,255,0.1); line-height: 0.9; transition: color 0.3s; }
-        .hud-value.active { color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
-        
-        .hud-value-small { font-size: 22px; font-weight: 700; color: rgba(255,255,255,0.1); line-height: 0.9; transition: color 0.3s; }
-        .hud-value-small.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
-        .hud-value-small.active-pct { color: var(--magic); text-shadow: 0 0 10px rgba(255,170,0,0.4); }
-        .hud-label { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
-
-        .controls-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-
-        .dark-input-group { background: #0a0a0a; padding: 12px; border-radius: 6px; border: 1px solid #222; }
-        .dark-label { font-size: 10px; font-weight: bold; color: var(--accent); display: block; margin-bottom: 5px; opacity: 0.7; }
-        
-        .dark-input {
-            background: transparent; border: none; border-bottom: 1px solid #333; color: white; width: 100%; text-align: center; font-size: 20px; font-weight: bold; padding: 5px;
-        }
-        .dark-input:focus { outline: none; border-color: var(--accent); }
-
-        .result-box {
-            background: #080808; border: 1px solid #222; border-left: 4px solid var(--success); padding: 15px 25px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
-        }
-        .result-title { font-weight: bold; color: var(--success); font-size: 14px; letter-spacing: 1px; }
-        .result-number { font-size: 36px; font-weight: bold; color: #fff; text-shadow: 0 0 20px var(--success); }
-
-        .dice-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 20px; }
-
-        .dice-btn { 
-            padding: 12px 0; background: #111; border: 1px solid #222; color: #666; font-weight: bold; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 12px; user-select: none;
-        }
-        
-        .btn-coin { border-color: #bdc3c7; color: #bdc3c7; }
-        .btn-coin:hover { background: #bdc3c7; color: #000; box-shadow: 0 0 15px #bdc3c7; }
-        .btn-d4:hover  { background: #2c3e50; color: #fff; box-shadow: 0 0 10px #2c3e50; border-color: #2c3e50;}
-        .btn-d6:hover  { background: #2980b9; color: #fff; box-shadow: 0 0 10px #2980b9; border-color: #2980b9;}
-        .btn-d8:hover  { background: #8e44ad; color: #fff; box-shadow: 0 0 10px #8e44ad; border-color: #8e44ad;}
-        .btn-d10:hover { background: #d35400; color: #fff; box-shadow: 0 0 10px #d35400; border-color: #d35400;}
-        .btn-d12:hover { background: #c0392b; color: #fff; box-shadow: 0 0 10px #c0392b; border-color: #c0392b;}
-        .btn-d20 { border-color: #f1c40f; color: #f1c40f; font-weight: 900; }
-        .btn-d20:hover { background: #f1c40f; color: #000; box-shadow: 0 0 20px #f1c40f; }
-        .btn-d100 { border-color: #bdc3c7; color: #bdc3c7; }
-        .btn-d100:hover { background: #bdc3c7; color: #000; box-shadow: 0 0 20px #bdc3c7; }
-
-        .custom-zone {
-            display: flex; gap: 10px; background: linear-gradient(90deg, #150800, #000); padding: 5px; border: 1px solid #331a00; border-radius: 8px; position: relative; overflow: hidden; margin-bottom: 10px;
-        }
-        .custom-zone::before {
-            content: ''; position: absolute; top:0; left:0; width: 2px; height: 100%; background: var(--magic); box-shadow: 0 0 15px var(--magic); opacity: 0.6;
-        }
-
-        .custom-input-wrapper { position: relative; flex: 1; }
-        
-        .magic-input {
-            width: 100%; background: #000; border: 1px solid #442200; color: var(--magic); padding: 12px 10px 12px 40px; border-radius: 6px; font-size: 16px; font-weight: bold; transition: 0.3s;
-        }
-        .magic-input:focus { outline: none; border-color: var(--magic); box-shadow: 0 0 15px rgba(255, 170, 0, 0.2); }
-        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666; font-size: 14px; }
-
-        .btn-magic {
-            flex: 1; border: none; background: linear-gradient(135deg, #4a2500, #2a1200); color: white; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; transition: all 0.3s; border: 1px solid #663300; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-magic:hover { background: var(--magic); color: #000; box-shadow: 0 0 30px var(--magic); border-color: white; }
-        
-        .actions-group { display: flex; gap: 10px; margin-top: 15px; }
-
-        .action-btn { 
-            flex: 1; padding: 15px; background:#080808; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s; letter-spacing: 2px; font-size: 11px;
-        }
-        .action-btn:hover { background: var(--accent); color: black; box-shadow: 0 0 30px var(--accent); }
-
-        .btn-dramatizacao { background: #1a0000; color: var(--danger); border-color: var(--danger); }
-        .btn-dramatizacao:hover { background: var(--danger); color: white; box-shadow: 0 0 30px var(--danger); }
-
-        .btn-invite { flex: 0.2; background: #001a33; color: var(--accent); border-color: var(--accent); }
-        .btn-invite:hover { background: var(--accent); color: black; box-shadow: 0 0 30px var(--accent); }
-
-        .btn-clear { flex: 0.2; background: #2a0000; color: var(--danger); border-color: var(--danger); }
-        .btn-clear:hover { background: var(--danger); color: white; box-shadow: 0 0 30px var(--danger); }
-
-        /* --- VIDEO OVERLAY --- */
-        #video-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 9999; align-items: center; justify-content: center;
-        }
-
-        #dramatizacao-video {
-            max-width: 90%; max-height: 90%; box-shadow: 0 0 50px var(--danger); border: 2px solid var(--danger); border-radius: 8px; cursor: pointer;
-        }
-
-        /* --- MODO OBS TRANSMISSÃO (SHARE) --- */
-        body.share-mode {
-            padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; background-color: #000000; overflow: hidden; height: 100vh; width: 100vw;
-        }
-        body.share-mode .devlog-wrapper, body.share-mode .controls-row, body.share-mode .result-box, body.share-mode .dice-grid, body.share-mode .custom-zone, body.share-mode .actions-group, body.share-mode h2 { display: none !important; }
-        body.share-mode .main-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
-        body.share-mode .dice-section { padding: 0; border: none; box-shadow: none; background: transparent; width: auto; }
-        body.share-mode .dice-viewport { width: 360px; height: 640px; margin: 0; border-radius: 0px; border: none; box-shadow: none; background: #000000; }
-        body.share-mode .app-container { max-width: 100%; justify-content: center; }
-
-        /* --- JANELAS ESTILO WIN 98 --- */
-        .window-cmd {
-            position: absolute; display: none; flex-direction: column; z-index: 9999; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 640px; height: 540px; background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: 'Tahoma', sans-serif; color: #000;
-        }
-
-        .title-bar-cmd {
-            background: #000080; color: white; padding: 3px 5px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; user-select: none;
-        }
-
-        .win-btn-cmd {
-            background: #c0c0c0; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; font-size: 10px; height: 16px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: black; box-shadow: inset -1px -1px #808080;
-        }
-        .win-btn-cmd:active { border: 1px solid #000; border-right: 1px solid #fff; border-bottom: 1px solid #fff; box-shadow: none; }
-
-        .cmd-container-rules {
-            background-color: #000; color: #c0c0c0; font-family: 'VT323', 'Courier New', monospace; font-size: 20px; padding: 12px; flex-grow: 1; overflow-y: auto; margin: 2px; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; outline: none;
-        }
-        .cmd-container-rules[contenteditable="true"] { border: 2px solid #00ff00 !important; background: #001100; color: #fff; }
-
-        .cmd-output-rules { white-space: pre-wrap; line-height: 1.1; text-transform: uppercase; }
-        .cmd-green { color: #00ff00; } .cmd-yellow { color: #ffff00; } .cmd-blue { color: #00e5ff; } .cmd-red { color: #ff3333; }
-
-        /* --- ÁREA DE CHAT DOS JOGADORES NO TERMINAL (AZUL FRACO) --- */
-        .terminal-chat-zone {
-            background: rgba(0, 136, 255, 0.15); border: 1px dashed #0088ff; padding: 10px; margin: 10px 0; border-radius: 6px; display: flex; flex-direction: column; gap: 8px; font-family: 'VT323', monospace;
-        }
-        .terminal-chat-log {
-            max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 5px; font-size: 18px;
-        }
-        .terminal-chat-log::-webkit-scrollbar { width: 4px; }
-        .terminal-chat-log::-webkit-scrollbar-thumb { background: #0088ff; border-radius: 2px; }
-        .terminal-chat-input-row { display: flex; align-items: center; gap: 6px; border-top: 1px solid rgba(0, 136, 255, 0.3); padding-top: 6px; }
-        .terminal-chat-input {
-            background: transparent; border: none; color: #fff; font-family: 'VT323', monospace; font-size: 18px; flex: 1; outline: none;
-        }
-        .terminal-chat-input::placeholder { color: rgba(255, 255, 255, 0.3); }
-
-        /* --- MENU DE SKINS DE DADOS (SHIFT + ESPAÇO) --- */
-        .skin-modal {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 10000; display: none; align-items: center; justify-content: center;
-        }
-        .skin-panel {
-            background: #080a0f; border: 2px solid var(--accent); border-radius: 12px; width: 620px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,255,204,0.2); overflow: hidden; position: relative;
-        }
-        .skin-header {
-            background: #10141d; padding: 15px 20px; border-bottom: 1px solid #1f293d; display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: var(--accent); letter-spacing: 2px; font-size: 14px;
-        }
-        .skin-body { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .skin-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        
-        .skin-card {
-            background: #0e121a; border: 1px solid #222c3e; border-radius: 8px; padding: 12px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 5px; position: relative;
-        }
-        .skin-card:hover { border-color: var(--accent); background: #141b27; }
-        .skin-card.active { border-color: var(--success); box-shadow: 0 0 15px rgba(0,255,102,0.3); background: #112017; }
-        .skin-title { font-weight: bold; font-size: 14px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
-        .skin-desc { font-size: 11px; color: var(--text-muted); }
-        .skin-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #222; color: #aaa; text-transform: uppercase; }
-        
-        .skin-form { display: none; flex-direction: column; gap: 12px; background: #0c0f17; padding: 15px; border-radius: 8px; border: 1px dashed #2a364f; margin-top: 10px; }
-        .form-row { display: flex; gap: 10px; align-items: center; }
-        .form-label { font-size: 11px; color: #aaa; flex: 1; }
-        .form-input { background: #000; border: 1px solid #333; color: #fff; padding: 6px 10px; border-radius: 4px; flex: 2; font-size: 12px; }
-        .form-input[type="color"] { padding: 0; height: 30px; cursor: pointer; }
-        .btn-add-skin { background: #1a2333; color: var(--accent); border: 1px solid var(--accent); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 5px; }
-        .btn-add-skin:hover { background: var(--accent); color: #000; }
-        .btn-save-custom { background: var(--success); color: #000; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px; }
-
-        /* Ponto vermelho de teste de coordenada X/Y */
-        #testRedDot {
-            position: absolute; width: 12px; height: 12px; background: #ff0000; border-radius: 50%;
-            box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000; z-index: 100001; pointer-events: none;
-            display: none; transform: translate(-50%, -50%); border: 2px solid white;
-        }
-
-    </style>
-</head>
-<body>
-
-<!-- Preload Container Invisível (Fim dos Delays nos GIFs) -->
-<div id="gif-preload-container" style="display: none;"></div>
-
-<!-- Ponto vermelho de teste de coordenadas de GIF -->
-<div id="testRedDot"></div>
-
-<div id="video-overlay">
-    <input type="file" id="video-upload" accept="video/*" style="display: none;">
-    <video id="dramatizacao-video" src="Kokusen.mp4"></video>
-</div>
-
-<audio id="audioClick" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a0328cdd3.mp3?filename=mouse-click-153941.mp3"></audio>
-<audio id="audioErroWin" src="erro.mp3"></audio>
-<audio id="audioConfetti1" src="confetti-pop.mp3"></audio>
-<audio id="audioConfetti2" src="confetti-pop-sound.mp3"></audio>
-
-<!-- Painel de Customização de Dados (Shift + Espaço) -->
-<div class="skin-modal" id="skinModal">
-    <div class="skin-panel">
-        <div class="skin-header">
-            <span><i class="fa-solid fa-dice-d20"></i> ARSENAL DE SKINS (INDIVIDUAL)</span>
-            <span style="cursor: pointer; color: #ff4444;" onclick="toggleSkinModal()"><i class="fa-solid fa-xmark"></i></span>
-        </div>
-        <div class="skin-body">
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#111622; padding:10px; border-radius:6px; border:1px solid #222;">
-                <span style="font-size:12px; font-weight:bold; color:var(--magic);">🔥 Cor do Fogo (Red-lock):</span>
-                <input type="color" id="redlockColorInput" value="#00e5ff" onchange="updateRedlockColor()" style="cursor:pointer; background:none; border:none; height:28px; width:60px;">
-            </div>
-
-            <div style="font-size: 12px; color: #aaa;">
-                Selecione a aparência e os efeitos do seu dado no Crítico. <br>
-                <span style="color:#ff4444; font-size:10px;">⚠️ Segure <b>Shift</b> e clique em qualquer skin customizada para deletá-la!</span>
-            </div>
-            
-            <div class="skin-list" id="skinListContainer"></div>
-
-            <button class="btn-add-skin" onclick="toggleCustomSkinForm()"><i class="fa-solid fa-plus"></i> CRIAR NOVA SKIN CUSTOMIZADA</button>
-
-            <div class="skin-form" id="customSkinForm">
-                <div style="font-weight: bold; font-size: 12px; color: var(--accent); margin-bottom: 5px;">FORJAR DADO EXCLUSIVO</div>
-                <div class="form-row">
-                    <span class="form-label">Nome da Skin:</span>
-                    <input type="text" id="skinName" class="form-input" placeholder="Ex: Chamas Negras">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Tag Personalizada:</span>
-                    <input type="text" id="skinTag" class="form-input" placeholder="Ex: BOSS (Deixe vazio p/ sem tag)">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Cor do Dado:</span>
-                    <input type="color" id="skinDieColor" class="form-input" value="#4a0080">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Cor do Número (Comum):</span>
-                    <input type="color" id="skinNormColor" class="form-input" value="#ffffff">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Cor do Número (Crítico):</span>
-                    <input type="color" id="skinNumColor" class="form-input" value="#00ffcc">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Comportamento no Crítico:</span>
-                    <select id="skinCritHide" class="form-input" onchange="toggleTempTimeInput()">
-                        <option value="none">Não some (Permanece na mesa)</option>
-                        <option value="permanent">Some Permanentemente</option>
-                        <option value="temp">Some Temporariamente (Segundos)</option>
-                    </select>
-                </div>
-                <div class="form-row" id="tempTimeRow" style="display:none;">
-                    <span class="form-label">Tempo sumido (segundos):</span>
-                    <input type="number" id="skinTempTime" class="form-input" value="3" min="1" max="60">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Efeito de Aura no Crítico:</span>
-                    <select id="skinAuraType" class="form-input" onchange="toggleAuraInput()">
-                        <option value="none">Nenhum</option>
-                        <option value="redlock">Fogo Red-lock (Usa a cor global acima)</option>
-                        <option value="custom">GIF Customizado (Upload de Arquivo)</option>
-                    </select>
-                </div>
-                <div class="form-row" id="customGifRow" style="display:none;">
-                    <span class="form-label">GIF (Aura/Explosão):</span>
-                    <input type="file" id="skinGifFile" accept="image/gif,image/*" class="form-input">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Posição X e Y do Efeito (Enter = Testar):</span>
-                    <div style="display:flex; gap:5px; flex:2;">
-                        <input type="number" id="skinPosX" class="form-input" placeholder="X (0)" value="0" title="Aperte Enter para ver o ponto vermelho">
-                        <input type="number" id="skinPosY" class="form-input" placeholder="Y (0)" value="0" title="Aperte Enter para ver o ponto vermelho">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <span class="form-label">Áudio de Crítico (MP3/WAV):</span>
-                    <input type="file" id="skinAudioFile" accept="audio/*" class="form-input">
-                </div>
-                <div class="form-row" style="justify-content: flex-start; gap: 8px;">
-                    <input type="checkbox" id="skinPopSound" checked style="cursor:pointer;">
-                    <label for="skinPopSound" style="font-size:11px; color:#ddd; cursor:pointer;">Ativar Som Clássico Sintetizado no Crítico</label>
-                </div>
-                <button class="btn-save-custom" onclick="saveCustomSkin()"><i class="fa-solid fa-check"></i> SALVAR E EQUIPAR</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="app-container">
-    <div class="main-wrapper">
-        <div class="dice-section">
-            <h2 style="text-align: center; margin-bottom: 25px; font-size: 16px; color: #333; letter-spacing: 4px; text-transform: uppercase;">Mesa do Mestre <span style="font-size:10px; color:var(--accent); display:block; margin-top:4px;">(Shift + Espaço para Skins | Shift + ] Cinemático)</span></h2>
-            
-            <div class="dice-viewport" id="viewport">
-                <div class="hud-overlay">
-                    <div class="hud-item">
-                        <span class="hud-label">SOMA BRUTA</span>
-                        <span class="hud-value" id="raw-total">0</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label">VANTAGEM</span>
-                        <span class="hud-value-small" id="hud-modifier">0</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label">% VANTAGEM</span>
-                        <span class="hud-value-small" id="hud-percent">0%</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label">TOTAL FINAL</span>
-                        <span class="hud-value" id="hud-final-total">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls-row">
-                <div class="dark-input-group">
-                    <span class="dark-label">SEU NOME</span>
-                    <input type="text" id="player-name-input" class="dark-input" value="Nome" oninput="updatePlayerName()">
-                </div>
-                <div class="dark-input-group">
-                    <span class="dark-label">MODIFICADOR</span>
-                    <input type="number" id="modifier-input" class="dark-input" value="0" oninput="updateValuesFromInputs()">
-                </div>
-                <div class="dark-input-group">
-                    <span class="dark-label">BÔNUS (+) / REDUÇÃO (-) %</span>
-                    <input type="number" id="percent-input" class="dark-input" value="0" placeholder="-50 / 50" oninput="updateValuesFromInputs()">
-                </div>
-            </div>
-
-            <div class="result-box">
-                <span class="result-title">RESULTADO FINAL</span>
-                <span class="result-number" id="final-total">0</span>
-            </div>
-
-            <div class="dice-grid">
-                <button class="dice-btn btn-coin" onclick="addDie('coin', event)">MOEDA</button>
-                <button class="dice-btn btn-d4" onclick="addDie('d4', event)">D4</button>
-                <button class="dice-btn btn-d6" onclick="addDie('d6', event)">D6</button>
-                <button class="dice-btn btn-d8" onclick="addDie('d8', event)">D8</button>
-                <button class="dice-btn btn-d10" onclick="addDie('d10', event)">D10</button>
-                <button class="dice-btn btn-d12" onclick="addDie('d12', event)">D12</button>
-                <button class="dice-btn btn-d20" onclick="addDie('d20', event)">D20</button>
-                <button class="dice-btn btn-d100" onclick="addDie('d100', event)">D100</button>
-            </div>
-
-            <div class="custom-zone">
-                <div class="custom-input-wrapper">
-                    <i class="fa-solid fa-cube input-icon"></i>
-                    <input type="number" id="custom-sides-input" class="magic-input" placeholder="Lados (Ex: 100)" min="2">
-                </div>
-                <button class="btn-magic" onclick="addCustomFromInput(event)">
-                    <i class="fa-solid fa-fire"></i> Forjar Dado
-                </button>
-            </div>
-            
-            <div class="actions-group">
-                <button class="action-btn" onclick="rollAll()">REROLAR TODOS</button>
-                <button class="action-btn btn-dramatizacao" onclick="playDramatizacao(event)">CINEMÁTICO (Shift + ])</button>
-                <button class="action-btn btn-invite" onclick="copyPlayerLink()" title="Convidar Jogadores"><i class="fa-solid fa-user-plus"></i></button>
-                <button class="action-btn btn-clear" onclick="saveAndClearDice()" title="Limpar Mesa"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div class="devlog-wrapper" id="devlog-container">
-        <h2 class="devlog-header">Devlog</h2>
-        <div class="devlog-content" id="devlog"></div>
-    </div>
-</div>
-
-<!-- Janela estilo CMD (Regras do ESC) -->
-<div class="window-cmd" id="cmdRulesWindow">
-    <div class="title-bar-cmd">
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <img src="https://win98icons.alexmeub.com/icons/png/console_prompt-0.png" width="14" alt="CMD">
-            <span>C:\WINDOWS\system32\cmd.exe - REGRAS E AÇÕES</span>
-        </div>
-        <div style="display: flex; gap: 5px; align-items: center;">
-            <div id="btnMestreNotes" class="win-btn-cmd" style="width: auto; padding: 0 8px; display: none;" onclick="toggleMestreNotes()">[ NOTAS ]</div>
-            <div class="win-btn-cmd" style="width: 16px;" onclick="toggleRulesWindow()">X</div>
-        </div>
-    </div>
-    <div class="cmd-container-rules" id="cmdOutputRules">
-$: <span class="cmd-yellow">ACESSO RESTRITO - PROTOCOLO DE AÇÕES DO SISTEMA</span>
-$/ CARREGANDO DIRETRIZES DE ROLAGEM... OK.
-
-<span class="cmd-blue">=== AÇÕES PRINCIPAIS ===</span>
-
-<span class="cmd-green">[CÉREBRO] (RESULTADOS 2, 3)</span>
-> AÇÕES MENTAIS, INTELIGÊNCIA, LÓGICA E PERCEPÇÃO DOS 5 SENTIDOS.
-
-<span class="cmd-green">[CORPO] (RESULTADOS 3, 4, 5)</span>
-> AÇÕES FÍSICAS, REFLEXOS, ATLETISMO E ESFORÇO MUSCULAR.
-
-<span class="cmd-green">[COMPORTAMENTO] (RESULTADOS 4, 5, 6, 7)</span>
-> HABILIDADES SOCIAIS, PERSUASÃO, RESOLUÇÃO DE CONFLITOS E MENTIRAS.
-
-<span class="cmd-green">[EQUILÍBRIO] (RESULTADOS 5, 6, 7, 8, 9)</span>
-> MATURIDADE EMOCIONAL, REGULAÇÃO DE SENTIMENTOS E EMPATIA.
-
-<span class="cmd-blue">=== RESULTADOS ESPECIAIS ===</span>
-
-<span class="cmd-yellow">[BOZO] (RESULTADO 1)</span>
-> SUCESSO UTILIZANDO LÓGICA DE DESENHO ANIMADO (CARTOON). 
-> PODE GERAR CONSEQUÊNCIAS NEGATIVAS OU DESGASTE.
-
-<span class="cmd-yellow">[MELHOR / BLOWUP] (RESULTADO MÁXIMO DO DADO)</span>
-> SUCESSO PERFEITO! O JOGADOR ESCOLHE A AÇÃO UTILIZADA. 
-> O DADO EXPLODE, PERMITINDO ROLAR NOVAMENTE E SOMAR OS VALORES.
-
-[P=chat]
-
-<span class="cmd-blue">=== TIPOS DE ROLAGEM ===</span>
-
-<span class="cmd-green">[DADOS DE VANTAGEM]</span>
-> GIRA 2 DO MESMO DADO E PEGUE O MELHOR PARA A AÇÃO DO JOGADOR/SITUAÇÃO.
-
-<span class="cmd-red">[DADOS DE DESVANTAGEM]</span>
-> GIRE 2 DADOS DO MESMO E PEGUE O PIOR DADO PARA AÇÃO DO JOGADOR/SITUAÇÃO.
-
-<span class="cmd-yellow">[DADOS NORMAIS/NEUTROS]</span>
-> . . . APENAS OS GÍRIOS :]
-
-$/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
-    </div>
-</div>
-
-<!-- Painel de Notas do Mestre (Aba Secreta) -->
-<div class="window-cmd" id="mestreNotesWindow" style="width: 450px; height: 500px; left: 70%; z-index: 10001;">
-    <div class="title-bar-cmd">
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png" width="14" alt="Notas">
-            <span>Bloco de Notas do Mestre.exe</span>
-        </div>
-        <div class="win-btn-cmd" style="width: 16px;" onclick="document.getElementById('mestreNotesWindow').style.display='none'">X</div>
-    </div>
-    <div style="background: #c0c0c0; padding: 10px; display: flex; flex-direction: column; height: calc(100% - 24px); gap: 10px;">
-        <div style="font-size: 11px; color: #000; font-weight: bold; background: #fff; border: 1px inset #808080; padding: 5px; line-height: 1.3;">
-            💡 <b>Lembrete:</b> Aperte <span style="color: blue;">Shift + \</span> no menu CMD para entrar no Modo de Edição e digite [P=chat] para adicionar o chat.<br>
-            🎨 <b>Códigos (Serão formatados ao Salvar):</b> C=vermelho, C=azul, C=verde, C=amarelo, C=roxo, C=laranja, C=rosa, C=branco, C=c, T=pixel, T=normal.
-        </div>
-        <div style="display: flex; gap: 5px;">
-            <button class="win-btn-cmd" style="width: auto; padding: 2px 10px; height: auto;" onclick="exportNotes()">Exportar Códigos</button>
-            <button class="win-btn-cmd" style="width: auto; padding: 2px 10px; height: auto;" onclick="importNotes()">Importar Códigos</button>
-        </div>
-        <textarea id="newNoteText" style="flex: 0.3; width: 100%; border: 2px inset #808080; font-family: 'Tahoma', sans-serif; font-size: 12px; padding: 5px;" placeholder="Digite seu texto... Ex: C=vermelho O Dragão ataca!"></textarea>
-        <button class="win-btn-cmd" style="width: 100%; padding: 5px; height: auto; font-weight: bold;" onclick="saveNote()">+ Salvar e Formatar</button>
-        <div id="notesList" style="flex: 0.7; overflow-y: auto; border: 2px inset #808080; background: #000; padding: 5px; display: flex; flex-direction: column; gap: 5px;">
-            <!-- Notas serão renderizadas aqui -->
-        </div>
-    </div>
-</div>
-
-<script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
-
-    // Gerenciamento de Memória de Sala, Jogador e Skins
-    let savedRoom = localStorage.getItem('circus_room_id');
-    if (!savedRoom) {
-        savedRoom = 'sala_' + Math.random().toString(36).substring(2, 9);
-        localStorage.setItem('circus_room_id', savedRoom);
+<!-- saved from url=(0014)about:internet -->
+<html lang="pt-br" style="--acc: #ff2a2a;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+		<script type="module" src="./Menu Principal com Salas, Opiniões e Log_files/client"></script>
+
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" href="https://mesa-5cddb6j-preview-4200.runable.site/favicon.ico">
+		<meta property="og:image" content="/og-image.png">
+		<link rel="preconnect" href="https://fonts.googleapis.com/">
+		<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+		<link href="./Menu Principal com Salas, Opiniões e Log_files/css2" rel="stylesheet">
+		<title>Mesa — Menu</title>
+	<script defer="" src="./Menu Principal com Salas, Opiniões e Log_files/runable.js.download" data-hostname="mesa-5cddb6j-website" data-url="https://r.lilstts.com/events"></script><style type="text/css" data-vite-dev-id="/home/user/mesa/packages/web/src/web/styles.css">/*! tailwindcss v4.2.4 | MIT License | https://tailwindcss.com */
+@layer properties;
+@layer theme, base, components, utilities;
+@layer theme {
+  :root, :host {
+    --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    --color-red-400: oklch(70.4% 0.191 22.216);
+    --color-red-500: oklch(63.7% 0.237 25.331);
+    --color-amber-400: oklch(82.8% 0.189 84.429);
+    --color-black: #000;
+    --color-white: #fff;
+    --spacing: 0.25rem;
+    --container-xs: 20rem;
+    --container-md: 28rem;
+    --container-4xl: 56rem;
+    --container-5xl: 64rem;
+    --container-7xl: 80rem;
+    --text-xs: 0.75rem;
+    --text-xs--line-height: calc(1 / 0.75);
+    --text-sm: 0.875rem;
+    --text-sm--line-height: calc(1.25 / 0.875);
+    --text-base: 1rem;
+    --text-base--line-height: calc(1.5 / 1);
+    --text-lg: 1.125rem;
+    --text-lg--line-height: calc(1.75 / 1.125);
+    --text-xl: 1.25rem;
+    --text-xl--line-height: calc(1.75 / 1.25);
+    --text-2xl: 1.5rem;
+    --text-2xl--line-height: calc(2 / 1.5);
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: calc(2.25 / 1.875);
+    --text-4xl: 2.25rem;
+    --text-4xl--line-height: calc(2.5 / 2.25);
+    --text-5xl: 3rem;
+    --text-5xl--line-height: 1;
+    --text-6xl: 3.75rem;
+    --text-6xl--line-height: 1;
+    --text-7xl: 4.5rem;
+    --text-7xl--line-height: 1;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+    --tracking-widest: 0.1em;
+    --leading-tight: 1.25;
+    --leading-relaxed: 1.625;
+    --radius-md: 0.375rem;
+    --animate-spin: spin 1s linear infinite;
+    --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    --blur-sm: 8px;
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --default-font-family: var(--font-sans);
+    --default-mono-font-family: var(--font-mono);
+    --font-body: "Chakra Petch", system-ui, sans-serif;
+  }
+}
+@layer base {
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid;
+  }
+  html, :host {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+    font-feature-settings: var(--default-font-feature-settings, normal);
+    font-variation-settings: var(--default-font-variation-settings, normal);
+    -webkit-tap-highlight-color: transparent;
+  }
+  hr {
+    height: 0;
+    color: inherit;
+    border-top-width: 1px;
+  }
+  abbr:where([title]) {
+    -webkit-text-decoration: underline dotted;
+    text-decoration: underline dotted;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  a {
+    color: inherit;
+    -webkit-text-decoration: inherit;
+    text-decoration: inherit;
+  }
+  b, strong {
+    font-weight: bolder;
+  }
+  code, kbd, samp, pre {
+    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+    font-feature-settings: var(--default-mono-font-feature-settings, normal);
+    font-variation-settings: var(--default-mono-font-variation-settings, normal);
+    font-size: 1em;
+  }
+  small {
+    font-size: 80%;
+  }
+  sub, sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
+  sub {
+    bottom: -0.25em;
+  }
+  sup {
+    top: -0.5em;
+  }
+  table {
+    text-indent: 0;
+    border-color: inherit;
+    border-collapse: collapse;
+  }
+  :-moz-focusring {
+    outline: auto;
+  }
+  progress {
+    vertical-align: baseline;
+  }
+  summary {
+    display: list-item;
+  }
+  ol, ul, menu {
+    list-style: none;
+  }
+  img, svg, video, canvas, audio, iframe, embed, object {
+    display: block;
+    vertical-align: middle;
+  }
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+  button, input, select, optgroup, textarea, ::file-selector-button {
+    font: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    border-radius: 0;
+    background-color: transparent;
+    opacity: 1;
+  }
+  :where(select:is([multiple], [size])) optgroup {
+    font-weight: bolder;
+  }
+  :where(select:is([multiple], [size])) optgroup option {
+    padding-inline-start: 20px;
+  }
+  ::file-selector-button {
+    margin-inline-end: 4px;
+  }
+  ::placeholder {
+    opacity: 1;
+  }
+  @supports (not (-webkit-appearance: -apple-pay-button))  or (contain-intrinsic-size: 1px) {
+    ::placeholder {
+      color: currentcolor;
+      @supports (color: color-mix(in lab, red, red)) {
+        color: color-mix(in oklab, currentcolor 50%, transparent);
+      }
     }
-    
-    let savedPlayerName = localStorage.getItem('circus_player_name');
-    window.playerName = savedPlayerName || "";
-
-    // Histórico persistente de mensagens do Chat da Mesa
-    window.terminalChatMessages = JSON.parse(localStorage.getItem('terminal_chat_history')) || [];
-    window.showSecretMessages = false; 
-
-    // Sistema de Banimento persistente no Host
-    window.bannedPlayers = [];
-
-    // Sistema de Notas Rápidas do Mestre
-    window.mestreNotes = JSON.parse(localStorage.getItem('mestre_notes')) || [];
-
-    // Dicionário Oficial de Skins do Sistema
-    window.diceSkins = {
-        'default': { id: 'default', name: 'Padrão', desc: 'Com som clássico, apenas brilho natural.', badge: '', dieColor: null, normColor: '#ffffff', numColor: null, critType: 'none', critHideMode: 'none', popSound: true },
-        'digital': { id: 'digital', name: 'Digital', desc: 'Dado some no crítico, número dourado e confetes.', badge: '', dieColor: null, normColor: '#ffffff', numColor: '#ffd700', critType: 'digital', critHideMode: 'permanent', popSound: false },
-        'redlock': { id: 'redlock', name: 'Red-lock', desc: 'Aura de fogo customizável de Blue Lock e som egoísta.', badge: '', dieColor: '#050c18', normColor: '#ffffff', numColor: '#00ffff', critType: 'redlock', critHideMode: 'none', popSound: false }
-    };
-
-    try {
-        const customSkins = JSON.parse(localStorage.getItem('custom_dice_skins')) || {};
-        window.diceSkins = { ...window.diceSkins, ...customSkins };
-    } catch(e) { console.error("Erro ao carregar skins customizadas:", e); }
-
-    window.currentSkinId = localStorage.getItem('selected_dice_skin') || 'default';
-    if (!window.diceSkins[window.currentSkinId]) window.currentSkinId = 'default';
-
-    window.redlockHex = localStorage.getItem('redlock_color') || '#00e5ff';
-    document.getElementById('redlockColorInput').value = window.redlockHex;
-
-    function preloadGifs() {
-        const container = document.getElementById('gif-preload-container');
-        container.innerHTML = '';
-        Object.values(window.diceSkins).forEach(skin => {
-            if (skin.gifData) {
-                const img = document.createElement('img');
-                img.src = skin.gifData;
-                container.appendChild(img);
-            }
-        });
+  }
+  textarea {
+    resize: vertical;
+  }
+  ::-webkit-search-decoration {
+    -webkit-appearance: none;
+  }
+  ::-webkit-date-and-time-value {
+    min-height: 1lh;
+    text-align: inherit;
+  }
+  ::-webkit-datetime-edit {
+    display: inline-flex;
+  }
+  ::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+  ::-webkit-datetime-edit, ::-webkit-datetime-edit-year-field, ::-webkit-datetime-edit-month-field, ::-webkit-datetime-edit-day-field, ::-webkit-datetime-edit-hour-field, ::-webkit-datetime-edit-minute-field, ::-webkit-datetime-edit-second-field, ::-webkit-datetime-edit-millisecond-field, ::-webkit-datetime-edit-meridiem-field {
+    padding-block: 0;
+  }
+  ::-webkit-calendar-picker-indicator {
+    line-height: 1;
+  }
+  :-moz-ui-invalid {
+    box-shadow: none;
+  }
+  button, input:where([type="button"], [type="reset"], [type="submit"]), ::file-selector-button {
+    appearance: button;
+  }
+  ::-webkit-inner-spin-button, ::-webkit-outer-spin-button {
+    height: auto;
+  }
+  [hidden]:where(:not([hidden="until-found"])) {
+    display: none !important;
+  }
+}
+@layer utilities {
+  .visible {
+    visibility: visible;
+  }
+  .absolute {
+    position: absolute;
+  }
+  .fixed {
+    position: fixed;
+  }
+  .relative {
+    position: relative;
+  }
+  .static {
+    position: static;
+  }
+  .inset-0 {
+    inset: calc(var(--spacing) * 0);
+  }
+  .inset-y-0 {
+    inset-block: calc(var(--spacing) * 0);
+  }
+  .start {
+    inset-inline-start: var(--spacing);
+  }
+  .left-0 {
+    left: calc(var(--spacing) * 0);
+  }
+  .z-10 {
+    z-index: 10;
+  }
+  .z-\[60\] {
+    z-index: 60;
+  }
+  .container {
+    width: 100%;
+    @media (width >= 40rem) {
+      max-width: 40rem;
     }
-    preloadGifs();
-
-    // --- BANCO DE DADOS INDEXEDDB PARA VÍDEO CINEMÁTICO ---
-    const dbName = "BlackoutMasterDB";
-    let db;
-    const request = indexedDB.open(dbName, 1);
-    request.onupgradeneeded = (e) => {
-        db = e.target.result;
-        if (!db.objectStoreNames.contains("videos")) db.createObjectStore("videos");
-    };
-    request.onsuccess = (e) => {
-        db = e.target.result;
-        loadCinematicVideo();
-    };
-
-    function saveCinematicVideo(file) {
-        if (!db) return;
-        const tx = db.transaction("videos", "readwrite");
-        tx.objectStore("videos").put(file, "dramatizacao");
+    @media (width >= 48rem) {
+      max-width: 48rem;
     }
-
-    function loadCinematicVideo() {
-        if (!db) return;
-        const tx = db.transaction("videos", "readonly");
-        const req = tx.objectStore("videos").get("dramatizacao");
-        req.onsuccess = (e) => {
-            const file = e.target.result;
-            const dramVideo = document.getElementById('dramatizacao-video');
-            if (file && !document.body.classList.contains('share-mode') && dramVideo) {
-                dramVideo.src = URL.createObjectURL(file);
-            }
-        };
+    @media (width >= 64rem) {
+      max-width: 64rem;
     }
-
-    // --- PARSER DE CÓDIGOS PARA NOTAS DO MESTRE ---
-    window.applyFormattingCodes = (rawText) => {
-        let safeText = rawText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
-        
-        const codes = {
-            'c=vermelho': 'color: #ff3333;', 'c=verde': 'color: #00ff00;', 'c=amarelo': 'color: #ffff00;',
-            'c=azul': 'color: #00e5ff;', 'c=roxo': 'color: #b829ff;', 'c=laranja': 'color: #ff8800;',
-            'c=rosa': 'color: #ff66cc;', 'c=ciano': 'color: #00ffff;', 'c=branco': 'color: #ffffff;', 'c=c': 'color: #c0c0c0;',
-            't=normal': "font-family: 'Segoe UI', 'Tahoma', sans-serif;",
-            't=pixel': "font-family: 'VT323', 'Courier New', monospace;"
-        };
-        
-        let parsed = safeText.replace(/(c=(?:vermelho|verde|amarelo|azul|roxo|laranja|rosa|ciano|branco|c)|t=(?:normal|pixel))/gi, (match) => {
-            return `</span><span style="${codes[match.toLowerCase()]}">`;
-        });
-        
-        return `<span>${parsed}</span>`;
-    };
-
-    // --- FUNCIONALIDADES DA ABA DE NOTAS DO MESTRE ---
-    window.toggleMestreNotes = () => {
-        const win = document.getElementById('mestreNotesWindow');
-        win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
-        if (win.style.display === 'flex') window.renderNotes();
-    };
-
-    window.saveNote = () => {
-        const inputEl = document.getElementById('newNoteText');
-        const text = inputEl.value;
-        if(!text.trim()) return;
-        
-        const formatted = window.applyFormattingCodes(text);
-        
-        window.mestreNotes.push({ id: Date.now(), text: formatted, raw: text });
-        localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
-        inputEl.value = '';
-        window.renderNotes();
-    };
-
-    window.deleteNote = (id) => {
-        window.mestreNotes = window.mestreNotes.filter(n => n.id !== id);
-        localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
-        window.renderNotes();
-    };
-
-    window.pasteNote = (id) => {
-        const note = window.mestreNotes.find(n => n.id === id);
-        if(!note) return;
-        
-        const cmdRulesEl = document.getElementById('cmdOutputRules');
-        
-        if (cmdRulesEl.getAttribute('contenteditable') === 'true') {
-            cmdRulesEl.innerHTML += '<br>' + note.text;
-            cmdRulesEl.focus();
-        } else {
-            const msgObj = {
-                id: Date.now() + Math.random().toString(36).substr(2, 4),
-                sender: window.playerName || "Mestre",
-                target: null,
-                text: note.text,
-                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                secret: false
-            };
-            window.terminalChatMessages.push(msgObj);
-            if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
-            localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
-            renderChatMessages();
-            broadcast({ action: 'terminal_chat', message: msgObj });
-        }
-    };
-
-    window.exportNotes = () => {
-        const data = JSON.stringify(window.mestreNotes);
-        navigator.clipboard.writeText(data).then(() => alert("Os códigos das suas notas foram copiados para a área de transferência!"));
-    };
-
-    window.importNotes = () => {
-        const data = prompt("Cole o código exportado das suas notas:");
-        if(data) {
-            try {
-                const parsed = JSON.parse(data);
-                if(Array.isArray(parsed)) {
-                    window.mestreNotes = parsed;
-                    localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
-                    window.renderNotes();
-                    alert("Notas importadas com sucesso!");
-                }
-            } catch(e) {
-                alert("Formato inválido!");
-            }
-        }
-    };
-
-    window.renderNotes = () => {
-        const list = document.getElementById('notesList');
-        if(!list) return;
-        list.innerHTML = window.mestreNotes.map(n => `
-            <div style="border: 1px solid #333; background: #0a0a0a; padding: 8px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px;">
-                <div style="font-size: 16px; font-family: 'VT323', monospace; color: #fff; word-break: break-word;">${n.text}</div>
-                <div style="display: flex; gap: 5px; justify-content: flex-end;">
-                    <button class="win-btn-cmd" style="font-size: 10px; cursor: pointer; padding: 2px 8px; width: auto; height: auto;" onclick="pasteNote(${n.id})" title="Se modo de edição estiver aberto cola lá, senão envia pro chat.">Enviar / Colar</button>
-                    <button class="win-btn-cmd" style="font-size: 10px; cursor: pointer; color: red; padding: 2px 8px; width: auto; height: auto;" onclick="deleteNote(${n.id})">Apagar</button>
-                </div>
-            </div>
-        `).join('');
-    };
-
-    const cmdRulesEl = document.getElementById('cmdOutputRules');
-    const defaultRulesHtml = cmdRulesEl.innerHTML;
-
-    function updateTerminalDisplay() {
-        let rawHtml = localStorage.getItem('custom_esc_rules') || defaultRulesHtml;
-        const zoneRegex = /\[P=chat\]/gi;
-        
-        if (zoneRegex.test(rawHtml)) {
-            rawHtml = rawHtml.replace(zoneRegex, `
-                <div id="playerChatZone" class="terminal-chat-zone">
-                    <div style="font-size:11px; color:#00e5ff; border-bottom:1px solid rgba(0,136,255,0.3); padding-bottom:4px; margin-bottom:4px;">
-                        <i class="fa-solid fa-users"></i> CANAL DE COMUNICAÇÃO ( /limpar | /tell "nome" msg | /ban "nome" )
-                    </div>
-                    <div id="terminalChatLog" class="terminal-chat-log"></div>
-                    <div class="terminal-chat-input-row">
-                        <span style="color:#00ffcc; font-weight:bold;">${window.playerName || 'JOGADOR'}> </span>
-                        <input type="text" id="terminalChatInput" class="terminal-chat-input" placeholder="Digite no chat e aperte Enter para enviar..." onkeydown="handleTerminalChatEnter(event)">
-                    </div>
-                </div>
-            `);
-        }
-        cmdRulesEl.innerHTML = rawHtml;
-        renderChatMessages();
+    @media (width >= 80rem) {
+      max-width: 80rem;
     }
-
-    function renderChatMessages() {
-        const logEl = document.getElementById('terminalChatLog');
-        if (!logEl) return;
-        logEl.innerHTML = window.terminalChatMessages.map(m => {
-            if (m.secret) {
-                const isSender = m.sender === window.playerName;
-                const isTarget = m.target === window.playerName;
-                const isMasterSeeingAll = window.showSecretMessages;
-                
-                if (!isSender && !isTarget && !isMasterSeeingAll) return ''; 
-            }
-            
-            const secStyle = m.secret ? 'color: #ffaa00; font-style: italic;' : 'color: #fff;';
-            const targetText = m.secret ? ` [Sussurro para ${m.target}]` : '';
-            
-            return `
-                <div style="word-break: break-word; line-height: 1.2;">
-                    <span style="color: #666; font-size: 14px;">[${m.time}]</span>
-                    <span style="color: var(--accent); font-weight: bold;">${m.sender}${targetText}:</span>
-                    <span style="${secStyle}">${m.text}</span>
-                </div>
-            `;
-        }).join('');
-        logEl.scrollTop = logEl.scrollHeight;
+    @media (width >= 96rem) {
+      max-width: 96rem;
     }
-
-    window.handleTerminalChatEnter = (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            const input = event.target;
-            const text = input.value.trim();
-            if (!text) return;
-
-            if (text.toLowerCase() === 'shadowumbra' || text.toLowerCase() === '/shadowumbra') {
-                if(!isHost) return; 
-                window.showSecretMessages = !window.showSecretMessages;
-                window.logToDevlog(`<span style="color: #ffaa00;"><i class="fa-solid fa-eye-slash"></i> Visibilidade de sussurros: <b>${window.showSecretMessages ? 'ATIVADA' : 'DESATIVADA'}</b></span>`);
-                renderChatMessages();
-                input.value = '';
-                return;
-            }
-
-            if (text.toLowerCase().startsWith('/ban ')) {
-                if (!isHost) {
-                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Apenas o Mestre pode banir jogadores.</span>`);
-                    input.value = '';
-                    return;
-                }
-                let match = text.match(/^\/ban\s+"([^"]+)"$/i) || text.match(/^\/ban\s+(\S+)$/i);
-                if (match) {
-                    const targetName = match[1];
-                    window.bannedPlayers.push(targetName.toLowerCase());
-                    broadcast({ action: 'ban_player', target: targetName });
-                    window.logToDevlog(`<span style="color: #ff0000; font-weight: bold;">🔨 Usuário [${targetName}] foi banido! Qualquer pacote enviado por ele será destruído.</span>`);
-                } else {
-                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Uso correto: /ban "Nome do Jogador"</span>`);
-                }
-                input.value = '';
-                return;
-            }
-
-            if (text === '/clear' || text === '/limpar') {
-                if (!isHost) {
-                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Apenas o Mestre pode limpar o histórico do chat.</span>`);
-                    input.value = '';
-                    return;
-                }
-                window.terminalChatMessages = [];
-                localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
-                renderChatMessages();
-                broadcast({ action: 'terminal_chat_clear' });
-                input.value = '';
-                return;
-            }
-
-            let isSecret = false;
-            let targetName = null;
-            let finalSender = window.playerName || "Jogador";
-            let finalText = text;
-
-            if (text.toLowerCase().startsWith('/tell ')) {
-                let match = text.match(/^\/tell\s+"([^"]+)"\s+(.+)$/i);
-                if (!match) match = text.match(/^\/tell\s+(\S+)\s+(.+)$/i);
-
-                if (match) {
-                    isSecret = true;
-                    targetName = match[1];
-                    finalText = match[2].trim();
-                } else {
-                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Uso incorreto. Digite: /tell "Nome do Jogador" Sua mensagem</span>`);
-                    input.value = '';
-                    return;
-                }
-            }
-            
-            const msgObj = {
-                id: Date.now() + Math.random().toString(36).substr(2, 4),
-                sender: finalSender,
-                target: targetName,
-                text: finalText,
-                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                secret: isSecret
-            };
-            
-            window.terminalChatMessages.push(msgObj);
-            if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
-            localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
-            
-            input.value = '';
-            renderChatMessages();
-            broadcast({ action: 'terminal_chat', message: msgObj });
-        }
-    };
-
-    updateTerminalDisplay();
-
-    const params = new URLSearchParams(window.location.search);
-    const viewParam = params.get('view');
-    const isShareMode = (viewParam === 'share');
-    let roomParam = params.get('room') || savedRoom;
-    let modParam = parseInt(params.get('mod')) || 0;
-    let pctParam = parseFloat(params.get('pct')) || 0;
-
-    if (isShareMode) {
-        document.body.classList.add('share-mode');
-        window.playerName = "OBS";
-    } else if (savedPlayerName) {
-        document.getElementById('player-name-input').value = savedPlayerName;
+  }
+  .mx-auto {
+    margin-inline: auto;
+  }
+  .mt-1 {
+    margin-top: calc(var(--spacing) * 1);
+  }
+  .mt-1\.5 {
+    margin-top: calc(var(--spacing) * 1.5);
+  }
+  .mt-4 {
+    margin-top: calc(var(--spacing) * 4);
+  }
+  .mt-6 {
+    margin-top: calc(var(--spacing) * 6);
+  }
+  .mr-3 {
+    margin-right: calc(var(--spacing) * 3);
+  }
+  .mb-2 {
+    margin-bottom: calc(var(--spacing) * 2);
+  }
+  .mb-3 {
+    margin-bottom: calc(var(--spacing) * 3);
+  }
+  .mb-4 {
+    margin-bottom: calc(var(--spacing) * 4);
+  }
+  .mb-5 {
+    margin-bottom: calc(var(--spacing) * 5);
+  }
+  .mb-6 {
+    margin-bottom: calc(var(--spacing) * 6);
+  }
+  .mb-10 {
+    margin-bottom: calc(var(--spacing) * 10);
+  }
+  .block {
+    display: block;
+  }
+  .flex {
+    display: flex;
+  }
+  .grid {
+    display: grid;
+  }
+  .inline {
+    display: inline;
+  }
+  .inline-block {
+    display: inline-block;
+  }
+  .inline-flex {
+    display: inline-flex;
+  }
+  .size-3\.5 {
+    width: calc(var(--spacing) * 3.5);
+    height: calc(var(--spacing) * 3.5);
+  }
+  .size-4 {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+  }
+  .size-5 {
+    width: calc(var(--spacing) * 5);
+    height: calc(var(--spacing) * 5);
+  }
+  .size-6 {
+    width: calc(var(--spacing) * 6);
+    height: calc(var(--spacing) * 6);
+  }
+  .size-7 {
+    width: calc(var(--spacing) * 7);
+    height: calc(var(--spacing) * 7);
+  }
+  .size-8 {
+    width: calc(var(--spacing) * 8);
+    height: calc(var(--spacing) * 8);
+  }
+  .size-9 {
+    width: calc(var(--spacing) * 9);
+    height: calc(var(--spacing) * 9);
+  }
+  .size-10 {
+    width: calc(var(--spacing) * 10);
+    height: calc(var(--spacing) * 10);
+  }
+  .h-8 {
+    height: calc(var(--spacing) * 8);
+  }
+  .h-9 {
+    height: calc(var(--spacing) * 9);
+  }
+  .h-10 {
+    height: calc(var(--spacing) * 10);
+  }
+  .h-40 {
+    height: calc(var(--spacing) * 40);
+  }
+  .min-h-screen {
+    min-height: 100vh;
+  }
+  .w-0 {
+    width: calc(var(--spacing) * 0);
+  }
+  .w-14 {
+    width: calc(var(--spacing) * 14);
+  }
+  .w-\[3px\] {
+    width: 3px;
+  }
+  .w-full {
+    width: 100%;
+  }
+  .max-w-4xl {
+    max-width: var(--container-4xl);
+  }
+  .max-w-5xl {
+    max-width: var(--container-5xl);
+  }
+  .max-w-7xl {
+    max-width: var(--container-7xl);
+  }
+  .max-w-md {
+    max-width: var(--container-md);
+  }
+  .max-w-xs {
+    max-width: var(--container-xs);
+  }
+  .min-w-0 {
+    min-width: calc(var(--spacing) * 0);
+  }
+  .flex-1 {
+    flex: 1;
+  }
+  .flex-shrink {
+    flex-shrink: 1;
+  }
+  .shrink-0 {
+    flex-shrink: 0;
+  }
+  .flex-grow {
+    flex-grow: 1;
+  }
+  .transform {
+    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+  .animate-in {
+    animation: enter var(--tw-animation-duration,var(--tw-duration,.15s))var(--tw-ease,ease)var(--tw-animation-delay,0s)var(--tw-animation-iteration-count,1)var(--tw-animation-direction,normal)var(--tw-animation-fill-mode,none);
+  }
+  .animate-pulse {
+    animation: var(--animate-pulse);
+  }
+  .animate-spin {
+    animation: var(--animate-spin);
+  }
+  .cursor-default {
+    cursor: default;
+  }
+  .cursor-grab {
+    cursor: grab;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .resize {
+    resize: both;
+  }
+  .resize-none {
+    resize: none;
+  }
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .flex-col {
+    flex-direction: column;
+  }
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .items-end {
+    align-items: flex-end;
+  }
+  .items-start {
+    align-items: flex-start;
+  }
+  .justify-between {
+    justify-content: space-between;
+  }
+  .justify-center {
+    justify-content: center;
+  }
+  .gap-0\.5 {
+    gap: calc(var(--spacing) * 0.5);
+  }
+  .gap-1 {
+    gap: calc(var(--spacing) * 1);
+  }
+  .gap-1\.5 {
+    gap: calc(var(--spacing) * 1.5);
+  }
+  .gap-2 {
+    gap: calc(var(--spacing) * 2);
+  }
+  .gap-3 {
+    gap: calc(var(--spacing) * 3);
+  }
+  .gap-4 {
+    gap: calc(var(--spacing) * 4);
+  }
+  .gap-5 {
+    gap: calc(var(--spacing) * 5);
+  }
+  .gap-6 {
+    gap: calc(var(--spacing) * 6);
+  }
+  .gap-10 {
+    gap: calc(var(--spacing) * 10);
+  }
+  .space-y-1\.5 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 1.5) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 1.5) * calc(1 - var(--tw-space-y-reverse)));
     }
-
-    const peerId = isShareMode ? `blackout-obs-${Math.random().toString(36).substring(2, 6)}` : `blackout-master-${roomParam}`;
-    let peer = null;
-    let isHost = false;
-    let hostConn = null;
-    let activeConnections = [];
-
-    // --- VARIÁVEIS DE CHEAT (MODIFICADO) ---
-    window.cheatsEnabled = false;
-    let cheatBuffer = "";
-
-    let scene, camera, renderer, diceList = [], raycaster, mouse;
-    let particles = [];
-    let isCPressed = false;
-    const container = document.getElementById('viewport');
-    const audioErroWin = document.getElementById('audioErroWin');
-    const cmdRulesWindow = document.getElementById('cmdRulesWindow');
-    const skinModal = document.getElementById('skinModal');
-    
-    window.currentModifier = modParam;
-    window.currentPercent = pctParam;
-    window.lastRolledValue = 0;
-
-    if(!isShareMode) {
-        document.getElementById('modifier-input').value = window.currentModifier;
-        document.getElementById('percent-input').value = window.currentPercent;
+  }
+  .space-y-2 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
     }
-
-    const configs = {
-        'coin':  { geo: new THREE.CylinderGeometry(1.2, 1.2, 0.15, 32), color: 0xcccccc, emissive: 0x555555, intensity: 0.2, sides: 2 },
-        'd4':    { geo: new THREE.TetrahedronGeometry(1.2), color: 0x34495e, emissive: 0x1abc9c, intensity: 0.2, sides: 4 },
-        'd6':    { geo: new THREE.BoxGeometry(1.3, 1.3, 1.3), color: 0x1a5276, emissive: 0x3498db, intensity: 0.4, sides: 6 },
-        'd8':    { geo: new THREE.OctahedronGeometry(1.3), color: 0x4a235a, emissive: 0x9b59b6, intensity: 0.5, sides: 8 },
-        'd10':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0x78281f, emissive: 0xe74c3c, intensity: 0.6, sides: 10 },
-        'd12':   { geo: new THREE.DodecahedronGeometry(1.3), color: 0x7e5109, emissive: 0xd35400, intensity: 0.7, sides: 12 },
-        'd20':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0x9a7d0a, emissive: 0xf1c40f, intensity: 1.0, sides: 20 },
-        'd100':  { geo: new THREE.IcosahedronGeometry(1.3, 1), color: 0x111111, emissive: 0xbdc3c7, intensity: 0.8, sides: 100 },
-    };
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    function playCritSound(freqStart = 150, freqEnd = 0.01, type = 'sawtooth') {
-        if(isShareMode) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime); 
-        osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + 0.5);
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+  }
+  .space-y-3 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)));
     }
-
-    window.updateRedlockColor = () => {
-        window.redlockHex = document.getElementById('redlockColorInput').value;
-        localStorage.setItem('redlock_color', window.redlockHex);
-        window.logToDevlog(`<span style="color: ${window.redlockHex}; font-weight:bold;">🔥 Cor da aura Red-lock atualizada!</span>`);
-    };
-
-    function getRedlockFireFilter(hexHex) {
-        let hex = hexHex || '#00e5ff';
-        let r = parseInt(hex.slice(1, 3), 16) / 255;
-        let g = parseInt(hex.slice(3, 5), 16) / 255;
-        let b = parseInt(hex.slice(5, 7), 16) / 255;
-        let max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h = 0, s = 0, l = (max + min) / 2;
-        if (max !== min) {
-            let d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
-            else if (max === g) h = (b - r) / d + 2;
-            else if (max === b) h = (r - g) / d + 4;
-            h /= 6;
-        }
-        let targetHue = Math.round(h * 360);
-        let rotateDeg = (targetHue - 120 + 360) % 360;
-        let satPercent = Math.round(Math.max(200, s * 400));
-        return `hue-rotate(${rotateDeg}deg) saturate(${satPercent}%) brightness(1.3) contrast(1.1)`;
+  }
+  .space-y-4 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));
     }
-
-    window.toggleSkinModal = () => {
-        if(isShareMode) return;
-        if(skinModal.style.display === 'flex') {
-            skinModal.style.display = 'none';
-        } else {
-            renderSkinList();
-            skinModal.style.display = 'flex';
-        }
-    };
-
-    window.toggleCustomSkinForm = () => {
-        const form = document.getElementById('customSkinForm');
-        form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
-    };
-
-    window.toggleTempTimeInput = () => {
-        const val = document.getElementById('skinCritHide').value;
-        document.getElementById('tempTimeRow').style.display = (val === 'temp') ? 'flex' : 'none';
-    };
-
-    window.toggleAuraInput = () => {
-        const val = document.getElementById('skinAuraType').value;
-        document.getElementById('customGifRow').style.display = (val === 'custom') ? 'flex' : 'none';
-    };
-
-    function renderSkinList() {
-        const containerEl = document.getElementById('skinListContainer');
-        containerEl.innerHTML = '';
-        
-        Object.values(window.diceSkins).forEach(skin => {
-            const card = document.createElement('div');
-            card.className = `skin-card ${skin.id === window.currentSkinId ? 'active' : ''}`;
-            
-            card.onclick = (e) => {
-                if (e.shiftKey) {
-                    if(['default', 'digital', 'redlock'].includes(skin.id)) {
-                        window.logToDevlog(`⚠️ As skins originais do site não podem ser deletadas!`, true);
-                    } else {
-                        delete window.diceSkins[skin.id];
-                        const customSkins = JSON.parse(localStorage.getItem('custom_dice_skins')) || {};
-                        delete customSkins[skin.id];
-                        localStorage.setItem('custom_dice_skins', JSON.stringify(customSkins));
-                        if(window.currentSkinId === skin.id) window.selectSkin('default');
-                        else renderSkinList();
-                        window.logToDevlog(`🗑️ Skin "${skin.name}" foi deletada com sucesso!`);
-                        preloadGifs();
-                    }
-                } else {
-                    selectSkin(skin.id);
-                }
-            };
-            
-            card.innerHTML = `
-                <div class="skin-title">
-                    <span>${skin.name}</span>
-                    ${skin.badge ? `<span class="skin-badge" style="color:${skin.numColor||'#aaa'}; border:1px solid ${skin.numColor||'#333'};">${skin.badge}</span>` : ''}
-                </div>
-                <div class="skin-desc">${skin.desc || 'Skin customizada exclusiva.'}</div>
-            `;
-            containerEl.appendChild(card);
-        });
+  }
+  .space-y-5 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)));
     }
-
-    window.selectSkin = (id) => {
-        if(!window.diceSkins[id]) return;
-        window.currentSkinId = id;
-        localStorage.setItem('selected_dice_skin', id);
-        renderSkinList();
-        window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-palette"></i> Skin equipada: <b>${window.diceSkins[id].name}</b></span>`);
-    };
-
-    window.saveCustomSkin = async () => {
-        const name = document.getElementById('skinName').value || "Skin Custom";
-        const badge = document.getElementById('skinTag').value.trim();
-        const dieColor = document.getElementById('skinDieColor').value;
-        const normColor = document.getElementById('skinNormColor').value;
-        const numColor = document.getElementById('skinNumColor').value;
-        const critHideMode = document.getElementById('skinCritHide').value;
-        const tempTime = parseInt(document.getElementById('skinTempTime').value) || 3;
-        const auraType = document.getElementById('skinAuraType').value;
-        const posX = parseInt(document.getElementById('skinPosX').value) || 0;
-        const posY = parseInt(document.getElementById('skinPosY').value) || 0;
-        const popSound = document.getElementById('skinPopSound').checked;
-        const gifFile = document.getElementById('skinGifFile').files[0];
-        const audioFile = document.getElementById('skinAudioFile').files[0];
-
-        const toBase64 = (file) => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-
-        let gifBase64 = null;
-        let audioBase64 = null;
-        if(auraType === 'custom' && gifFile) gifBase64 = await toBase64(gifFile);
-        if(audioFile) audioBase64 = await toBase64(audioFile);
-
-        let critType = 'custom';
-        if (auraType === 'redlock') critType = 'redlock_custom';
-        else if (auraType === 'none') critType = 'none';
-
-        const id = 'custom_' + Date.now();
-        const newSkin = {
-            id, name, desc: 'Efeitos e cores customizados para sua mesa.',
-            badge, dieColor, normColor, numColor, critHideMode, tempTime, posX, posY, popSound,
-            critType: critType, gifData: gifBase64, audioData: audioBase64
-        };
-
-        window.diceSkins[id] = newSkin;
-        const customSkins = JSON.parse(localStorage.getItem('custom_dice_skins')) || {};
-        customSkins[id] = newSkin;
-        localStorage.setItem('custom_dice_skins', JSON.stringify(customSkins));
-
-        window.selectSkin(id);
-        preloadGifs();
-        document.getElementById('customSkinForm').style.display = 'none';
-        window.toggleSkinModal();
-    };
-
-    ['skinPosX', 'skinPosY'].forEach(id => {
-        document.getElementById(id).addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const x = parseInt(document.getElementById('skinPosX').value) || 0;
-                const y = parseInt(document.getElementById('skinPosY').value) || 0;
-                const dot = document.getElementById('testRedDot');
-                
-                dot.style.left = `calc(50% + ${x}px)`;
-                dot.style.top = `calc(50% + ${y}px)`;
-                dot.style.display = 'block';
-                
-                setTimeout(() => { dot.style.display = 'none'; }, 1000);
-            }
-        });
-    });
-
-    window.updatePlayerName = () => {
-        const input = document.getElementById('player-name-input');
-        if (input) {
-            window.playerName = input.value || (isHost ? "Mestre" : "Jogador");
-            localStorage.setItem('circus_player_name', window.playerName);
-        }
-    };
-
-    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null) => {
-        const devlog = document.getElementById('devlog');
-        if (!devlog) return;
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        if(isDanger) entry.style.borderLeftColor = 'var(--danger)';
-
-        const time = new Date().toLocaleTimeString('pt-BR');
-        const displayName = author || window.playerName || "Sistema";
-        
-        entry.innerHTML = `
-            <div class="log-time">
-                <span style="display: flex; gap: 8px; align-items: center;">
-                    <span>[${time}]</span>
-                    <span style="color: var(--accent); font-size: 11px; text-transform: uppercase;">${displayName}</span>
-                </span>
-                <span>Mod: ${window.currentModifier} | ${window.currentPercent}%</span>
-            </div>
-            <div>${msg}</div>
-            ${trueMsg ? `<div class="true-log"><i class="fa-solid fa-eye"></i> Realidade: ${trueMsg}</div>` : ''}
-        `;
-        devlog.prepend(entry);
-    };
-
-    if (isShareMode) {
-        peer = new Peer();
-        peer.on('open', () => {
-            hostConn = peer.connect(`blackout-room-${roomParam}`);
-            hostConn.on('data', (data) => handleIncomingData(data, null));
-        });
-    } else {
-        peer = new Peer(`blackout-room-${roomParam}`);
-        peer.on('open', () => {
-            isHost = true;
-            if(!savedPlayerName) {
-                window.playerName = "Mestre";
-                document.getElementById('player-name-input').value = window.playerName;
-                localStorage.setItem('circus_player_name', window.playerName);
-            }
-            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
-            
-            document.getElementById('btnMestreNotes').style.display = 'block';
-        });
-        
-        peer.on('error', (err) => {
-            if (err.type === 'unavailable-id') {
-                isHost = false;
-                if(!savedPlayerName) {
-                    window.playerName = "Jogador";
-                    document.getElementById('player-name-input').value = window.playerName;
-                    localStorage.setItem('circus_player_name', window.playerName);
-                }
-                peer = new Peer();
-                peer.on('open', () => {
-                    hostConn = peer.connect(`blackout-room-${roomParam}`);
-                    hostConn.on('open', () => { hostConn.send({ action: 'request_sync', playerName: window.playerName }); });
-                    hostConn.on('data', (data) => handleIncomingData(data, null));
-                });
-            } else console.error("PeerJS error:", err);
-        });
-        
-        peer.on('connection', (conn) => {
-            activeConnections.push(conn);
-            conn.on('open', () => {
-                const currentDiceState = diceList.map(d => ({
-                    type: d.userData.type, sides: d.userData.sides, value: d.userData.value,
-                    id: d.userData.id, isRemoving: d.userData.isRemoving, rollMode: d.userData.rollMode, skin: d.userData.skin
-                })).filter(d => !d.isRemoving);
-                
-                const devlogHtml = document.getElementById('devlog').innerHTML;
-                conn.send({ 
-                    action: 'sync_init', dice: currentDiceState, mod: window.currentModifier, pct: window.currentPercent, devlog: devlogHtml,
-                    chatHistory: window.terminalChatMessages, rules: localStorage.getItem('custom_esc_rules') || defaultRulesHtml
-                });
-            });
-            conn.on('data', (data) => handleIncomingData(data, conn));
-            conn.on('close', () => { activeConnections = activeConnections.filter(c => c !== conn); });
-        });
+  }
+  .overflow-hidden {
+    overflow: hidden;
+  }
+  .overflow-x-hidden {
+    overflow-x: hidden;
+  }
+  .overflow-y-auto {
+    overflow-y: auto;
+  }
+  .rounded {
+    border-radius: 0.25rem;
+  }
+  .rounded-full {
+    border-radius: calc(infinity * 1px);
+  }
+  .rounded-md {
+    border-radius: var(--radius-md);
+  }
+  .rounded-l-md {
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+  }
+  .border {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
+  .border-0 {
+    border-style: var(--tw-border-style);
+    border-width: 0px;
+  }
+  .border-t {
+    border-top-style: var(--tw-border-style);
+    border-top-width: 1px;
+  }
+  .border-b {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 1px;
+  }
+  .border-l-2 {
+    border-left-style: var(--tw-border-style);
+    border-left-width: 2px;
+  }
+  .border-l-\[3px\] {
+    border-left-style: var(--tw-border-style);
+    border-left-width: 3px;
+  }
+  .border-dashed {
+    --tw-border-style: dashed;
+    border-style: dashed;
+  }
+  .border-\[\#2a2a2a\] {
+    border-color: #2a2a2a;
+  }
+  .border-acc {
+    border-color: var(--acc);
+  }
+  .border-acc\/40 {
+    border-color: var(--acc);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--acc) 40%, transparent);
     }
-
-    function broadcast(payload) {
-        payload.playerName = window.playerName; 
-        if (isHost) {
-            activeConnections = activeConnections.filter(c => c.open);
-            activeConnections.forEach(c => c.send(payload));
-        } else if (hostConn && hostConn.open) {
-            hostConn.send(payload);
-        }
+  }
+  .border-line {
+    border-color: #1a1a1a;
+  }
+  .bg-\[\#0a0a0a\] {
+    background-color: #0a0a0a;
+  }
+  .bg-\[\#06080a\] {
+    background-color: #06080a;
+  }
+  .bg-acc {
+    background-color: var(--acc);
+  }
+  .bg-black {
+    background-color: var(--color-black);
+  }
+  .bg-black\/85 {
+    background-color: color-mix(in srgb, #000 85%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-black) 85%, transparent);
     }
-
-    window.toggleRulesWindow = () => {
-        if(isShareMode) return;
-        if(cmdRulesWindow.style.display === 'flex') {
-            cmdRulesWindow.style.display = 'none';
-        } else {
-            cmdRulesWindow.style.display = 'flex';
-            audioErroWin.currentTime = 0;
-            audioErroWin.play().catch(e => console.log(e));
-        }
+  }
+  .bg-black\/95 {
+    background-color: color-mix(in srgb, #000 95%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-black) 95%, transparent);
     }
-
-    if(cmdRulesEl) {
-        cmdRulesEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Tab' && cmdRulesEl.getAttribute('contenteditable') === 'true') {
-                e.preventDefault();
-                handleTerminalTabCompletion();
-            }
-        });
+  }
+  .bg-panel {
+    background-color: #050505;
+  }
+  .bg-transparent {
+    background-color: transparent;
+  }
+  .bg-gradient-to-r {
+    --tw-gradient-position: to right in oklab;
+    background-image: linear-gradient(var(--tw-gradient-stops));
+  }
+  .from-\[var\(--acc-soft\)\] {
+    --tw-gradient-from: var(--acc-soft);
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+  .to-transparent {
+    --tw-gradient-to: transparent;
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+  .p-1 {
+    padding: calc(var(--spacing) * 1);
+  }
+  .p-1\.5 {
+    padding: calc(var(--spacing) * 1.5);
+  }
+  .p-2\.5 {
+    padding: calc(var(--spacing) * 2.5);
+  }
+  .p-3 {
+    padding: calc(var(--spacing) * 3);
+  }
+  .p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+  .p-5 {
+    padding: calc(var(--spacing) * 5);
+  }
+  .p-6 {
+    padding: calc(var(--spacing) * 6);
+  }
+  .px-3 {
+    padding-inline: calc(var(--spacing) * 3);
+  }
+  .px-4 {
+    padding-inline: calc(var(--spacing) * 4);
+  }
+  .px-5 {
+    padding-inline: calc(var(--spacing) * 5);
+  }
+  .px-6 {
+    padding-inline: calc(var(--spacing) * 6);
+  }
+  .py-2 {
+    padding-block: calc(var(--spacing) * 2);
+  }
+  .py-3 {
+    padding-block: calc(var(--spacing) * 3);
+  }
+  .py-6 {
+    padding-block: calc(var(--spacing) * 6);
+  }
+  .py-8 {
+    padding-block: calc(var(--spacing) * 8);
+  }
+  .py-10 {
+    padding-block: calc(var(--spacing) * 10);
+  }
+  .py-16 {
+    padding-block: calc(var(--spacing) * 16);
+  }
+  .py-20 {
+    padding-block: calc(var(--spacing) * 20);
+  }
+  .pr-2 {
+    padding-right: calc(var(--spacing) * 2);
+  }
+  .pb-4 {
+    padding-bottom: calc(var(--spacing) * 4);
+  }
+  .pb-5 {
+    padding-bottom: calc(var(--spacing) * 5);
+  }
+  .pl-3 {
+    padding-left: calc(var(--spacing) * 3);
+  }
+  .pl-4 {
+    padding-left: calc(var(--spacing) * 4);
+  }
+  .text-center {
+    text-align: center;
+  }
+  .text-left {
+    text-align: left;
+  }
+  .align-\[-4px\] {
+    vertical-align: -4px;
+  }
+  .font-display {
+    font-family: "VT323", "Courier New", monospace;
+  }
+  .text-2xl {
+    font-size: var(--text-2xl);
+    line-height: var(--tw-leading, var(--text-2xl--line-height));
+  }
+  .text-3xl {
+    font-size: var(--text-3xl);
+    line-height: var(--tw-leading, var(--text-3xl--line-height));
+  }
+  .text-4xl {
+    font-size: var(--text-4xl);
+    line-height: var(--tw-leading, var(--text-4xl--line-height));
+  }
+  .text-5xl {
+    font-size: var(--text-5xl);
+    line-height: var(--tw-leading, var(--text-5xl--line-height));
+  }
+  .text-base {
+    font-size: var(--text-base);
+    line-height: var(--tw-leading, var(--text-base--line-height));
+  }
+  .text-lg {
+    font-size: var(--text-lg);
+    line-height: var(--tw-leading, var(--text-lg--line-height));
+  }
+  .text-sm {
+    font-size: var(--text-sm);
+    line-height: var(--tw-leading, var(--text-sm--line-height));
+  }
+  .text-xl {
+    font-size: var(--text-xl);
+    line-height: var(--tw-leading, var(--text-xl--line-height));
+  }
+  .text-xs {
+    font-size: var(--text-xs);
+    line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+  .text-\[7rem\] {
+    font-size: 7rem;
+  }
+  .text-\[10px\] {
+    font-size: 10px;
+  }
+  .text-\[11px\] {
+    font-size: 11px;
+  }
+  .text-\[15px\] {
+    font-size: 15px;
+  }
+  .leading-\[0\.8\] {
+    --tw-leading: 0.8;
+    line-height: 0.8;
+  }
+  .leading-none {
+    --tw-leading: 1;
+    line-height: 1;
+  }
+  .leading-relaxed {
+    --tw-leading: var(--leading-relaxed);
+    line-height: var(--leading-relaxed);
+  }
+  .leading-tight {
+    --tw-leading: var(--leading-tight);
+    line-height: var(--leading-tight);
+  }
+  .font-bold {
+    --tw-font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-bold);
+  }
+  .font-medium {
+    --tw-font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-medium);
+  }
+  .tracking-\[0\.2em\] {
+    --tw-tracking: 0.2em;
+    letter-spacing: 0.2em;
+  }
+  .tracking-\[0\.3em\] {
+    --tw-tracking: 0.3em;
+    letter-spacing: 0.3em;
+  }
+  .tracking-\[0\.25em\] {
+    --tw-tracking: 0.25em;
+    letter-spacing: 0.25em;
+  }
+  .tracking-\[0\.35em\] {
+    --tw-tracking: 0.35em;
+    letter-spacing: 0.35em;
+  }
+  .tracking-widest {
+    --tw-tracking: var(--tracking-widest);
+    letter-spacing: var(--tracking-widest);
+  }
+  .break-words {
+    overflow-wrap: break-word;
+  }
+  .whitespace-nowrap {
+    white-space: nowrap;
+  }
+  .whitespace-pre-wrap {
+    white-space: pre-wrap;
+  }
+  .text-acc {
+    color: var(--acc);
+  }
+  .text-acc\/80 {
+    color: var(--acc);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--acc) 80%, transparent);
     }
-
-    function handleTerminalTabCompletion() {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return;
-        const range = sel.getRangeAt(0);
-        const node = range.startContainer;
-
-        if (node.nodeType !== Node.TEXT_NODE) return;
-
-        const textBefore = node.textContent.slice(0, range.startOffset);
-        const match = textBefore.match(/(C=|T=|P=)[a-z0-9=]*$/i);
-        if (!match) return;
-
-        const typed = match[0];
-        const query = typed.toLowerCase();
-
-        const terminalCommands = {
-            'c=vermelho': { type: 'color', value: '#ff3333', full: 'C=vermelho' },
-            'c=verde':    { type: 'color', value: '#00ff00', full: 'C=verde' },
-            'c=amarelo':  { type: 'color', value: '#ffff00', full: 'C=amarelo' },
-            'c=azul':     { type: 'color', value: '#00e5ff', full: 'C=azul' },
-            'c=roxo':     { type: 'color', value: '#b829ff', full: 'C=roxo' },
-            'c=laranja':  { type: 'color', value: '#ff8800', full: 'C=laranja' },
-            'c=rosa':     { type: 'color', value: '#ff66cc', full: 'C=rosa' },
-            'c=ciano':    { type: 'color', value: '#00ffff', full: 'C=ciano' },
-            'c=branco':   { type: 'color', value: '#ffffff', full: 'C=branco' },
-            'c=c':        { type: 'color', value: '#c0c0c0', full: 'C=C' },
-            't=normal':   { type: 'font',  value: "'Segoe UI', 'Tahoma', sans-serif", full: 'T=normal' },
-            't=pixel':    { type: 'font',  value: "'VT323', 'Courier New', monospace", full: 'T=pixel' },
-            'p=chat':     { type: 'text',  value: '[P=chat]', full: 'P=chat' }
-        };
-
-        const matches = Object.keys(terminalCommands).filter(k => k.startsWith(query));
-        if (matches.length === 0) return;
-
-        const matchedKey = matches[0];
-        const cmdData = terminalCommands[matchedKey];
-        const startIndex = range.startOffset - typed.length;
-
-        if (query !== matchedKey) {
-            node.textContent = node.textContent.slice(0, startIndex) + cmdData.full + node.textContent.slice(range.startOffset);
-            const newRange = document.createRange();
-            newRange.setStart(node, startIndex + cmdData.full.length);
-            newRange.collapse(true);
-            sel.removeAllRanges(); sel.addRange(newRange);
-        } else {
-            node.textContent = node.textContent.slice(0, startIndex) + node.textContent.slice(range.startOffset);
-            const execRange = document.createRange();
-            execRange.setStart(node, startIndex);
-            execRange.collapse(true);
-
-            if (cmdData.type === 'text') {
-                const textNode = document.createTextNode(cmdData.value);
-                execRange.insertNode(textNode);
-                const newRange = document.createRange();
-                newRange.setStartAfter(textNode); newRange.collapse(true);
-                sel.removeAllRanges(); sel.addRange(newRange);
-            } else {
-                const span = document.createElement('span');
-                span.innerHTML = '&#8203;';
-                if (cmdData.type === 'color') span.style.color = cmdData.value;
-                else if (cmdData.type === 'font') span.style.fontFamily = cmdData.value;
-                execRange.insertNode(span);
-
-                const newCaretRange = document.createRange();
-                newCaretRange.setStart(span.firstChild, 1);
-                newCaretRange.collapse(true);
-                sel.removeAllRanges(); sel.addRange(newCaretRange);
-            }
-        }
+  }
+  .text-amber-400 {
+    color: var(--color-amber-400);
+  }
+  .text-black {
+    color: var(--color-black);
+  }
+  .text-dim {
+    color: #5a5a5a;
+  }
+  .text-red-400 {
+    color: var(--color-red-400);
+  }
+  .text-red-400\/80 {
+    color: color-mix(in srgb, oklch(70.4% 0.191 22.216) 80%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-red-400) 80%, transparent);
     }
-
-    const videoUpload = document.getElementById('video-upload');
-    const dramVideo = document.getElementById('dramatizacao-video');
-
-    if(!isShareMode && dramVideo) {
-        videoUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                dramVideo.src = URL.createObjectURL(file);
-                saveCinematicVideo(file);
-                window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-video"></i> Vídeo Cinemático alterado e salvo com sucesso!</span>`);
-            }
-        });
+  }
+  .text-red-500 {
+    color: var(--color-red-500);
+  }
+  .text-white {
+    color: var(--color-white);
+  }
+  .text-white\/80 {
+    color: color-mix(in srgb, #fff 80%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-white) 80%, transparent);
     }
-
-    if(!isShareMode) {
-        document.getElementById('devlog-container').addEventListener('click', (e) => {
-            if (e.ctrlKey) {
-                const logEntry = e.target.closest('.log-entry');
-                if (logEntry) logEntry.remove();
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            // --- NOVO SISTEMA KEYLOGGER (CHEATS SILENCIOSOS) ---
-            if (e.key && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                cheatBuffer += e.key.toLowerCase();
-                // Limita o tamanho para não sobrecarregar a memória
-                if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20);
-
-                if (isHost && cheatBuffer.includes("goodnightworld")) {
-                    window.cheatsEnabled = true;
-                    cheatBuffer = ""; 
-                    // Cheats ativados para o Mestre silenciosamente.
-                } else if (!isHost && cheatBuffer.includes("badnightworld")) {
-                    window.cheatsEnabled = true;
-                    cheatBuffer = "";
-                    // Cheats ativados para o Jogador silenciosamente.
-                }
-            }
-
-            if (e.key.toLowerCase() === 'c') isCPressed = true;
-            if (e.key === 'Escape') {
-                if(skinModal.style.display === 'flex') window.toggleSkinModal();
-                else window.toggleRulesWindow(); 
-            }
-            if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
-                e.preventDefault(); window.playDramatizacao(null);
-            }
-            if (e.shiftKey && e.code === 'Space') {
-                e.preventDefault(); window.toggleSkinModal();
-            }
-
-            if (e.shiftKey && (e.key === '\\' || e.code === 'Backslash' || e.key === '|')) {
-                if (cmdRulesWindow.style.display === 'flex' && isHost) {
-                    e.preventDefault();
-                    const isEditing = cmdRulesEl.getAttribute('contenteditable') === 'true';
-                    
-                    if (!isEditing) {
-                        const chatZone = document.getElementById('playerChatZone');
-                        if (chatZone) {
-                            chatZone.outerHTML = '[P=chat]';
-                        }
-                        
-                        cmdRulesEl.setAttribute('contenteditable', 'true');
-                        cmdRulesEl.focus();
-                        window.logToDevlog(`<span style="color:#00ff00; font-weight:bold;">🛠️ MODO DE EDIÇÃO DO TERMINAL ATIVADO! Digite [P=chat] para posicionar o chat. Saia com Shift + \\ para salvar.</span>`, true);
-                    } else {
-                        cmdRulesEl.setAttribute('contenteditable', 'false');
-                        localStorage.setItem('custom_esc_rules', cmdRulesEl.innerHTML);
-                        updateTerminalDisplay();
-                        broadcast({ action: 'sync_rules', rules: localStorage.getItem('custom_esc_rules') });
-                        window.logToDevlog(`<span style="color:var(--success); font-weight:bold;">💾 Diretrizes do terminal salvas e sincronizadas na mesa!</span>`);
-                    }
-                }
-            }
-        });
-
-        document.addEventListener('keyup', (e) => { if (e.key.toLowerCase() === 'c') isCPressed = false; });
+  }
+  .text-white\/90 {
+    color: color-mix(in srgb, #fff 90%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-white) 90%, transparent);
     }
-
-    window.playDramatizacao = (event, isRemote = false, remoteAuthor = null) => {
-        if (!isShareMode && event && event.type === 'click' && event.shiftKey) { 
-            videoUpload.click(); return; 
-        }
-        const overlay = document.getElementById('video-overlay');
-        const video = document.getElementById('dramatizacao-video');
-        overlay.style.display = 'flex'; video.currentTime = 0; video.play().catch(e => console.log(e));
-        video.onended = () => { overlay.style.display = 'none'; };
-
-        if (!isShareMode && !isRemote) {
-            window.logToDevlog(`<span style="color: #ff0000; font-weight:bold; text-shadow: 0 0 10px #ff0000; font-size: 16px;">🎬 VÍDEO CINEMÁTICO ATIVADO!</span>`, true, null, window.playerName);
-            broadcast({ action: 'dramatizacao' });
-        }
-    };
-
-    function init3D() {
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x000000); scene.fog = new THREE.Fog(0x000000, 12, 30);
-        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-        camera.position.z = isShareMode ? 17 : 13; 
-        
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); 
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.shadowMap.enabled = true; renderer.outputEncoding = THREE.sRGBEncoding; 
-        container.appendChild(renderer.domElement);
-        
-        scene.add(new THREE.AmbientLight(0xffffff, 0.2));
-        const spotLight = new THREE.SpotLight(0xffffff, 1.0);
-        spotLight.position.set(5, 10, 5); spotLight.castShadow = true; spotLight.penumbra = 0.5;
-        scene.add(spotLight);
-
-        if(!isShareMode) {
-            raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
-            container.addEventListener('mousedown', (event) => {
-                if (event.ctrlKey && isCPressed) { event.preventDefault(); copyObsLink(); return; }
-                onDiceClick(event);
-            });
-        }
-        window.updateTotal(); animate();
+  }
+  .uppercase {
+    text-transform: uppercase;
+  }
+  .underline-offset-4 {
+    text-underline-offset: 4px;
+  }
+  .opacity-0 {
+    opacity: 0%;
+  }
+  .opacity-30 {
+    opacity: 30%;
+  }
+  .opacity-60 {
+    opacity: 60%;
+  }
+  .shadow {
+    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-\[0_0_30px_var\(--acc-soft\)\] {
+    --tw-shadow: 0 0 30px var(--tw-shadow-color, var(--acc-soft));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-\[0_0_60px_var\(--acc-soft\)\] {
+    --tw-shadow: 0 0 60px var(--tw-shadow-color, var(--acc-soft));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-xs {
+    --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.05));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .ring-2 {
+    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .ring-white\/70 {
+    --tw-ring-color: color-mix(in srgb, #fff 70%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      --tw-ring-color: color-mix(in oklab, var(--color-white) 70%, transparent);
     }
-
-    window.copyObsLink = () => {
-        const baseUrl = window.location.origin + window.location.pathname;
-        navigator.clipboard.writeText(baseUrl + `?view=share&room=${roomParam}`).then(() => {
-            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado</span>`);
-        });
-    };
-
-    window.copyPlayerLink = () => {
-        const baseUrl = window.location.origin + window.location.pathname;
-        navigator.clipboard.writeText(baseUrl + `?room=${roomParam}`).then(() => {
-            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado</span>`);
-        });
-    };
-
-    function onDiceClick(event) {
-        const rect = container.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(diceList);
-        if (intersects.length > 0) removeDice(intersects[0].object);
+  }
+  .ring-offset-2 {
+    --tw-ring-offset-width: 2px;
+    --tw-ring-offset-shadow: var(--tw-ring-inset,) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  }
+  .ring-offset-black {
+    --tw-ring-offset-color: var(--color-black);
+  }
+  .outline {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
+  }
+  .filter {
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+  }
+  .backdrop-blur {
+    --tw-backdrop-blur: blur(8px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+  }
+  .backdrop-blur-sm {
+    --tw-backdrop-blur: blur(var(--blur-sm));
+    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+  }
+  .transition {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .transition-all {
+    transition-property: all;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .transition-colors {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .transition-opacity {
+    transition-property: opacity;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .transition-transform {
+    transition-property: transform, translate, scale, rotate;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .duration-300 {
+    --tw-duration: 300ms;
+    transition-duration: 300ms;
+  }
+  .duration-500 {
+    --tw-duration: 500ms;
+    transition-duration: 500ms;
+  }
+  .outline-none {
+    --tw-outline-style: none;
+    outline-style: none;
+  }
+  .zoom-in-95 {
+    --tw-enter-scale: calc(95*1%);
+    --tw-enter-scale: .95;
+  }
+  .fade-in {
+    --tw-enter-opacity: 0;
+  }
+  .running {
+    animation-play-state: running;
+  }
+  .group-hover\:w-full {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        width: 100%;
+      }
     }
-
-    function removeDice(dice, isRemote = false) {
-        if(dice.userData.isRemoving) return;
-        dice.userData.isRemoving = true;
-        dice.userData.label.style.display = 'none';
-        if(dice.userData.auraElement) dice.userData.auraElement.remove();
-
-        if (!isRemote) broadcast({ action: 'remove', id: dice.userData.id });
-
-        const startScale = dice.scale.x; let startTime = Date.now();
-        const anim = () => {
-            let elapsed = Date.now() - startTime; let progress = elapsed / 300;
-            if (progress < 1) {
-                const s = startScale * (1 - progress); dice.scale.set(s, s, s); dice.rotation.y += 0.2;
-                requestAnimationFrame(anim);
-            } else {
-                scene.remove(dice); dice.userData.label.remove();
-                if(dice.userData.auraElement) dice.userData.auraElement.remove();
-                diceList = diceList.filter(d => d !== dice); window.updateTotal(isRemote); 
-            }
-        };
-        anim();
+  }
+  .group-hover\:translate-x-1 {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        --tw-translate-x: calc(var(--spacing) * 1);
+        translate: var(--tw-translate-x) var(--tw-translate-y);
+      }
     }
-
-    window.saveAndClearDice = (isRemote = false, remoteAuthor = null) => {
-        if (diceList.length === 0) return;
-        [...diceList].forEach(d => removeDice(d, true)); 
-        if(!isRemote && !isShareMode) {
-            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa.</span>`, false, null, window.playerName);
-            broadcast({ action: 'clear' });
-        }
+  }
+  .group-hover\:text-acc {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        color: var(--acc);
+      }
     }
-
-    // --- BLOQUEIO DE SEGURANÇA ADICIONADO PARA O DADO NORMAL ---
-    window.addDie = (type, event) => {
-        let rollMode = 'normal';
-        // Apenas libera modificadores de clique se os cheats estiverem ativos.
-        if (event && window.cheatsEnabled) {
-            if (event.shiftKey) rollMode = 'shift';
-            else if (event.ctrlKey) rollMode = 'ctrl';
-        }
-        spawnDice(type, null, rollMode, null, null, false, null, false, window.diceSkins[window.currentSkinId]);
-    };
-
-    // --- BLOQUEIO DE SEGURANÇA ADICIONADO PARA O DADO CUSTOM ---
-    window.addCustomFromInput = (event) => {
-        const input = document.getElementById('custom-sides-input');
-        const sides = parseInt(input.value); if(!sides || sides < 2) return;
-        let rollMode = 'normal';
-        // Apenas libera modificadores de clique se os cheats estiverem ativos.
-        if (event && window.cheatsEnabled) {
-            if (event.shiftKey) rollMode = 'shift';
-            else if (event.ctrlKey) rollMode = 'ctrl';
-        }
-        spawnDice('custom', sides, rollMode, null, null, false, null, false, window.diceSkins[window.currentSkinId]);
+  }
+  .group-hover\:text-white {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        color: var(--color-white);
+      }
     }
-
-    function spawnDice(type, sides, rollMode = 'normal', forcedValue = null, id = null, isRemote = false, remoteAuthor = null, isSyncInit = false, skinData = null) {
-        let geometry, material;
-        const finalSides = sides || (configs[type] ? configs[type].sides : 0);
-        const skin = skinData || window.diceSkins['default'];
-
-        if (type === 'custom') {
-            const ratio = Math.min((finalSides - 2) / 100, 1); 
-            const finalColor = skin.dieColor ? new THREE.Color(skin.dieColor) : new THREE.Color(0x4a004a).lerp(new THREE.Color(0xff4500), ratio);
-            const finalEmissive = skin.dieColor ? new THREE.Color(skin.dieColor).multiplyScalar(0.5) : new THREE.Color(0x880088).lerp(new THREE.Color(0xffaa00), ratio);
-            material = new THREE.MeshStandardMaterial({ 
-                color: finalColor, emissive: finalEmissive, emissiveIntensity: 0.3 + (ratio * 2.2), roughness: 0.15, metalness: 0.8, flatShading: true 
-            }); geometry = new THREE.SphereGeometry(1.2, 24, 24); 
-        } else {
-            const conf = configs[type]; geometry = conf.geo;
-            const finalColor = skin.dieColor ? new THREE.Color(skin.dieColor) : new THREE.Color(conf.color);
-            const finalEmissive = skin.dieColor ? new THREE.Color(skin.dieColor).multiplyScalar(0.6) : new THREE.Color(conf.emissive);
-            material = new THREE.MeshStandardMaterial({ 
-                color: finalColor, emissive: finalEmissive, emissiveIntensity: conf.intensity,
-                roughness: type === 'coin' ? 0.4 : 0.2, metalness: type === 'coin' ? 0.9 : 0.5, flatShading: type !== 'coin'
-            });
-        }
-        
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.castShadow = true; mesh.receiveShadow = true;
-        const label = document.createElement('div'); label.className = 'dice-label'; container.appendChild(label);
-        
-        const meshId = id || Date.now() + Math.random().toString(36).substring(2,7);
-
-        mesh.userData = { 
-            id: meshId, type, sides: finalSides, label, value: 0, rollMode: rollMode || 'normal',
-            yOffset: 0, isRolling: false, isSyncInit: isSyncInit, skin: skin, auraElement: null
-        };
-        
-        scene.add(mesh); diceList.push(mesh);
-        rollSingle(mesh, forcedValue, isRemote, remoteAuthor);
+  }
+  .group-hover\:opacity-100 {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        opacity: 100%;
+      }
     }
-
-    function explodeParticles(position, colorHex = 0xff0000, emissiveHex = 0xff0000) {
-        for (let i = 0; i < 45; i++) {
-            const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
-            const isAlt = Math.random() > 0.5;
-            const mat = new THREE.MeshStandardMaterial({ 
-                color: isAlt ? colorHex : 0xffffff, emissive: isAlt ? emissiveHex : 0xffffff, emissiveIntensity: 2 
-            });
-            const p = new THREE.Mesh(geo, mat); p.position.copy(position);
-            p.userData.velocity = new THREE.Vector3((Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.45);
-            p.userData.life = 1.0; scene.add(p); particles.push(p);
-        }
+  }
+  .group-hover\:\[text-shadow\:0_0_20px_var\(--acc-glow\)\] {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        text-shadow: 0 0 20px var(--acc-glow);
+      }
     }
-
-    function showConfetti(dice) {
-        const audio1 = document.getElementById('audioConfetti1');
-        const audio2 = document.getElementById('audioConfetti2');
-        audio1.currentTime = 0; audio2.currentTime = 0;
-        audio1.play().catch(()=>{}); audio2.play().catch(()=>{});
-
-        const gif = document.createElement('img');
-        gif.src = 'confetti.gif?t=' + Date.now(); 
-        gif.style.cssText = 'position:absolute; width:180px; height:180px; pointer-events:none; z-index:99; transform:translate(-50%, -50%);';
-
-        const updateGifPos = () => {
-            if(!gif.parentNode) return;
-            const vector = dice.position.clone().project(camera);
-            if(vector.z < 1) {
-                gif.style.left = `${(vector.x + 1) * container.clientWidth / 2}px`;
-                gif.style.top = `${(-vector.y + 1) * container.clientHeight / 2}px`;
-            }
-            requestAnimationFrame(updateGifPos);
-        };
-        container.appendChild(gif); updateGifPos();
-        setTimeout(() => { if(gif.parentNode) gif.remove(); }, 2000); 
+  }
+  .placeholder\:text-\[\#3a3a3a\] {
+    &::placeholder {
+      color: #3a3a3a;
     }
-
-    function showAura(dice, type, customGifData = null, offsetX = 0, offsetY = 0) {
-        const aura = document.createElement('img');
-        aura.src = customGifData || ('aura.gif?t=' + Date.now());
-        aura.className = 'crit-aura';
-        
-        if(type === 'redlock') {
-            aura.style.filter = getRedlockFireFilter(window.redlockHex);
-        }
-        
-        container.appendChild(aura);
-        dice.userData.auraElement = aura;
-        dice.userData.auraOffsetX = offsetX || 0;
-        dice.userData.auraOffsetY = offsetY || 0;
+  }
+  .placeholder\:text-\[\#333\] {
+    &::placeholder {
+      color: #333;
     }
-
-    function rollSingle(dice, forcedValue = null, isRemote = false, remoteAuthor = null) {
-        if(dice.userData.isRemoving) return;
-        dice.userData.label.style.display = 'none';
-        dice.userData.label.className = 'dice-label';
-        dice.userData.isRolling = true;
-        dice.visible = true; 
-        if(dice.userData.auraElement) { dice.userData.auraElement.remove(); dice.userData.auraElement = null; }
-        
-        let trueRes, res;
-
-        if (forcedValue !== null) {
-            res = forcedValue; trueRes = res;
-        } else if (dice.userData.type === 'coin') {
-            if (dice.userData.rollMode === 'shift') res = "Ca";
-            else if (dice.userData.rollMode === 'ctrl') res = "Co";
-            else res = Math.random() > 0.5 ? "Ca" : "Co";
-            trueRes = res;
-        } else {
-            trueRes = Math.floor(Math.random() * dice.userData.sides) + 1;
-            
-            // Lógica do Crítico Máximo (Shift)
-            if (dice.userData.rollMode === 'shift') {
-                res = dice.userData.sides; 
-            } 
-            // NOVA Lógica do Quase Crítico (Ctrl)
-            else if (dice.userData.rollMode === 'ctrl') {
-                if (dice.userData.sides <= 2) {
-                    // Evita resultados zerados caso seja um D2
-                    res = 1; 
-                } else {
-                    // Matematica Perfeita: Lados - 1 ou Lados - 2 aleatoriamente
-                    res = dice.userData.sides - (Math.random() > 0.5 ? 1 : 2);
-                }
-            } 
-            // Normal
-            else {
-                res = trueRes; 
-            }
-        }
-
-        if (dice.userData.type !== 'coin') window.lastRolledValue = res;
-
-        if (!isRemote) {
-            broadcast({ action: 'spawn', type: dice.userData.type, sides: dice.userData.sides, value: res, id: dice.userData.id, rollMode: dice.userData.rollMode, skin: dice.userData.skin });
-        }
-
-        let start = Date.now();
-        const duration = (forcedValue !== null && diceList.length > 0 && !dice.userData.isRolling) ? 0 : (dice.userData.type === 'coin' ? 800 : 500); 
-        const randRotX = (Math.random() - 0.5) * 0.5; const randRotY = (Math.random() - 0.5) * 0.5;
-
-        const anim = () => {
-            const elapsed = Date.now() - start;
-            if (elapsed < duration) {
-                if (dice.userData.type === 'coin') {
-                    dice.rotation.x += 0.5; dice.rotation.y += 0.1;
-                    dice.userData.yOffset = Math.sin((elapsed / duration) * Math.PI) * 4.5; 
-                } else {
-                    dice.rotation.x += 0.3 + randRotX; dice.rotation.y += 0.3 + randRotY; dice.rotation.z += 0.1;
-                }
-                requestAnimationFrame(anim);
-            } else {
-                dice.userData.isRolling = false; dice.userData.yOffset = 0;
-                dice.rotation.set(dice.userData.type === 'coin' ? Math.PI / 2 : 0, 0, 0);
-
-                if (dice.userData.type === 'coin') {
-                    dice.userData.value = 0; dice.userData.label.innerText = res;  
-                    dice.userData.label.className = res === "Ca" ? 'dice-label text-blue' : 'dice-label text-green';
-                } else {
-                    dice.userData.value = res; dice.userData.label.innerText = res;
-                    const skin = dice.userData.skin || window.diceSkins['default'];
-
-                    if (res === dice.userData.sides) {
-                        dice.userData.label.className = 'dice-label crit-text';
-                        if(skin.numColor) dice.userData.label.style.color = skin.numColor;
-
-                        if (skin.critHideMode === 'permanent') {
-                            dice.visible = false;
-                        } else if (skin.critHideMode === 'temp') {
-                            dice.visible = false;
-                            const t = (skin.tempTime || 3) * 1000;
-                            setTimeout(() => { if(diceList.includes(dice)) dice.visible = true; }, t);
-                        }
-
-                        if(forcedValue === null || duration > 0) {
-                            if(skin.popSound) {
-                                playCritSound(150, 0.01, 'sawtooth');
-                            }
-
-                            if (skin.critType === 'digital') {
-                                explodeParticles(dice.position, 0xff0000, 0xff0000);
-                                showConfetti(dice);
-                            } else if (skin.critType === 'redlock' || skin.critType === 'redlock_custom') {
-                                playCritSound(200, 0.01, 'sawtooth');
-                                explodeParticles(dice.position, parseInt(window.redlockHex.replace('#','0x')), parseInt(window.redlockHex.replace('#','0x')));
-                                showAura(dice, 'redlock', null, skin.posX, skin.posY);
-                            } else if (skin.critType === 'custom') {
-                                explodeParticles(dice.position, skin.dieColor ? parseInt(skin.dieColor.replace('#','0x')) : 0xffaa00);
-                                if(skin.gifData) showAura(dice, 'custom', skin.gifData, skin.posX, skin.posY);
-                                if(skin.audioData) {
-                                    const audio = new Audio(skin.audioData);
-                                    audio.play().catch(e => console.log("Erro áudio custom:", e));
-                                }
-                            } else {
-                                explodeParticles(dice.position, 0xffffff, 0x888888);
-                            }
-                        }
-                    } else {
-                        if(skin.normColor) dice.userData.label.style.color = skin.normColor;
-                        dice.userData.label.style.textShadow = `0 0 10px white, 0 0 20px #${dice.material.emissive.getHexString()}`;
-                    }
-                }
-                
-                dice.userData.label.style.display = 'block'; window.updateTotal(isRemote);
-
-                if (!isShareMode && !dice.userData.isSyncInit) {
-                    const author = isRemote ? remoteAuthor : window.playerName;
-                    if (dice.userData.type === 'coin') {
-                        window.logToDevlog(`Rolou <b>MOEDA</b>: <span style="color:${res === 'Ca'?'#00e5ff':'#00ff66'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
-                    } else {
-                        const dName = dice.userData.type.toUpperCase() === 'CUSTOM' ? `D${dice.userData.sides}` : dice.userData.type.toUpperCase();
-                        window.logToDevlog(`Rolou <b>${dName}</b>: <span style="color:${res === dice.userData.sides?'var(--danger)':'var(--success)'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
-                    }
-                }
-                dice.userData.isSyncInit = false; 
-            }
-        };
-        anim();
+  }
+  .focus-within\:border-acc {
+    &:focus-within {
+      border-color: var(--acc);
     }
-
-    window.rollAll = (isRemote = false, remoteAuthor = null) => {
-        if(isShareMode) return;
-        if(!isRemote) {
-            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Rerolando mesa inteira...</span>`, false, null, window.playerName);
-            broadcast({ action: 'reroll_all' });
-        }
-        diceList.forEach(d => {
-            let trueRes = (d.userData.type === 'coin') ? (Math.random() > 0.5 ? "Ca" : "Co") : (Math.floor(Math.random() * d.userData.sides) + 1);
-            if(!isRemote) broadcast({ action: 'reroll_single', id: d.userData.id, value: trueRes });
-            rollSingle(d, trueRes, true); 
-        });
+  }
+  .focus-within\:shadow-\[0_0_30px_var\(--acc-soft\)\] {
+    &:focus-within {
+      --tw-shadow: 0 0 30px var(--tw-shadow-color, var(--acc-soft));
+      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
     }
-
-    window.updateValuesFromInputs = () => {
-        const modInput = document.getElementById('modifier-input');
-        const pctInput = document.getElementById('percent-input');
-        if (modInput) window.currentModifier = parseInt(modInput.value) || 0;
-        if (pctInput) window.currentPercent = parseFloat(pctInput.value) || 0;
-        window.updateTotal(false);
+  }
+  .hover\:scale-125 {
+    &:hover {
+      @media (hover: hover) {
+        --tw-scale-x: 125%;
+        --tw-scale-y: 125%;
+        --tw-scale-z: 125%;
+        scale: var(--tw-scale-x) var(--tw-scale-y);
+      }
     }
-
-    window.updateTotal = (isRemote = false) => {
-        const diceSum = diceList.reduce((acc, d) => acc + (d.userData.isRemoving ? 0 : (d.userData.value || 0)), 0);
-        const rawEl = document.getElementById('raw-total');
-        if(rawEl) { rawEl.innerText = diceSum; if(diceSum > 0) rawEl.classList.add('active'); else rawEl.classList.remove('active'); }
-
-        const hudModEl = document.getElementById('hud-modifier');
-        const hudPctEl = document.getElementById('hud-percent');
-        const hudFinalEl = document.getElementById('hud-final-total');
-        const finEl = document.getElementById('final-total');
-
-        let total = diceSum + window.currentModifier;
-        if(window.currentPercent !== 0) total += total * (window.currentPercent / 100);
-        const finalRounded = Math.round(total);
-
-        if(finEl) finEl.innerText = finalRounded;
-        if(hudFinalEl) { hudFinalEl.innerText = finalRounded; if(finalRounded > 0) hudFinalEl.classList.add('active'); else hudFinalEl.classList.remove('active'); }
-        if(hudModEl) { hudModEl.innerText = window.currentModifier >= 0 ? `+${window.currentModifier}` : window.currentModifier; if(window.currentModifier !== 0) hudModEl.classList.add('active'); else hudModEl.classList.remove('active'); }
-        if(hudPctEl) { hudPctEl.innerText = window.currentPercent >= 0 ? `+${window.currentPercent}%` : `${window.currentPercent}%`; if(window.currentPercent !== 0) hudPctEl.classList.add('active-pct'); else hudPctEl.classList.remove('active-pct'); }
-        
-        if(!isShareMode && !isRemote) broadcast({ action: 'hud', mod: window.currentModifier, pct: window.currentPercent });
+  }
+  .hover\:border-\[\#2c2c2c\] {
+    &:hover {
+      @media (hover: hover) {
+        border-color: #2c2c2c;
+      }
     }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        
-        for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i]; p.position.add(p.userData.velocity); p.userData.life -= 0.02; 
-            const scale = p.userData.life * 0.15; p.scale.set(scale, scale, scale);
-            if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
-        }
-
-        const cols = isShareMode ? 2 : 4; 
-        const spacingX = isShareMode ? 2.0 : 2.5; const spacingY = isShareMode ? 2.1 : 2.5;
-
-        diceList.forEach((dice, i) => {
-            if(!dice.userData.isRemoving) {
-                const time = Date.now() * 0.001;
-                const rowCount = Math.ceil(diceList.length / cols);
-                const col = i % cols; const row = Math.floor(i / cols);
-
-                const tx = (col - (Math.min(diceList.length, cols) - 1) / 2) * spacingX;
-                const ty = (((rowCount - 1) / 2) - row) * spacingY + Math.sin(time + i) * 0.1;
-                
-                dice.position.x += (tx - dice.position.x) * 0.1;
-                if (dice.userData.isRolling && dice.userData.type === 'coin') dice.position.y = ty + dice.userData.yOffset;
-                else dice.position.y += (ty - dice.position.y) * 0.1;
-                
-                if (!dice.userData.isRolling) {
-                    if (dice.userData.type === 'coin') {
-                        dice.rotation.x = Math.PI / 2 + Math.sin(time * 2 + i) * 0.1;
-                        dice.rotation.y = Math.cos(time * 2 + i) * 0.1; dice.rotation.z += 0.01;
-                    } else { dice.rotation.y += 0.005; dice.rotation.z += 0.002; }
-                }
-            }
-            
-            const vector = dice.position.clone().project(camera);
-            if (vector.z < 1) {
-                const centerX = (vector.x + 1) * container.clientWidth / 2;
-                const centerY = (-vector.y + 1) * container.clientHeight / 2;
-                
-                dice.userData.label.style.left = `${centerX}px`;
-                dice.userData.label.style.top = `${centerY}px`;
-                
-                if(dice.userData.auraElement) { 
-                    const offX = dice.userData.auraOffsetX || 0;
-                    const offY = dice.userData.auraOffsetY || 0;
-                    dice.userData.auraElement.style.left = `${centerX + offX}px`; 
-                    dice.userData.auraElement.style.top = `${centerY + offY}px`; 
-                }
-            }
-        });
-        renderer.render(scene, camera);
+  }
+  .hover\:border-\[\#444\] {
+    &:hover {
+      @media (hover: hover) {
+        border-color: #444;
+      }
     }
-
-    function handleIncomingData(data, senderConn) {
-        const remoteAuthor = data.playerName || "Desconhecido";
-
-        if (isHost && window.bannedPlayers.includes(remoteAuthor.toLowerCase())) {
-            if (senderConn) senderConn.send({ action: 'ban_player', target: remoteAuthor });
-            return; 
-        }
-
-        if (data.action === 'ban_player') {
-            if (window.playerName && window.playerName.toLowerCase() === data.target.toLowerCase()) {
-                if(peer) peer.destroy(); 
-                document.body.innerHTML = `
-                    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#000; color:#ff0000; font-family:'VT323', monospace;">
-                        <h1 style="font-size: 60px; text-shadow: 0 0 20px #ff0000;">ACESSO NEGADO</h1>
-                        <p style="font-size: 30px;">Você foi banido permanentemente desta sessão pelo Mestre.</p>
-                    </div>
-                `;
-                return;
-            }
-        } else if (data.action === 'sync_init') {
-            if (!isHost) {
-                [...diceList].forEach(d => removeDice(d, true));
-                window.currentModifier = parseInt(data.mod) || 0; window.currentPercent = parseFloat(data.pct) || 0;
-                if(!isShareMode) {
-                    const modInput = document.getElementById('modifier-input'); const pctInput = document.getElementById('percent-input');
-                    if(modInput) modInput.value = window.currentModifier; if(pctInput) pctInput.value = window.currentPercent;
-                }
-                const devlogEl = document.getElementById('devlog'); if (devlogEl && data.devlog) devlogEl.innerHTML = data.devlog;
-                
-                if (data.chatHistory) {
-                    window.terminalChatMessages = data.chatHistory;
-                    localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
-                }
-                if (data.rules) {
-                    localStorage.setItem('custom_esc_rules', data.rules);
-                    updateTerminalDisplay();
-                }
-
-                window.logToDevlog(`🎮 Conectado e sincronizado à sala: ${roomParam}`);
-                data.dice.forEach(d => { spawnDice(d.type, d.sides, d.rollMode || 'normal', d.value, d.id, true, remoteAuthor, true, d.skin); });
-                window.updateTotal(true);
-            }
-        } else if(data.action === 'spawn') {
-            spawnDice(data.type, data.sides, data.rollMode || 'normal', data.value, data.id, true, remoteAuthor, false, data.skin);
-        } else if(data.action === 'remove') {
-            const target = diceList.find(d => d.userData.id === data.id); if(target) removeDice(target, true);
-        } else if(data.action === 'clear') {
-            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa remotamente.</span>`, false, null, remoteAuthor);
-            saveAndClearDice(true, remoteAuthor);
-        } else if(data.action === 'reroll_single') {
-            const target = diceList.find(d => d.userData.id === data.id); if(target) rollSingle(target, data.value, true, remoteAuthor);
-        } else if(data.action === 'reroll_all') {
-            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Mesa inteira rerolada remotamente.</span>`, false, null, remoteAuthor);
-        } else if(data.action === 'dramatizacao') {
-            window.logToDevlog(`<span style="color: #ff0000; font-weight:900; text-shadow: 0 0 10px #ff0000; font-size: 16px;">🎬 VÍDEO CINEMÁTICO ATIVADO!</span>`, true, null, remoteAuthor);
-            const overlay = document.getElementById('video-overlay'); const video = document.getElementById('dramatizacao-video');
-            overlay.style.display = 'flex'; video.currentTime = 0; video.play().catch(e => console.log(e));
-            video.onended = () => { overlay.style.display = 'none'; };
-        } else if(data.action === 'hud') {
-            window.currentModifier = data.mod; window.currentPercent = data.pct; 
-            if(!isShareMode) {
-                const modInput = document.getElementById('modifier-input'); const pctInput = document.getElementById('percent-input');
-                if(modInput) modInput.value = window.currentModifier; if(pctInput) pctInput.value = window.currentPercent;
-            }
-            window.updateTotal(true);
-        } else if (data.action === 'terminal_chat_clear') {
-            window.terminalChatMessages = [];
-            localStorage.setItem('terminal_chat_history', JSON.stringify([]));
-            renderChatMessages();
-        } else if (data.action === 'terminal_chat') {
-            window.terminalChatMessages.push(data.message);
-            if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
-            localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
-            renderChatMessages();
-            
-            if (isHost && senderConn) {
-                activeConnections.forEach(c => { if (c !== senderConn && c.open) c.send(data); });
-            }
-        } else if (data.action === 'sync_rules') {
-            localStorage.setItem('custom_esc_rules', data.rules);
-            updateTerminalDisplay();
-        }
-
-        if (isHost && senderConn && !['terminal_chat', 'sync_rules'].includes(data.action)) {
-            activeConnections.forEach(c => { if (c !== senderConn && c.open) c.send(data); });
-        }
+  }
+  .hover\:border-acc {
+    &:hover {
+      @media (hover: hover) {
+        border-color: var(--acc);
+      }
     }
-    
-    init3D();
-</script>
-</body>
-</html>
+  }
+  .hover\:pl-4 {
+    &:hover {
+      @media (hover: hover) {
+        padding-left: calc(var(--spacing) * 4);
+      }
+    }
+  }
+  .hover\:text-acc {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--acc);
+      }
+    }
+  }
+  .hover\:text-red-500 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-red-500);
+      }
+    }
+  }
+  .hover\:text-white {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-white);
+      }
+    }
+  }
+  .hover\:underline {
+    &:hover {
+      @media (hover: hover) {
+        text-decoration-line: underline;
+      }
+    }
+  }
+  .focus\:outline-none {
+    &:focus {
+      --tw-outline-style: none;
+      outline-style: none;
+    }
+  }
+  .focus-visible\:ring-\[3px\] {
+    &:focus-visible {
+      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+    }
+  }
+  .active\:cursor-grabbing {
+    &:active {
+      cursor: grabbing;
+    }
+  }
+  .disabled\:pointer-events-none {
+    &:disabled {
+      pointer-events: none;
+    }
+  }
+  .disabled\:opacity-20 {
+    &:disabled {
+      opacity: 20%;
+    }
+  }
+  .disabled\:opacity-50 {
+    &:disabled {
+      opacity: 50%;
+    }
+  }
+  .has-\[\>svg\]\:px-2\.5 {
+    &:has(>svg) {
+      padding-inline: calc(var(--spacing) * 2.5);
+    }
+  }
+  .has-\[\>svg\]\:px-3 {
+    &:has(>svg) {
+      padding-inline: calc(var(--spacing) * 3);
+    }
+  }
+  .has-\[\>svg\]\:px-4 {
+    &:has(>svg) {
+      padding-inline: calc(var(--spacing) * 4);
+    }
+  }
+  .md\:size-8 {
+    @media (width >= 48rem) {
+      width: calc(var(--spacing) * 8);
+      height: calc(var(--spacing) * 8);
+    }
+  }
+  .md\:size-9 {
+    @media (width >= 48rem) {
+      width: calc(var(--spacing) * 9);
+      height: calc(var(--spacing) * 9);
+    }
+  }
+  .md\:grid-cols-2 {
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .md\:grid-cols-\[minmax\(0\,1fr\)_240px\] {
+    @media (width >= 48rem) {
+      grid-template-columns: minmax(0,1fr) 240px;
+    }
+  }
+  .md\:gap-8 {
+    @media (width >= 48rem) {
+      gap: calc(var(--spacing) * 8);
+    }
+  }
+  .md\:px-10 {
+    @media (width >= 48rem) {
+      padding-inline: calc(var(--spacing) * 10);
+    }
+  }
+  .md\:py-8 {
+    @media (width >= 48rem) {
+      padding-block: calc(var(--spacing) * 8);
+    }
+  }
+  .md\:py-12 {
+    @media (width >= 48rem) {
+      padding-block: calc(var(--spacing) * 12);
+    }
+  }
+  .md\:text-4xl {
+    @media (width >= 48rem) {
+      font-size: var(--text-4xl);
+      line-height: var(--tw-leading, var(--text-4xl--line-height));
+    }
+  }
+  .md\:text-6xl {
+    @media (width >= 48rem) {
+      font-size: var(--text-6xl);
+      line-height: var(--tw-leading, var(--text-6xl--line-height));
+    }
+  }
+  .md\:text-7xl {
+    @media (width >= 48rem) {
+      font-size: var(--text-7xl);
+      line-height: var(--tw-leading, var(--text-7xl--line-height));
+    }
+  }
+  .md\:text-base {
+    @media (width >= 48rem) {
+      font-size: var(--text-base);
+      line-height: var(--tw-leading, var(--text-base--line-height));
+    }
+  }
+  .md\:text-\[10rem\] {
+    @media (width >= 48rem) {
+      font-size: 10rem;
+    }
+  }
+  .lg\:mt-24 {
+    @media (width >= 64rem) {
+      margin-top: calc(var(--spacing) * 24);
+    }
+  }
+  .lg\:grid-cols-\[minmax\(0\,5fr\)_minmax\(0\,7fr\)\] {
+    @media (width >= 64rem) {
+      grid-template-columns: minmax(0,5fr) minmax(0,7fr);
+    }
+  }
+  .lg\:gap-16 {
+    @media (width >= 64rem) {
+      gap: calc(var(--spacing) * 16);
+    }
+  }
+  .lg\:py-16 {
+    @media (width >= 64rem) {
+      padding-block: calc(var(--spacing) * 16);
+    }
+  }
+  .\[\&_svg\]\:pointer-events-none {
+    & svg {
+      pointer-events: none;
+    }
+  }
+  .\[\&_svg\]\:shrink-0 {
+    & svg {
+      flex-shrink: 0;
+    }
+  }
+  .\[\&_svg\:not\(\[class\*\=\'size-\'\]\)\]\:size-4 {
+    & svg:not([class*='size-']) {
+      width: calc(var(--spacing) * 4);
+      height: calc(var(--spacing) * 4);
+    }
+  }
+}
+@property --tw-animation-delay {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0s;
+}
+@property --tw-animation-direction {
+  syntax: "*";
+  inherits: false;
+  initial-value: normal;
+}
+@property --tw-animation-duration {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-animation-fill-mode {
+  syntax: "*";
+  inherits: false;
+  initial-value: none;
+}
+@property --tw-animation-iteration-count {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@property --tw-enter-blur {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-enter-opacity {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@property --tw-enter-rotate {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-enter-scale {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@property --tw-enter-translate-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-enter-translate-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-exit-blur {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-exit-opacity {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@property --tw-exit-rotate {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-exit-scale {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@property --tw-exit-translate-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-exit-translate-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+:root {
+  --acc: #00ffcc;
+  --acc-soft: var(--acc);
+  @supports (color: color-mix(in lab, red, red)) {
+    --acc-soft: color-mix(in srgb, var(--acc) 14%, transparent);
+  }
+  --acc-glow: var(--acc);
+  @supports (color: color-mix(in lab, red, red)) {
+    --acc-glow: color-mix(in srgb, var(--acc) 45%, transparent);
+  }
+}
+html, body {
+  background: #000;
+  color: #f2f2f2;
+  font-family: var(--font-body);
+  min-height: 100%;
+}
+* {
+  border-color: #1a1a1a;
+}
+::selection {
+  background: var(--acc);
+  color: #000;
+}
+.crt::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient( to bottom, rgba(255, 255, 255, 0.025) 0px, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px );
+}
+.crt::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 60% 50% at 85% 10%, var(--acc-soft), transparent 70%), radial-gradient(ellipse 50% 40% at 0% 100%, var(--acc), transparent 70%);
+  @supports (color: color-mix(in lab, red, red)) {
+    background: radial-gradient(ellipse 60% 50% at 85% 10%, var(--acc-soft), transparent 70%), radial-gradient(ellipse 50% 40% at 0% 100%, color-mix(in srgb, var(--acc) 7%, transparent), transparent 70%);
+  }
+}
+.glow-text {
+  color: var(--acc);
+  text-shadow: 0 0 18px var(--acc-glow);
+}
+.cursor-blink::after {
+  content: "_";
+  animation: blink 1s steps(1) infinite;
+  color: var(--acc);
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.rise {
+  opacity: 0;
+  animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.field {
+  width: 100%;
+  background: #000;
+  border: 1px solid #262626;
+  color: #fff;
+  padding: 0.7rem 0.85rem;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--acc-soft);
+}
+.btn-acc {
+  border: 1px solid var(--acc);
+  color: var(--acc);
+  background: #070707;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-acc:hover:not(:disabled) {
+  background: var(--acc);
+  color: #000;
+  box-shadow: 0 0 28px var(--acc-glow);
+}
+.btn-acc:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-ghost {
+  border: 1px solid #2a2a2a;
+  color: #aaa;
+  background: transparent;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: #555;
+  color: #fff;
+}
+.btn-danger {
+  border: 1px solid #ff2a2a;
+  color: #ff4d4d;
+  background: #120000;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #ff2a2a;
+  color: #fff;
+  box-shadow: 0 0 24px rgba(255, 0, 0, 0.4);
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-space-y-reverse {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-gradient-position {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-gradient-from {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+@property --tw-gradient-via {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+@property --tw-gradient-to {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+@property --tw-gradient-stops {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-gradient-via-stops {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-gradient-from-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --tw-gradient-via-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+@property --tw-gradient-to-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-leading {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-font-weight {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-tracking {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-inset-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-inset-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-inset-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-ring-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ring-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-inset-ring-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-inset-ring-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-ring-inset {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ring-offset-width {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --tw-ring-offset-color {
+  syntax: "*";
+  inherits: false;
+  initial-value: #fff;
+}
+@property --tw-ring-offset-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-blur {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-brightness {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-contrast {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-grayscale {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-hue-rotate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-invert {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-opacity {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-saturate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-sepia {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-drop-shadow-size {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-blur {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-brightness {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-contrast {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-grayscale {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-hue-rotate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-invert {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-opacity {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-saturate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-sepia {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-translate-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-scale-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@property --tw-scale-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@property --tw-scale-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity,1);
+    transform: translate3d(var(--tw-enter-translate-x,0),var(--tw-enter-translate-y,0),0)scale3d(var(--tw-enter-scale,1),var(--tw-enter-scale,1),var(--tw-enter-scale,1))rotate(var(--tw-enter-rotate,0));
+    filter: blur(var(--tw-enter-blur,0));
+  }
+}
+@layer properties {
+  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
+    *, ::before, ::after, ::backdrop {
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
+      --tw-space-y-reverse: 0;
+      --tw-border-style: solid;
+      --tw-gradient-position: initial;
+      --tw-gradient-from: #0000;
+      --tw-gradient-via: #0000;
+      --tw-gradient-to: #0000;
+      --tw-gradient-stops: initial;
+      --tw-gradient-via-stops: initial;
+      --tw-gradient-from-position: 0%;
+      --tw-gradient-via-position: 50%;
+      --tw-gradient-to-position: 100%;
+      --tw-leading: initial;
+      --tw-font-weight: initial;
+      --tw-tracking: initial;
+      --tw-shadow: 0 0 #0000;
+      --tw-shadow-color: initial;
+      --tw-shadow-alpha: 100%;
+      --tw-inset-shadow: 0 0 #0000;
+      --tw-inset-shadow-color: initial;
+      --tw-inset-shadow-alpha: 100%;
+      --tw-ring-color: initial;
+      --tw-ring-shadow: 0 0 #0000;
+      --tw-inset-ring-color: initial;
+      --tw-inset-ring-shadow: 0 0 #0000;
+      --tw-ring-inset: initial;
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-outline-style: solid;
+      --tw-blur: initial;
+      --tw-brightness: initial;
+      --tw-contrast: initial;
+      --tw-grayscale: initial;
+      --tw-hue-rotate: initial;
+      --tw-invert: initial;
+      --tw-opacity: initial;
+      --tw-saturate: initial;
+      --tw-sepia: initial;
+      --tw-drop-shadow: initial;
+      --tw-drop-shadow-color: initial;
+      --tw-drop-shadow-alpha: 100%;
+      --tw-drop-shadow-size: initial;
+      --tw-backdrop-blur: initial;
+      --tw-backdrop-brightness: initial;
+      --tw-backdrop-contrast: initial;
+      --tw-backdrop-grayscale: initial;
+      --tw-backdrop-hue-rotate: initial;
+      --tw-backdrop-invert: initial;
+      --tw-backdrop-opacity: initial;
+      --tw-backdrop-saturate: initial;
+      --tw-backdrop-sepia: initial;
+      --tw-duration: initial;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-translate-z: 0;
+      --tw-scale-x: 1;
+      --tw-scale-y: 1;
+      --tw-scale-z: 1;
+      --tw-animation-delay: 0s;
+      --tw-animation-direction: normal;
+      --tw-animation-duration: initial;
+      --tw-animation-fill-mode: none;
+      --tw-animation-iteration-count: 1;
+      --tw-enter-blur: 0;
+      --tw-enter-opacity: 1;
+      --tw-enter-rotate: 0;
+      --tw-enter-scale: 1;
+      --tw-enter-translate-x: 0;
+      --tw-enter-translate-y: 0;
+      --tw-exit-blur: 0;
+      --tw-exit-opacity: 1;
+      --tw-exit-rotate: 0;
+      --tw-exit-scale: 1;
+      --tw-exit-translate-x: 0;
+      --tw-exit-translate-y: 0;
+    }
+  }
+}
+</style></head>
+	<body>
+		<div id="root"><div class="crt relative min-h-screen overflow-hidden"><div class="relative z-10 mx-auto grid min-h-screen max-w-7xl grid-cols-1 gap-10 px-5 py-10 md:px-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:py-16"><aside class="flex flex-col justify-between gap-10"><div><p class="rise font-display text-xl uppercase tracking-widest text-dim">C:\MESA\&gt; menu.exe</p><h1 class="rise mt-4 font-display text-[7rem] uppercase leading-[0.8] md:text-[10rem] glow-text" style="animation-delay: 0.08s;">Mesa<br>By D.K</h1><p class="rise mt-6 max-w-xs font-display text-2xl uppercase leading-tight text-white/80 cursor-blink" style="animation-delay: 0.16s;">escolha uma porta</p></div><div class="rise space-y-2" style="animation-delay: 0.7s;"><p class="text-[10px] uppercase tracking-[0.35em] text-dim">personalizar</p><div class="flex flex-wrap gap-2"><button class="group flex items-center gap-3 rounded border border-line bg-panel px-4 py-3 text-left transition-all hover:border-acc"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user size-5 text-acc" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span><span class="block text-[10px] uppercase tracking-[0.25em] text-dim">Nome e senha</span><span class="block font-display text-2xl leading-none text-white">Entrar / criar</span></span></button><button class="group flex items-center gap-3 rounded border border-line bg-panel px-4 py-3 text-left transition-all hover:border-acc"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette size-5 text-acc" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"></path><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle></svg><span><span class="block text-[10px] uppercase tracking-[0.25em] text-dim">Cor</span><span class="flex items-center gap-2 font-display text-2xl leading-none text-white"><span class="inline-block size-3.5 rounded-full" style="background: rgb(255, 42, 42); box-shadow: rgb(255, 42, 42) 0px 0px 10px;"></span>#FF2A2A</span></span></button></div></div></aside><nav class="flex flex-col justify-center border-t border-line lg:mt-24"><a href="https://mesa-5cddb6j-preview-4200.runable.site/dddgpr/index.html" class="block"><div class="rise group relative flex items-center gap-5 border-b border-line py-6 transition-all duration-300 hover:pl-4 md:gap-8 md:py-8" style="animation-delay: 0.25s;"><span class="absolute inset-y-0 left-0 w-0 bg-gradient-to-r from-[var(--acc-soft)] to-transparent transition-all duration-500 group-hover:w-full"></span><span class="relative font-display text-3xl text-dim transition-colors group-hover:text-acc md:text-4xl">01</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dices relative size-7 shrink-0 text-dim transition-colors group-hover:text-acc md:size-9" aria-hidden="true"><rect width="12" height="12" x="2" y="10" rx="2" ry="2"></rect><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"></path><path d="M6 18h.01"></path><path d="M10 14h.01"></path><path d="M15 6h.01"></path><path d="M18 9h.01"></path></svg><div class="relative min-w-0 flex-1"><h2 class="font-display text-4xl uppercase leading-none text-white transition-all group-hover:text-acc group-hover:[text-shadow:0_0_20px_var(--acc-glow)] md:text-6xl">Sala de dados</h2><p class="mt-1.5 text-sm text-dim md:text-base">Mesa online ao vivo. Crie a sala e mande o link pros jogadores.</p></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right relative size-6 shrink-0 text-dim opacity-0 transition-all group-hover:translate-x-1 group-hover:text-acc group-hover:opacity-100 md:size-8" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></div></a><a href="https://mesa-5cddb6j-preview-4200.runable.site/opiniao" class="block"><div class="rise group relative flex items-center gap-5 border-b border-line py-6 transition-all duration-300 hover:pl-4 md:gap-8 md:py-8" style="animation-delay: 0.37s;"><span class="absolute inset-y-0 left-0 w-0 bg-gradient-to-r from-[var(--acc-soft)] to-transparent transition-all duration-500 group-hover:w-full"></span><span class="relative font-display text-3xl text-dim transition-colors group-hover:text-acc md:text-4xl">02</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off relative size-7 shrink-0 text-dim transition-colors group-hover:text-acc md:size-9" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"></path><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"></path><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"></path><path d="m2 2 20 20"></path></svg><div class="relative min-w-0 flex-1"><h2 class="font-display text-4xl uppercase leading-none text-white transition-all group-hover:text-acc group-hover:[text-shadow:0_0_20px_var(--acc-glow)] md:text-6xl">Opinião anônima</h2><p class="mt-1.5 text-sm text-dim md:text-base">Mande um texto direto pro dono da mesa.</p></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right relative size-6 shrink-0 text-dim opacity-0 transition-all group-hover:translate-x-1 group-hover:text-acc group-hover:opacity-100 md:size-8" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></div></a><a href="https://mesa-5cddb6j-preview-4200.runable.site/log" class="block"><div class="rise group relative flex items-center gap-5 border-b border-line py-6 transition-all duration-300 hover:pl-4 md:gap-8 md:py-8" style="animation-delay: 0.49s;"><span class="absolute inset-y-0 left-0 w-0 bg-gradient-to-r from-[var(--acc-soft)] to-transparent transition-all duration-500 group-hover:w-full"></span><span class="relative font-display text-3xl text-dim transition-colors group-hover:text-acc md:text-4xl">03</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-pen relative size-7 shrink-0 text-dim transition-colors group-hover:text-acc md:size-9" aria-hidden="true"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"></path><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"></path></svg><div class="relative min-w-0 flex-1"><h2 class="font-display text-4xl uppercase leading-none text-white transition-all group-hover:text-acc group-hover:[text-shadow:0_0_20px_var(--acc-glow)] md:text-6xl">Log do jogador</h2><p class="mt-1.5 text-sm text-dim md:text-base">Blocos de anotação organizáveis, salvos na sua conta.</p></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right relative size-6 shrink-0 text-dim opacity-0 transition-all group-hover:translate-x-1 group-hover:text-acc group-hover:opacity-100 md:size-8" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></div></a></nav></div></div><a href="https://runable.com/" target="_blank" rel="noopener noreferrer" data-runable-ignore="true" data-runable-badge="true" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px 10px 14px; border-radius: 32px; backdrop-filter: blur(16px); text-decoration: none; cursor: pointer; overflow: hidden; transform: translateY(0px); box-shadow: none; transition: transform 0.18s, box-shadow 0.18s;"><div style="position: absolute; inset: 0px; background: linear-gradient(90deg, rgba(0, 231, 255, 0.08) 0%, rgba(0, 231, 255, 0) 100%), rgb(40, 40, 40); transition: opacity 0.18s; opacity: 1;"></div><div style="position: absolute; inset: 0px; background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAAAgCAYAAAABmdoHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAC8bSURBVHgBnZxZrJzned/fb51v1jNnJ88hqUNS1GYtpBU7tiM4VmwnsYMWagMUhlGghhMEdYHC7k2BAAXMXKV3tq+CXMW+SwsUDgq0aIHWqlOnshVblC1ZokSJoriffc7MmZlv5tv6+z8fk7qIkxihTPMs3/K+z/J//s/yjud+wT/9y1f6acu9kA0mv5ostC+m43QrbET9MneuzEpXFaWLWqHL54XzgsBVWe68JObOyrlJ6qoqcvFy080GU+f80vn8rppkLlmI3PQodZ7vuyoIXSNxbj4quK1ynu5uRs7PZq4oAhdEfM/zfX5WZp6ruCDgWcWMd8WhcxE/H82ci317rT/PXBXx3Nxzza5zWRm5POO56Zxrdb3ngpL756VrLDfcbHfM+xou5v4sLW3fIV/nGV/MuKeTuEr3Br7zeKdrN9kDa9c69Lu8dCXXVXHkvAn7TFhwxD6Pjp0f8IykxZ54X8b+WJffCpzvIlccTPgdMhtmLkRGJe+IWqwh46aU54QhMo1dwfO9gvdJEHHDvi5ZR9VsaUlcO3GlRBciM/ZWjTLnr7adm+amD/uDbkrfc55tD1nM565Ebj43InJ7V6Xf8yzXaHMdeyq4LvAGVZLcCNLJq+U4+2631/qzweVLg1/Edry/74LkD69sYUBf7vTDLxyNXN+rMhcXvktN8iiphZCOZs6PA8daXICyG2HhZmVgC8/YaAMFlBG/n2b2Rt2TD1MEGbio9NwE4bE3V/J1iRGF7RDDwXC53/NC12pXbnw4d36jgXHyu/HUxSg4Hc54RuVyXesheNaUrLdcejCvDQV78BCuH6LAskK9CK8RodapvavAHn2+r9hTgQ4CKRoDqGSIIVrLMlfGiYvasctHrBdHyPICPdXPqdBKUcngUhfgHfl8pjewDtaNofnsKWfPfivGGBCOFCnlehX74D4Z2GDivC5rZz2enKId1kYkZ2lgZLq+yb/znEsC3jU3Q/H0DGRdzAtzKGeO47uw0zKnqzCeZjd06biw+3w8QU5fHk9t3Z6crMhsnZX+dewdYzOjw/R9/t+WGj9wLNDEx/hkiI3lyM2OkM88/WaUJH+QXr504x9kZP2vXelPx+VXi8D/innfBO/qIeyjwnXWm64YTd1MXsHPKxYYdfC0NDNkCBBOISUWCBVJd9q+m7PxHOMMUF4+FpqFpoRKMuI6P8Ez2UiesfhAm+PnBzPXXEncFEN1s8xF/cRlKMv3JfDQvKzyUBZ/fa/A8GKX7qKcREYSm1fH5dxlVWBIVHWaeCiG0GqYwQftyCWh58YYFXbgsjHPw3h0zzSXYkBPx/2s28+xQpTq5bWRSLnNXuQmhxi6DAYFZxMQVZBSymDDGmGr3MUgb5p5hmJal5umzvUaoO7cFO/nc0PxKkSSOER+gGE2Y9AdRQPXPk6gdxcThY3KENUDQR3PdYWWU9j9kpHszX+gVdzVBUBWKRQTeiYYDIbsc79dq2fx3EoGxLVRz3ezIWvCcfwm7xvJS9EZiFxgnF67vp9N8jyARboDMLzC/3oeDP/AXX5+8AsbmdCrCKoXm4G3NZmhvKgyGC3xpqJkOVG9GB+DUYiUIGcz38JFQzCPDXnenGuRQzcxSNc+KxZuyIIUJLCoE9nPmyDanJAV4OYZG6h2RggSo0NRBEAEhdPIWNHwGCOUJwrCyymKXmyY0U332DHP7yz6bjwo5NQ4v6AVvND1fswWMjdH2UEAwuYh0cuvDZxr0iH+y3pKwnmjH7spxuPhLAH7Tgil47sjFzaFVrmF9lDgQhgKDHlCU34FbRCa6plSDCtn7zOTU4VT6GtDoQrlN50hsKJoZYgBSky5HwcIcJiM6BAtJSi/cnPQyBOqYxCtXujGeygcIxR1qDwZoTMKkuDoExzSU2RYSEB8kBhj8oVaPKdkndKdoki8CHU5LmpEZU+EnzpsY4CQHkMz/c/DpgqhJpGoQkfSn5zbCRVBweB4goGz18C/AXY///NQzf85CHaxu+heBDm3smruWp3AzRBFhqIqNhkhDCH06kbi2m2PcJiDmp5bgvMsL/kWRmTiAUIIsXz8EsNDqA0f2sEz5pVBdGsV7oFQW4lnghGkNUAzx9fJZgcjDXB28QGEiABKBDcgZAYYdHNR/Kdyq1tNC7PjHYTVDw0Bh3uZ4m5t4J3QxUJhnivDShG6QnrUbrhFIB9Td1kAFzvKLdQoJDZQLFHP9TbgT3CbEqPJBxhcD2chlCRdrQXEzUsz4Iqv+w0cBvQTL/UQXNxuGQ9qIqsQtJRRijsGXXEnHJN9NRI5XGH8zg+5Tw5BiPfZnw96tE+AuoTdOYC1ejIwOlDy/TEoJ/4mklfx/QJGXvJe8TChsyfyp/B+RFhkfc2VTv2OoOav+ZS94PgF9/SWuFdG0hDi+a4JfwvgGEJAhfVKTsB+LXSKewI2HtGs6qI7dBnGhFYcqIRr+EG5NffKF6PLL1/8O41s649e2hoX5bfZ7hYYa4KY4AmPrdco1UFoAW7jEcNDVjGGdzk8cqkfGILuH+Su7c3c8loDPoSQy9RNQdwZJFoUZw55j0EohZECJZQIq0DrSyCHj/BTyGajR1jB+ESKxzkGC9xPxlJYad4WIsAZXt7GSI4HOX8xvMUAx6qVuboaueUV3g9yyYEzwlNUpXijntkAWT23gIAO92ZuOkGIKKrimUQS11prw7NLd3IJw8cgO11oAJDVASEXsP8Ci56zL4XCgGe0+H2Jcg9HJD3wpnbHc4sxqI0CSyUMyKgr3tlRmM1NyY2ub8R6ikH7bd/QsiKc+93A4krSrBGkg+HJeVtLgdu/zx5byD7W9c5Cn8kjRm4RBqaQK16Fg5c4awLyiKY0oAJ5psQmN3JvXIxrmw7HgXaMhrnrrfcQMeF/nPK+wrUxqgCH8QGGEKQX2vqgr8JqCCAo9ASudoriuHa0YAGqNIYHt9xWGQffTi5f2fq5RiYONnLxi0mj2FI21wSFFBLaijtY0AowfYRSKmVuGEZ6nIMilUsaChee8dRnzrfcfhrCbXLXYZFjH8RCyCt935TQCHJ3slu5C6vwVBTRblR4ou8OQC85nOJ/SAKRwpFOdfEnlAE4u00EPSUcn1iP3VIDI4yMEtTeSYhrobgJ/GEN4xikGBAC3FopHXp0i63SUNFHIesLrJvnbLPYBpyo3W+4Dj8TSvaU5UIBQpS4w30598SxDCRwQ35/RDhtk6iFCLzfLPg9SsOoY0LbwmLojnmnQvle6vNuEC6U4nECHCyfiHuBNKI4wgVRAvbvI8uFCKTHSXKFSkUhUKckNO6OPHfuhGeZ78MgdhRUhhihDBWnIHK7tUXnjo5Kt9jBqBqxoVMECBQYTQ9ny4gCGSDRBRWFyOKSSeIZoV9ZJSpBaWagQMXPncI+IDLkeXLkijUHGGksboyziFpkyK7gma2OyC77n/F1X6gJXz/RdvOdCeG42spmkxf7X3uv/zeMbGu1/Oog97Y6pL4HslV4ToySE4zgTaSeQg6VWQQQvycvtBzh3HWjgnBXuj283gcp3gDJxIz7hM4UDz+zHFuOcmfsDBkW8JLbWP97R85d6CNAjARa5R5GKffxqhbvamG0l7ZAhwI0wqO6KP0AD/N5bodQO+CvjxDF5ZYg+PJ+ZdstFK1SSRNhncZgJ3CgmCz3uBAp91yHn+2z6BN9VToaIBNIjJcOEdCJtdBtE2a7GH0fjhJx/dYSWShhf4zRnufZPZxMnLcA4Q+0/uXSnV8QY6qs5CDj7CaF0Yl3dwirTRQMmiyDQItcV0KmIzjhFGTx09RtbEaW3TQTZceFhfayqg2vjSGsI8PtCSEJfreNzOrMHSWzrwxnPNyfu+1DdNQLDU1ijJBI5nKFY0WBCebMs9v8cEK47+NE4tQ5gltfbRAOMX6VKzCw2M8tUWsSDrtrkRlFt4vxoPA5HLyNY+c4S9TWs6FL88CFyCFahZtTbuqg5+KI6IYx54oyG92t2XT3q39lW+Kd7sSfXNkqy+pP56o5IYxzhJRdvFK84/Gms4fvDCv37Hrg9koJuzLoXIaT7WPdZyDGhyjzVLNy58hQrh7JID3Xl5JY5ColiBWykB0Q66lTIAhh8n2I/zpI0YSz3CBReHYRL0KACUI9KlUqQCBAVQtvSkGPcyuBO5KA8fIZda81wuoh715rFaa4dRDn1ix0F/j5WxDjJiHt4Z5zt0kCNtbwZGDNU8YEMpzGaO6iuK44IvwsSwkBCPg8iHuQKhkglKCQOe+nzGUhPVCGB7SLc50GMd8B2SaZkAHExtIf6ijjQnGELEDcPbTawojnTuW2IR7fAQlCZYyEs3kl2dYcKeB5PQwSbo9zhm6RdayTtb6zn7m1fuWG4kcyYkoJBVZe4gCSiQoNDULtAgawR8bf4r5j9BURDpUktEC6HDkVGAqcHZSF2SisYVweBnUAXekTXVLL6TzXI2kgJyIZmFppZKIslH2fXg7cDlGrt9JyVBsMWNI5aKgwD/J3l0iKhoRoSklAO1yNyLWAkc+Kj4Sf/Fffyv/nHw8MyVj6V0cI7FGEcAHovgHHOIunL2FEPzz2zPB68I0f7mYOvo/QMtdD6LupiheFewIjOoOgWKe7jlTbYOynzpAw8PSPnozwxNzdJoSuIcSrd8fuCG9qgSa34UOPY5grpDA/OgCxCY6LvcDtYoCVnksiMeaaZxYwekoKc2LkCeC5ydqUoS6Aog0EssGab5IVfnARWEcJm3jv0UycMXSnln2EA09c4Doco4uhvYsTbOCRMaj1BE6RYdRdCNz7x4Qf1bUAmRaosQaxPdtWepCrUsCf3CUYxi1Q4oVziRnOGFnEEM53DwuLAKo/H4M0e4ORe2otcWOg+gMgZapcM1eRNXZb6+RvIEigQjERQjyqVBmBkPYeiPDGztTKPgdpTDmldJvseUZRr0mIX2UPSsI6rK8HYu0QAdbJqBUaV0ErGQy+6IZYbQCvK+BOetYKaLoqlPaE7txDiDik+LsC5VnEYGbw5A+sqFwRE4Yjq6ORBGPAM3duvQNXnUOZPKMtyjSLY5VCQEnWsoKepmTresYqkWJ7d05BPXPLi9lXDMm+8O0r/buz6k+XQZUbLHSEUDpY+H3qSb91su1WyJzSXJ4N2pyI3SFetYAxHilcAsfow72O0rbgKT8FBcaTwp2HxP6EFyk3v40QTvH9RIgJms1ZYA+ljHjOExjU60D5KVAgh0ssIrihapC+WEMIOoGUhIwEw8CpnUqdCcTmGKOQwexCgIUU6BTuF7p7OMquYBthnsN4B4SroYwGdDkkJVYGtU8t74VTkfsLiP8SCrmDsE6hgJ25DMh3F0DMu7zzEbLVm/x7f+aMPz0Jer0HT9pkTdrHGxR8s7kIP8aLg6Xp2H14s+ve3U/hmYHVxaZkiiso+Bi55oR4GcAYZ1Pht8MaT4EsUVCyD/gfRraMsodcJz6bYCCLJAE7IPFmp3QplnMJnvrmcUVYw5jIloco+ElQWdn/w6DwdUIXr3YD+OECMsVWQMDQ7aM86DQZMOQF4xb6qb66uRS7W1CIABDpkEgs4qB3QSm/mFtZjZSIaIWBI5tZqUw6s3AehYAAICG5LxOVdibiz4XpQMmKnLSoVGAPH5v+xpf+OCj+8e987lQzeeEeltrFys8tOHcPDiVL/wmWPgWt7io8wTUOCCsyhAGbO4XxTTD1CwiRMO5eParcE/CeNaD+eC7vC93JtjwcQqw2E1XxZ1aaZD4zd+0QKydMrsEF3kJxGyAVuQuxnzSaDbSVFoZaB4hHSGuz0ZtUxmO8jKDnHm+TeYFkEkoDLjglxK6ppUV4En+QsWQ84wlC6R1C1ZMoaQEFd0FAZYs3KLvEKHRd2ZOyR4z6YbSj+tQAmjCBlSwKsdnHR9Z8t9zxcSSMC6ca8Lst+NdbINfZlQiiXxmHiQhnbx5Qf8Jo+sryEPpJ1nuXsJRDHdZAnSPI/T/dCt21qQyekKeYyb851/wSxv3D/co9s+xwCFEPZIf8f51I8Bphqo1criKrVepY5+LcsvEZRnyPZ6lmuBirjBGiG+c+ezpmLTMrfJ9qKXvF+JB1yj19EoRD9vUU6Po6kenjmzHIi3NihYlqdV5dnJZsV+lEyCkHcMYe38+wqi4OFiPbE+3CwvQHVpy7NYT3soY1ZDg6JktFIssY8MGoTFqh/1bw+Of/9ZfzYnZxE+OZ8rKTnYa1cwKU+HFi6/fwpF+F2L1NKPnYSYUWiCIWMEIZPQkIBWHfbntKyOzUSDTHCKd473UQ7ilC2G891Ob6ukAqTzxP2NxgsbfJYJ4i5oubiM+EoFmT987UU+PZyt7UwVSYWV/uuFU/szLhBwhx37lfusdAwj6edAdj3MTIbgHZJ2OVSjz3TK90b+Is5wiLPyW83SZ8UBHCmCrz/AHo/HSrtB7mJdDgh9sTlxHmLwH3UEy3juMs4givgXgd0HffOg0K2XOyOXgUpYM39tgfWRqvc52gtCLlM+sN995QqwYF4C+qI51nTSfZ8zaIMKHss9HwrVPRbhSGaicoAd2bWS2ZtWHgRJUVeDFlLPcyxvwQyYz6KpskB/uTmdvJlZnjJBjz46DwMShzHwTqIsdTrOvKiD2RuJzCKV7ZmVk7LuFaEk43V4bJeqfIWbraJsQ9hN6OMLwO69qF2pwHIOZwbEWUIci4iLMcIeOHgMYRBndI2UhdE4r1ZNUkLeiggf3cp6S0SX2xtHZbackZSfYg2Pzt37nc86oTGTecAcL/840RiBObBZcI4lnI85tY+ceXK3dz6rubGMnFvhKaig3P3QbZzV087STEbxUS3EchKlZG/HuWxe7ngnEQBgX12J2KhYdqRWFAOBPIhNHRlKZ3TRglzKCxFdDoHkb7QTgAzg1nwEOPZ+5TZDM/hWTuEyPPkn0NILO7hMMtEHKbDT0STd0xML4FCuwj9EMUOsLDPtovcQAIO2FtZ65UHOToR+5tnOVslGH4lA4QcIgDvT0SWuMgJAYtTHpOmDqA3z0Ep7u4pPcF8LfKsuLH+qo6sEeyxQX2+8uktW/tgWag67yglURGvIJM3iGcdNjnDMc5iwze4+asUkYYUWJx7qcUWPuENRk2CaNrgYLa123k+psnQJOidpz947nbgpd9bDV2P+aeFiHzNTodHyJpUvsIfCYBUw0T2oMz+NAF/TTFCIdk6OoiqbzzBIb5NrybaI1xYVhEqGeoLb6Jo50jEu0RucYaAMAeKM+yV5IEQGFPHQ6ePWcfq2Ti2J3bZR0rrOmQzELlERmh5IvIyHYpVwFQwdbn/+W/p/GbYMjuGNP7NMz+6qhyv0aaOwA2VXR8FEt/SwVHFZpVQYej3J8F7rOnEkoSpM4g0CqKnZV1rUhk7GMnQAcEvkA9ZVm1Fv57e1y551HUngSp6iwedV1JAUb4ITb559uZ+zVI8XWeuQmPm8kVVHmuanK6g8HEUhQGcg8FbGKE18lMn4fcjxHiOkLZwSFSPH2ZDT8KT2wC8y8d8G7iyGpLKEwmRb3u1RTP5rofwUnaIPeElstJPP9xYH6IY8S8sw06im+0MLplvPnHA2XfJD0I4inQ761UNcO57eVGioPQNhKiPMP6DnnmExjmfYqcD4uXoeAucrpHeP0gYXaIsjKIUQdE+fSZBG4ImCNfyVJDAOJnaugrwUkwOungHR6CmAjd/Nv2jJv98grrQHlDtLqE4pXVn+mKB5bsF46n7kzsDHWWoB0bUIQFUEdNDlXIn12GruDc98RJQbsnKKS/xmKUrbfolNw+GLtn6QRs0+1YBbFiuOIIlBtOQU6+bi013X1acGeAySPCe3uhbbW6VE0c5DTV2MGzGBkNLshmZERRkwZtCoLvHs+s8T1n0TcxgkcIUbfGnvvIamSbf5w6l0JJpf4egnhrElhj9UmMSH3cbYzw4oLqSoFqAKTLvgm0CTfaBon6KFzh9JPA6zaCFyop3N4le8nxnHfJFC4QYmZVYWH0PHyvCXzv4eE94koD4//Rgee+AMf5j9RAeqDd60NH+OAdGHYXFPlLTQpQ+f/gAmGM8LGfqcmHAXZJaIKalJ8mnBYUuRa9tEaRvK51kQyhmNC8/bk1wiUGH1fKXElWCGHvYsy/0nNWHKVkhUGRXRN6xyiLRNk90lRJJUeZKuFQCOaZ6nitsPa/3CH0NEVNAhy65lVLXD+BMqg0cYoMdE5va51rd/idssLvQFvOYVinuW/I2mIc4EmKw9+D314U8uOAt6kEPA26Hud1U3uWWweSxIJMm/B1ic28ilMLreV8J9Gd6qI3gCQh/4eWKvcGztjgec+faLj/9T4mguHl6A28ICTGVitVD1Rl8gKHP2It0u1dQmhMbW0ELy2saeFpGIXyUp4En/jily5risFDAWPMKhY0+xqzwVs7pUFsFCnuhxbv9/mBaqAj9dW4/mmg8iao8tsnK4wFzoHAHyWEjiCltyG6qogLaq+yiE2EpvuWWdQ5vOIqKHEJjrRLW6WJzffxKNV7NK+wTPiY5uqJUYBULs2G7gHtOZmlWjtNvPEJKt0q1D6+WHcCtjDS7xJbnmHdYwxHSnidQrKEJk+ncO7OoJyX4SkLvEdTCHsocYOEoCA52cBIfNWO4GuP8ax9wsMynn8drtHFSHpOCYQz0v2pVQSPNFVP7CW+FTnvcf0pCrKPUkJ5bX/ifn2jY/zyHaD7SQrOV7FiFZtP8O43ReaR0WdOUSlX9Z+/TXhdHsTuIdbzIqRcdast+Ng15HTGSg0y1MBR9nOJIoOtKzQZncdhFHXuUCi9PZpiMA33A2R+kWx4m1C7BB0Ygq47k8x9mEy0yX3X6AXf16yZEip0t1uqbkbHhH7uVbw+RFYRRrYPaqhMo1A7mtVJl7Qk3t3AmY8JrxE8MoMvhjhIpbYh9cdKcKYa46P/7He/oowZCmSK/x5ueZ6NbSPo2yj1Caz/BjUPwey2CnqeDbAZedU8VDPI3GsgyEMIOvR9q/mooKmCZEZ1/h4LOKe+nwik7kvqEPCDvTmlhCZFzcJGdRbwPGVcoyJ0m1yfUK0Xsq7zHvXSRqDkYliaMe1yzcN49BXC1yNkNGMVFBHOQRbCv3AWjPYhsrH7INNJssRVNuxXlfX03uGacygJvk62GRo5v4UXEyUMRSbsew4CqEe7T6NQBoEfucOpZzNqEc+Qgt6GUixjDFstFS4RbiO09b7DYtCr+wTlnv9+Nzc0V2tNpZizoKDW0GK/ZzGKp8koX4fTvDzw3CegCZ2gftZN9vdJEiIVaO8j8yegDvskFYfI8sMg8g/oUizFDbeMUakNtQ1S7Skx4b/HmhgvHHek+hrg8DYlBVGfq6DVIc4awYmVHV6j3JGC8hotmvI3A2TonVu7sAXIzEv1lW2s0bi5pk/UH11ch6UROiP2m4lbanxL9T5NTWBoagWq0VsMZjZ4GvVbg+AzX/y9z+2k1QmV/nfgP58mNCjsPLdYlwe+e/fYXVpJHDKzWTHL/lDCLTa1gdce4G4XyNKuahaLhy4pLLCgR0CzzU5g7YsYhSk1/gAZ003VYfjZQrNuX6itoXD5FBnWTL03Z4VjFxWqWgfuOhliEwPcamkEinYSm+5AeEn8jG9cQKMi1zdV72G922z6uV7lXp2Ell2NKOJepzK9hpN0gsomNEZ44BzlLNHmOeZlG7F+5iwrGqNI8gg8mgwNA7kPoT3RDGxeTT3HNoJUje85OOf1oWdhYxWjOwDRzpJY9OT9yPkWRvVhOiTfB1mXWZeQsA8aNOFXr1A7lEHeIrwp3G621SWhk+GJR5EVkkVfY6/n2b/KKDEE/mzTmSEcWA+SBAvnUQg+wgzuqD9JKLuLQd0HRe6A9rtk1O9gjN1uFyozd7v79fDmZCw0q6xzoZnIFOMoUo0MIXt0VCKXDEPU5GyFHjXt4vNvj5pOAcpOCIcz0Cyb1rN8KiAnZK/SiyZsNCmt2cMuzWihO3Z5NTj7+d/7KFBycT2phTNWzQX0eIdNa3T5ObzgUAOHIJQKb1N+H8GrHlHPjQ2KbHMJYc6zr6+JnGpGCWO8R6Gzg2BVeGyzgSsY4glVoVnQalyTYPXbNjRbhWB8TWqoJY4tnKZGM6XuNVK5ZJIZAqpu9ihc8BiFRjz/Es3tt4/1bNJqeJzWJ+TZJiT7lZBQnKO0XqYSGwCaLLgeNJUUm3h0B/S6xy9bCFehaR2O9voB/IWQIuNfiKylbcT5DijV4/lnsHD6vMaXnqHafRv+qMz15YMCkq/0H9SijvjuNHRramS3GyYP0Ysl1tQl9MlwtQY56S+R7Z1qax/O/YBIcgTsfwg00CTGPZx5VRQC57ife1aOuJGKJqADQuJ/2VZdMabdBxdGVkMUnbIf1eZahLoBbaIp5aOw13QzzYtBCxKQtQDF1DNVPzMk8y4g7cES5QdN6sJp1Y9tLTQtydPYz2ys1pZ+ntlUpAdaavQ8BuZTDWsSohu6Xr1Z7GWujgBo20q8/xb8xhd/t38q8V74DqXtR0Eewa9g7sIitRWerh7jqqBRfM2mDipTiEoGmngUmR2X6o9RxcfqP3s6cT/ihyuEoQWUfgak2cVzNqzY6VlbRKFUyYGyn4arx6I1iqOiblcTpqhVU01/vlO5T6+iGBQoMqtKtcZ5SN5IvXPKAOIizr0/Vj2OIiHrWTDSjgIIMVMN11Ui5LwPxT/M/q6NSxsBWvILQ+T34TtPLSVkhSQj8mz28lhPTV3Nv+UYBdyjVOZMIZK1nySM71MSWEHxDV+lDJwMY1CtaFkTEBoHAoVnvm9JgyZKuupw8K4NuOg9UENJ1GtHcrDAKMABzxDpP2KN/2i1aYMJr9FxeRVHb3CNhh6/N1QypS4H8oKXHaGjV7cJWxiYqg1TkqkCXpWAOKWqAqDrXPNlYWStP226oXEFGaDGWKZTCsahcUHyPvqqDUMgwokZpKf+KCUTlZzEs1S3zDA0P7FYQ3ZBj3ORRuBhWkemja6bDjIb87azD8oQQP5iXn3Du/zilX7p5e8Rd/u3j9XTC2mfkP3YsJpvU6/jwrOqcaqwixAXECavt2zvPVL3U6TOsnih1jWcZbNZWve+hwB3FEapyHVBKAm+XU8nUybQWusm9Q7e/Bhp9+uk8VsYya1UfKcykq12hg4+XAXut8RNENKKioqKteIN/NfA8PV3N3VW0ddwJI+xRGMHDcgQuhbGVWQtjdizKguNy/Q/XyEd/CX6g+KhcxCxh8MQpeGGgWXC0YPSwyboY9zHq0swAL7Vg1RiUFb+ym7hfmXNcz+mO/AodbxrPIQuE81/m8XE0J056J7OEGCIG3C0JnJ6X41veNjrIPcGxvE9GRfOMdYs07w2EKfRfu7JkMc6ZZZtMnvZjqr6auhr8FG5pIwoxqHnZL/qWc7mlUUOZXCagu0Q4kbj3A6eaMRJozzpcT2/V6CHpJu49Ci18wgiA2qbzWyGLrLzDxqPGr0/tL6lSuUhMkrhGjGF4kxDjqxRs2slHSTdk/neon/5+UuD8bz6FobrnuzXM+EPo10h1pDNa/DtPrBzmjCgYVAN/Kn/pdHmGxD8RzGokTYWytOcexoesweUN9SToxwRAtnrmggIauKuWeEpD1ImOET5CRrbIkRh1yiVzIaNPL3o2wbvko1IIWp2f+xEYPWvZ5fVhOZeQmaHsKPR47ZNdgbGbTQRu6JkASHexytVilDI1KSGCO24qoUOTaOS7dnAoCr+E/Y0wZnW4UQNnttj3z8e5jaqpMzsNIpT7UnhUslEF5RTdtdReKZWdwOuc56i711kIr6o+ZaHSQwe72k8qUb7JxcCa7ZfIKNW2UfF328SEkYg0E94d1ok7rtH7C9s8q6QuhpNan7eNYsQzYAr4eTHiiKKHkClhkU1UdtZacvybV4th0dGqlviGEVeA0NfZBxjGopLVbWji9hPUmgSnLvU/BuGlVKuEgqJ8MdQqDmCijTqjb6VNR6zWR/D8jSUybPmuWfdjbmdP1CPlu9oLQX9tiuT+Jvu31wa2Iz/V158aQsPek8jKAc8SNXnY8E8BjXRKR9WpJqKjdFjhA02LX7yMCHqGhBpkwHiBHChMAxMeDqg0QA6j1XpBg00OaAiZkvnA9RyENGWdyFszYjlZR1edYZAB1By7lW/US0qVbDRo2W2+xjcKmFzgedsawhQcM960rnWHRgffHUgMu5ZAqE+ZmFtr9KMT9V0OYsyyT737c9qIi3e2YVzLJEE6KRVEpQW0nvI4qc03S+y1+sYkqry00o1wVL0xkmtypBVjNZzlSw18OT/sZO55+icBBrtYW9ax3WSk5h1HbKeVygQT3nPVEQUxczgnTqMIsQR6S5Yl47BBRi8eFPNgbL6BFerWf+bahqlHs/yrZRRGRqdoPp9HwitQMaEGt0U5PJRkEfYs7MJOk6YVzbhqlm0UlOtbZ230BRszc2tIa459EZsXFnjRhWwp/MAepcShfL4wbrkthrM1GEYJQsgmKdMM3Vn09+/dOOvD5J87f/88Ovzsvyyah7KBPtCLOC6ROFKo0+r38ai5JW5ZYw1UZfFi8OKHBZiV54q6p6h2phFq0p8nJXG2UKMZEeVeZ4Vc819iLMMOnc1d7JQAEocYHQbDU2CkHDIM/E8hc7QdEAGCTppFm1SSKHqlxaGPOOyruirtqfwqBAl/ieu2BVUawiP9xQoqK3ZdI05lfWxNt+rnUkH/QgMNP81LWJHM+2gxy3Cz7rSMTN0QmpUDyKKgsjQUk2tWoVeyZNPScdz11TQ5ff/W60wEGlG7+xe5uwY4IyXRTpElOkYHFUviLIyzRz0kqMW1Ag1hi6oDruQ9p2R8zoty/BL9uP5hZ3G0tSvVa3Yj8Z6NFkZUYXPQKQVItMu2W1CKEvhVzHKn1NaCEkYSg2YYUBC1Gw0sxEfzQ3O4BQ6HKOjfJEmkHVaitAXLihRqGmTkhgJSk5RUmfzAI8QJ5trOA30sCOAw+k3yq9+5Ct/PbSoP7/5z7/0feL65zAYZdo27KbJi20Q7RyK351VxkFOqT+V13Bvh7w81ZgCOzspAq++nwxJqX4c1Mi4ykNHmUKqZ7xmqgMXKmxq/PgBWimLszFgLzC+dJDXkxNLGKlmoEQoazQK7DkybtmNTF/IKr4TCv3Uj9Phm6hOUvAJ408zO8zEz9TQL307t1hVvnnsWuLZmtQ3bUaajcKpNDWRlRZ2lUlusL5jI7MkHvZizwxWiZKQKmLdmmVTOUF9zBug+h41uf90SGICb9XEykDnQ+10mm+er4MFhsQotNFvQbRndnxOcUyoZUf3dIIZRPI6TeOGOpysUfYiq7lhJWUl9YixyL6coCpFWGmVDSvjVCotWIgE+TR2rlkwO3id5maglsFRJNP0rapteqWnE15BLeMCoy8HaoeAhDOdUYWOaJIXBFT41iksAZKvMN4wXnij/Hcf/sxf2db/dyTuD1+6stX3yxep3G8tIuyjsj5fqklKjfZrEkGGcCL2jZcJ1mUgR2VgLSONrsjKNS+mOfUjzYOr7iIyrbkmndTWqLCnOXoMJq7HR1pqY4JQyMJtgxjLKLilY2pKOPI6U2sH6h7U6PMeYUfGvEbYVHN+k9x/iEEIFSXNQVZYSURdAR0GU+kjgDwrUdE+RnmNvonGbap6IA26BIcrzWhgIIZonrxYZx9BO40YUf2ggl8rYEiZQQin+feHEP5L9O9mCFpG+18P4ECsX5Me6vdqoqfBddPSs9NKOp8ao4z5ODMO1V1uupGOuUlurClUCFMZJq8sBGsOrR5s9I2YTylFrJ9su33eqZNKyj4UCnUkL1bhGxSuRmN+ltiBEZ0Vro8gNkCyFKTr2LE4vU+HgJN+k2iBnobwrao0hFS1X4MOQaNps2s66WUGDU3ym35tuKVm9zBiXlqms3qav6huFF7wvPv9/3c07m+cu/zaX7x8EZl/G2PZUm3rhrKUSE1awZ5nlWTxC00hqBbV4yX34CrLKFxCUG3nDga0qBPW8gsU0sIDj/K62v/akFKFag1+Ze0IdfP3p54NwOlUm7PuogcXLKxDoMKpeqmGNKp1Bb7xAQ0udrwaPRUlFPY0sCdDbXme9dV0AERH+xdY/BJGqnl/zVLq1JUxiaoOxRqJzr26jdUJPCs5KAGJw/o85R0eejrWhAQ1wMiz+qDquvs87wb85gqIoY7E+9PKCpSh59cnvq0n4tUn170axfSRDjoIPSODiwmTapKXyCEUAsiJi9pRK3Hb3OiijYwrw4yoS81UThC7oIQQ9Jpm5KHG1as6LOlUlEbXVQQPW626QKSDxVE9faIzhFE+t7JFKW5VlQ9Oo0d11d76kuTs4nHySEWNuT5Woi6sV0an6hPmCjz2kQe5zpY2dPL+Rhb6/8T920uv/qxN/dzDvX/00ktbbOFFQH1LXiWPrs+4+DaLtA1krvFSerNGHtuRwmFlBdJZUfOsvXll4UqopWxOv9NoyAJEVtyp7fv28nFZP1ceZGdxfatR2nlKJRNd3k+rEdSrbDpiySYIcp6jERVlfs6G7DTrRSnRkdg6HU1cVm2KZ8tolDBoMlQGplqcDvPKqicYUkvIgiOII85Z16yqTFnNB3U/hUQlQCrZsATWUGBQzn3nmP2z0JtH4nOhPtHA2m2Sh33cgqoGg+yBokLpDiJeWJFUQwJT1bAUjtVO00cq6HMrIEGawY9bNXfygFuFpITq+exwWp8C596I5xVU2lWyqHTIhiKqG4wtnHlG3j0bVtCp/UTF4bQ2JDthNJqAPImVUHTARnxCp/VV+pACrHMs8YBkdUY5rz92QWdJNf6lz+Mg5IpfZ0PV4ZTxKhyHN6LU/dzDvX/rxxT8yZUr/dmsuAwh/rISARUp1XZQqNCQnhQhoq6MponC0rI0MttUQlDVs14riWdZqkoAGhuSIkfzyiYANI6scJXphM4Dcu3XB77NIBRCJdNDiMJ6qNFlJQj1KX0ZzWuQsHOgqHiYBuSKBx/QIl7R8B88j5+0w7qAmWo6NVBGVxnaKXGpDaJO55UY7PAL1b3WGvUhGqEm5TlHJ8zC8TWu+/6RPgVBqEVxeS6jVr3Q2cRKpTOptFLmM8/4UxvecjRS96EO8wqBTUJWKsMo6vkuKS7otSzcqPcrnfZ1/FBHDgPPjM4ny2xSMhmrJackC75W6kCIkrNA1CKwjoY5M/xmfjC1Jr44gZBHH7VAXIPHZVb6kBPoxJc+viBZ7bn0/hFljK6d9Nf6RekqEVMhvn5/d1h/AI5Ov2vqVxwRjqlPf7DhCr/8Rif1L/9tH8Dy937gCsa2tTMuLq81qn+hcKUuvQyh+eCTYcRdlG1KQIL5wryhskqxeBa1O8tIZQzqHR7mvnEj8ciTKPNALQ8txPOsOa2pUJUzCq+ulRkZFV+T4fFijdJotkuGJcNXQmMFXvEn3pt7vhWGZfArIKr+Hei4l+pStSlYQ73j1R8pUljJufZgoam4mgxSg34y+oL/+/p9SDx1Kx3IGeS+vUuHk2OQIUQIqQ7A6kNdlN5Ts8tlRGgg1scvKBwSBu0DWlSKMCIPv6E9pFPzqkXNNCPPt/lAwwJF/REEGGGojwLIKtu/ssFwGUPZQeGgio7+KfrZJwlN6kq8+KtOpfuEYSF1QSKhcWQ7SqeTMIf6GIKmOXU5ndlZVGWjOjSinqOyxCKlgq+TzjoVrg/G2aNZ1eNfZVbSCMmIUyegEw7wiG/lYePrP8u//kFG9rPIlmbZC4lffWKWe890omALRfc1KSBUsNM2OgXO9+JcQ7VibHyF6nlWh1QpeSBB2GhyYBxHiC0+0bEsrbIsUgVh+xgji/yVlUcS0ExClfFlmjFT+ApqhFCvMPbr7RhKeSZbq3PJaBS2D3hXH+nuPChnyEATa2/XiJw/eNsh654Qjo/47j/QwM7noTlQCuLkIMljINEbu1PXWm27ghCle60SzeLWVhpuZz+zNk4Gz/zg+di9clOIXdgAZheCPaLm5hMCF1YTG13Oc6G0PqoKhKdllUYN9bYwDGfGWc5QOqULn3JDdXDk4rUFN7kzqj8ywK9DsY7A6dOQPH1+iCLNjo36WhNciCW7FjJ5rcg+FyOnP2kci5CkoqpqX0oadEBYWYo+g0RhOmh49sE4QmDS9UHglzeK4/xVvxt9Nztyf+Z+wY+O+r+TVcw3jKyFgAAAAABJRU5ErkJggg==&quot;); background-size: cover; background-position: center center; transition: opacity 0.18s; opacity: 0;"></div><div style="position: relative; display: flex; align-items: center; gap: 7px;"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.7602 14.9542C12.0038 14.9542 13.0119 13.9461 13.0119 12.7024C13.0119 11.4588 12.0038 10.4507 10.7602 10.4507C9.93434 10.4507 9.21233 10.8953 8.82043 11.5582L8.76855 11.62C8.35431 12.1137 7.59426 12.1123 7.18182 11.6171L7.11497 11.5369C6.7203 10.8858 6.00497 10.4507 5.18801 10.4507C3.9444 10.4507 2.93625 11.4588 2.93625 12.7024C2.93625 13.9461 3.9444 14.9542 5.18801 14.9542C5.99402 14.9542 6.70113 14.5307 7.09894 13.8941L7.18899 13.7883C7.60088 13.3045 8.34765 13.3031 8.7613 13.7855L8.83587 13.8724C9.23108 14.5211 9.94504 14.9542 10.7602 14.9542Z" fill="white"></path><path d="M7.20609 4.29404C7.82789 3.21703 7.45889 1.83987 6.38188 1.21807C5.30489 0.596265 3.92772 0.965272 3.30592 2.04227C2.89297 2.75753 2.91701 3.6052 3.29525 4.27604L3.32282 4.35173C3.54327 4.95733 3.16203 5.61486 2.52691 5.72442L2.42374 5.74224C1.66263 5.75857 0.928259 6.1605 0.519812 6.86795C-0.101994 7.94496 0.267016 9.32211 1.34401 9.94392C2.42101 10.5657 3.79818 10.1967 4.41998 9.11971C4.82291 8.42182 4.80978 7.59789 4.45757 6.93512L4.41084 6.80382C4.19775 6.2052 4.56996 5.5578 5.1945 5.44073L5.30707 5.41965C6.06643 5.4017 6.79851 4.99996 7.20609 4.29404Z" fill="white"></path><path d="M11.5568 9.1197C12.1786 10.1967 13.5557 10.5657 14.6328 9.9439C15.7097 9.3221 16.0787 7.94493 15.4569 6.86794C15.044 6.1527 14.2979 5.74972 13.5278 5.74181L13.4485 5.72782C12.8138 5.61595 12.435 4.95703 12.6576 4.35224L12.6938 4.25388C13.0602 3.58659 13.0793 2.74968 12.6709 2.04227C12.049 0.965273 10.6719 0.596264 9.59488 1.21807C8.51789 1.83988 8.14887 3.21704 8.77069 4.29403C9.17364 4.99196 9.89381 5.39256 10.6439 5.41889L10.7809 5.44405C11.4059 5.55883 11.7804 6.20485 11.5695 6.80426L11.5316 6.91209C11.1673 7.57872 11.1492 8.4137 11.5568 9.1197Z" fill="white"></path></svg><span style="color: white; font-size: 13px; font-family: &quot;ID Grotesk Trial&quot;, sans-serif; font-weight: 500; line-height: 1; white-space: nowrap; letter-spacing: 0.01em;">Made with Runable</span></div></a></div>
+		<script type="module" src="./Menu Principal com Salas, Opiniões e Log_files/main.tsx"></script>
+	
+
+</body></html>
