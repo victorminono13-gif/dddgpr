@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dados do Mestre - Blackout & Fire (V5 Ultimate Chat & Color)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        /* --- TEMA BLACKOUT --- */
+        :root {
+            --bg-body: #000000;
+            --bg-panel: #050505;
+            --border: #1a1a1a;
+            --accent: #00ffcc;
+            --success: #00ff66;
+            --magic: #ffaa00;
+            --danger: #ff0000;
+            --text-muted: #444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-body); 
+            color: #fff; 
+            min-height: 100vh; 
+            padding: 40px 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .app-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1100px; 
+        }
+
+        .main-wrapper { flex: 2; }
+
+        /* --- DEVLOG --- */
+        .devlog-wrapper {
+            flex: 1;
+            background-color: var(--bg-panel); 
+            border-radius: 12px; 
+            padding: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 60px rgba(0,0,0,1);
+            display: flex;
+            flex-direction: column;
+            max-height: 855px;
+        }
+
+        .devlog-header {
+            text-align: center; margin-bottom: 15px; font-size: 14px; color: #333; letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .devlog-content {
+            flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;
+        }
+
+        .devlog-content::-webkit-scrollbar { width: 6px; }
+        .devlog-content::-webkit-scrollbar-track { background: #000; }
+        .devlog-content::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+        .log-entry {
+            background: #0a0a0a; padding: 12px; border-left: 3px solid var(--accent);
+            border-radius: 4px; font-size: 13px; color: #ddd; animation: fadeIn 0.3s ease-out; cursor: pointer; transition: 0.2s;
+        }
+        .log-entry:hover { background: #111; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .log-time {
+            color: var(--text-muted); font-size: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; pointer-events: none;
+        }
+
+        .true-log {
+            display: none; color: var(--magic); font-size: 11px; margin-top: 8px; border-top: 1px dashed #331a00; padding-top: 6px; font-weight: bold; animation: fadeIn 0.3s ease-out;
+        }
+        body.show-true-log .true-log { display: block; }
+
+        .dice-section {
+            background-color: var(--bg-panel); border-radius: 12px; padding: 25px; border: 1px solid var(--border); box-shadow: 0 0 60px rgba(0,0,0,1);
+        }
+        
+        .dice-viewport {
+            width: 100%; height: 380px; background: #000; border-radius: 8px; position: relative; overflow: hidden; border: 1px solid #111; cursor: crosshair; margin-bottom: 25px; box-shadow: inset 0 0 30px #000;
+        }
+
+        .dice-label {
+            position: absolute; font-weight: 900; color: #fff; pointer-events: none; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(0,0,0,1); font-size: 28px; z-index: 100; transform: translate(-50%, -50%);
+        }
+        
+        .crit-text {
+            color: #ff0000 !important; font-size: 40px !important; text-shadow: 0 0 20px #ff0000, 0 0 40px #000 !important; animation: pulseCrit 0.5s infinite alternate;
+        }
+        @keyframes pulseCrit { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.2); } }
+
+        /* Aura visual de GIF no dado */
+        .crit-aura {
+            position: absolute; pointer-events: none; z-index: 50; width: 280px; transform: translate(-50%, -85%); mix-blend-mode: screen; opacity: 0.95; transition: filter 0.1s;
+        }
+
+        .text-blue { color: #00e5ff !important; font-size: 36px !important; text-shadow: 0 0 15px #00e5ff, 0 0 30px #000 !important; }
+        .text-green { color: #00ff66 !important; font-size: 36px !important; text-shadow: 0 0 15px #00ff66, 0 0 30px #000 !important; }
+
+        /* --- HUD DE EXIBIÇÃO EM TEMPO REAL --- */
+        .hud-overlay {
+            position: absolute; bottom: 55px; right: 20px; text-align: right; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+        }
+        .hud-item { display: flex; flex-direction: column; align-items: flex-end; }
+        .hud-value { font-size: 44px; font-weight: 800; color: rgba(255,255,255,0.1); line-height: 0.9; transition: color 0.3s; }
+        .hud-value.active { color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        
+        .hud-value-small { font-size: 22px; font-weight: 700; color: rgba(255,255,255,0.1); line-height: 0.9; transition: color 0.3s; }
+        .hud-value-small.active { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,204,0.4); }
+        .hud-value-small.active-pct { color: var(--magic); text-shadow: 0 0 10px rgba(255,170,0,0.4); }
+        .hud-label { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
+
+        .controls-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+
+        .dark-input-group { background: #0a0a0a; padding: 12px; border-radius: 6px; border: 1px solid #222; }
+        .dark-label { font-size: 10px; font-weight: bold; color: var(--accent); display: block; margin-bottom: 5px; opacity: 0.7; }
+        
+        .dark-input {
+            background: transparent; border: none; border-bottom: 1px solid #333; color: white; width: 100%; text-align: center; font-size: 20px; font-weight: bold; padding: 5px;
+        }
+        .dark-input:focus { outline: none; border-color: var(--accent); }
+
+        .result-box {
+            background: #080808; border: 1px solid #222; border-left: 4px solid var(--success); padding: 15px 25px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+        }
+        .result-title { font-weight: bold; color: var(--success); font-size: 14px; letter-spacing: 1px; }
+        .result-number { font-size: 36px; font-weight: bold; color: #fff; text-shadow: 0 0 20px var(--success); }
+
+        .dice-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 20px; }
+
+        .dice-btn { 
+            padding: 12px 0; background: #111; border: 1px solid #222; color: #666; font-weight: bold; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 12px; user-select: none;
+        }
+        
+        .btn-coin { border-color: #bdc3c7; color: #bdc3c7; }
+        .btn-coin:hover { background: #bdc3c7; color: #000; box-shadow: 0 0 15px #bdc3c7; }
+        .btn-d4:hover  { background: #2c3e50; color: #fff; box-shadow: 0 0 10px #2c3e50; border-color: #2c3e50;}
+        .btn-d6:hover  { background: #2980b9; color: #fff; box-shadow: 0 0 10px #2980b9; border-color: #2980b9;}
+        .btn-d8:hover  { background: #8e44ad; color: #fff; box-shadow: 0 0 10px #8e44ad; border-color: #8e44ad;}
+        .btn-d10:hover { background: #d35400; color: #fff; box-shadow: 0 0 10px #d35400; border-color: #d35400;}
+        .btn-d12:hover { background: #c0392b; color: #fff; box-shadow: 0 0 10px #c0392b; border-color: #c0392b;}
+        .btn-d20 { border-color: #f1c40f; color: #f1c40f; font-weight: 900; }
+        .btn-d20:hover { background: #f1c40f; color: #000; box-shadow: 0 0 20px #f1c40f; }
+        .btn-d100 { border-color: #bdc3c7; color: #bdc3c7; }
+        .btn-d100:hover { background: #bdc3c7; color: #000; box-shadow: 0 0 20px #bdc3c7; }
+
+        .custom-zone {
+            display: flex; gap: 10px; background: linear-gradient(90deg, #150800, #000); padding: 5px; border: 1px solid #331a00; border-radius: 8px; position: relative; overflow: hidden; margin-bottom: 10px;
+        }
+        .custom-zone::before {
+            content: ''; position: absolute; top:0; left:0; width: 2px; height: 100%; background: var(--magic); box-shadow: 0 0 15px var(--magic); opacity: 0.6;
+        }
+
+        .custom-input-wrapper { position: relative; flex: 1; }
+        
+        .magic-input {
+            width: 100%; background: #000; border: 1px solid #442200; color: var(--magic); padding: 12px 10px 12px 40px; border-radius: 6px; font-size: 16px; font-weight: bold; transition: 0.3s;
+        }
+        .magic-input:focus { outline: none; border-color: var(--magic); box-shadow: 0 0 15px rgba(255, 170, 0, 0.2); }
+        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666; font-size: 14px; }
+
+        .btn-magic {
+            flex: 1; border: none; background: linear-gradient(135deg, #4a2500, #2a1200); color: white; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; transition: all 0.3s; border: 1px solid #663300; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-magic:hover { background: var(--magic); color: #000; box-shadow: 0 0 30px var(--magic); border-color: white; }
+        
+        .actions-group { display: flex; gap: 10px; margin-top: 15px; }
+
+        .action-btn { 
+            flex: 1; padding: 15px; background:#080808; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s; letter-spacing: 2px; font-size: 11px;
+        }
+        .action-btn:hover { background: var(--accent); color: black; box-shadow: 0 0 30px var(--accent); }
+
+        .btn-dramatizacao { background: #1a0000; color: var(--danger); border-color: var(--danger); }
+        .btn-dramatizacao:hover { background: var(--danger); color: white; box-shadow: 0 0 30px var(--danger); }
+
+        .btn-invite { flex: 0.2; background: #001a33; color: var(--accent); border-color: var(--accent); }
+        .btn-invite:hover { background: var(--accent); color: black; box-shadow: 0 0 30px var(--accent); }
+
+        .btn-clear { flex: 0.2; background: #2a0000; color: var(--danger); border-color: var(--danger); }
+        .btn-clear:hover { background: var(--danger); color: white; box-shadow: 0 0 30px var(--danger); }
+
+        /* --- VIDEO OVERLAY --- */
+        #video-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 9999; align-items: center; justify-content: center;
+        }
+
+        #dramatizacao-video {
+            max-width: 90%; max-height: 90%; box-shadow: 0 0 50px var(--danger); border: 2px solid var(--danger); border-radius: 8px; cursor: pointer;
+        }
+
+        /* --- MODO OBS TRANSMISSÃO (SHARE) --- */
+        body.share-mode {
+            padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; background-color: #000000; overflow: hidden; height: 100vh; width: 100vw;
+        }
+        body.share-mode .devlog-wrapper, body.share-mode .controls-row, body.share-mode .result-box, body.share-mode .dice-grid, body.share-mode .custom-zone, body.share-mode .actions-group, body.share-mode h2 { display: none !important; }
+        body.share-mode .main-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
+        body.share-mode .dice-section { padding: 0; border: none; box-shadow: none; background: transparent; width: auto; }
+        body.share-mode .dice-viewport { width: 360px; height: 640px; margin: 0; border-radius: 0px; border: none; box-shadow: none; background: #000000; }
+        body.share-mode .app-container { max-width: 100%; justify-content: center; }
+
+        /* --- JANELAS ESTILO WIN 98 --- */
+        .window-cmd {
+            position: absolute; display: none; flex-direction: column; z-index: 9999; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 640px; height: 540px; background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: 'Tahoma', sans-serif; color: #000;
+        }
+
+        .title-bar-cmd {
+            background: #000080; color: white; padding: 3px 5px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; user-select: none;
+        }
+
+        .win-btn-cmd {
+            background: #c0c0c0; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; font-size: 10px; height: 16px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: black; box-shadow: inset -1px -1px #808080;
+        }
+        .win-btn-cmd:active { border: 1px solid #000; border-right: 1px solid #fff; border-bottom: 1px solid #fff; box-shadow: none; }
+
+        .cmd-container-rules {
+            background-color: #000; color: #c0c0c0; font-family: 'VT323', 'Courier New', monospace; font-size: 20px; padding: 12px; flex-grow: 1; overflow-y: auto; margin: 2px; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; outline: none;
+        }
+        .cmd-container-rules[contenteditable="true"] { border: 2px solid #00ff00 !important; background: #001100; color: #fff; }
+
+        .cmd-output-rules { white-space: pre-wrap; line-height: 1.1; text-transform: uppercase; }
+        .cmd-green { color: #00ff00; } .cmd-yellow { color: #ffff00; } .cmd-blue { color: #00e5ff; } .cmd-red { color: #ff3333; }
+
+        /* --- ÁREA DE CHAT DOS JOGADORES NO TERMINAL (AZUL FRACO) --- */
+        .terminal-chat-zone {
+            background: rgba(0, 136, 255, 0.15); border: 1px dashed #0088ff; padding: 10px; margin: 10px 0; border-radius: 6px; display: flex; flex-direction: column; gap: 8px; font-family: 'VT323', monospace;
+        }
+        .terminal-chat-log {
+            max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 5px; font-size: 18px;
+        }
+        .terminal-chat-log::-webkit-scrollbar { width: 4px; }
+        .terminal-chat-log::-webkit-scrollbar-thumb { background: #0088ff; border-radius: 2px; }
+        .terminal-chat-input-row { display: flex; align-items: center; gap: 6px; border-top: 1px solid rgba(0, 136, 255, 0.3); padding-top: 6px; }
+        .terminal-chat-input {
+            background: transparent; border: none; color: #fff; font-family: 'VT323', monospace; font-size: 18px; flex: 1; outline: none;
+        }
+        .terminal-chat-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        /* --- MENU DE SKINS DE DADOS (SHIFT + ESPAÇO) --- */
+        .skin-modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 10000; display: none; align-items: center; justify-content: center;
+        }
+        .skin-panel {
+            background: #080a0f; border: 2px solid var(--accent); border-radius: 12px; width: 620px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,255,204,0.2); overflow: hidden; position: relative;
+        }
+        .skin-header {
+            background: #10141d; padding: 15px 20px; border-bottom: 1px solid #1f293d; display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: var(--accent); letter-spacing: 2px; font-size: 14px;
+        }
+        .skin-body { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .skin-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        
+        .skin-card {
+            background: #0e121a; border: 1px solid #222c3e; border-radius: 8px; padding: 12px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 5px; position: relative;
+        }
+        .skin-card:hover { border-color: var(--accent); background: #141b27; }
+        .skin-card.active { border-color: var(--success); box-shadow: 0 0 15px rgba(0,255,102,0.3); background: #112017; }
+        .skin-title { font-weight: bold; font-size: 14px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+        .skin-desc { font-size: 11px; color: var(--text-muted); }
+        .skin-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #222; color: #aaa; text-transform: uppercase; }
+        
+        .skin-form { display: none; flex-direction: column; gap: 12px; background: #0c0f17; padding: 15px; border-radius: 8px; border: 1px dashed #2a364f; margin-top: 10px; }
+        .form-row { display: flex; gap: 10px; align-items: center; }
+        .form-label { font-size: 11px; color: #aaa; flex: 1; }
+        .form-input { background: #000; border: 1px solid #333; color: #fff; padding: 6px 10px; border-radius: 4px; flex: 2; font-size: 12px; }
+        .form-input[type="color"] { padding: 0; height: 30px; cursor: pointer; }
+        .btn-add-skin { background: #1a2333; color: var(--accent); border: 1px solid var(--accent); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 5px; }
+        .btn-add-skin:hover { background: var(--accent); color: #000; }
+        .btn-save-custom { background: var(--success); color: #000; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+
+        /* Ponto vermelho de teste de coordenada X/Y */
+        #testRedDot {
+            position: absolute; width: 12px; height: 12px; background: #ff0000; border-radius: 50%;
+            box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000; z-index: 100001; pointer-events: none;
+            display: none; transform: translate(-50%, -50%); border: 2px solid white;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Preload Container Invisível (Fim dos Delays nos GIFs) -->
+<div id="gif-preload-container" style="display: none;"></div>
+
+<!-- Ponto vermelho de teste de coordenadas de GIF -->
+<div id="testRedDot"></div>
+
+<div id="video-overlay">
+    <input type="file" id="video-upload" accept="video/*" style="display: none;">
+    <video id="dramatizacao-video" src="Kokusen.mp4"></video>
+</div>
+
+<audio id="audioClick" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a0328cdd3.mp3?filename=mouse-click-153941.mp3"></audio>
+<audio id="audioErroWin" src="erro.mp3"></audio>
+<audio id="audioConfetti1" src="confetti-pop.mp3"></audio>
+<audio id="audioConfetti2" src="confetti-pop-sound.mp3"></audio>
+
+<!-- Painel de Customização de Dados (Shift + Espaço) -->
+<div class="skin-modal" id="skinModal">
+    <div class="skin-panel">
+        <div class="skin-header">
+            <span><i class="fa-solid fa-dice-d20"></i> ARSENAL DE SKINS (INDIVIDUAL)</span>
+            <span style="cursor: pointer; color: #ff4444;" onclick="toggleSkinModal()"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+        <div class="skin-body">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#111622; padding:10px; border-radius:6px; border:1px solid #222;">
+                <span style="font-size:12px; font-weight:bold; color:var(--magic);">🔥 Cor do Fogo (Red-lock):</span>
+                <input type="color" id="redlockColorInput" value="#00e5ff" onchange="updateRedlockColor()" style="cursor:pointer; background:none; border:none; height:28px; width:60px;">
+            </div>
+
+            <div style="font-size: 12px; color: #aaa;">
+                Selecione a aparência e os efeitos do seu dado no Crítico. <br>
+                <span style="color:#ff4444; font-size:10px;">⚠️ Segure <b>Shift</b> e clique em qualquer skin customizada para deletá-la!</span>
+            </div>
+            
+            <div class="skin-list" id="skinListContainer"></div>
+
+            <button class="btn-add-skin" onclick="toggleCustomSkinForm()"><i class="fa-solid fa-plus"></i> CRIAR NOVA SKIN CUSTOMIZADA</button>
+
+            <div class="skin-form" id="customSkinForm">
+                <div style="font-weight: bold; font-size: 12px; color: var(--accent); margin-bottom: 5px;">FORJAR DADO EXCLUSIVO</div>
+                <div class="form-row">
+                    <span class="form-label">Nome da Skin:</span>
+                    <input type="text" id="skinName" class="form-input" placeholder="Ex: Chamas Negras">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Tag Personalizada:</span>
+                    <input type="text" id="skinTag" class="form-input" placeholder="Ex: BOSS (Deixe vazio p/ sem tag)">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Cor do Dado:</span>
+                    <input type="color" id="skinDieColor" class="form-input" value="#4a0080">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Cor do Número (Comum):</span>
+                    <input type="color" id="skinNormColor" class="form-input" value="#ffffff">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Cor do Número (Crítico):</span>
+                    <input type="color" id="skinNumColor" class="form-input" value="#00ffcc">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Comportamento no Crítico:</span>
+                    <select id="skinCritHide" class="form-input" onchange="toggleTempTimeInput()">
+                        <option value="none">Não some (Permanece na mesa)</option>
+                        <option value="permanent">Some Permanentemente</option>
+                        <option value="temp">Some Temporariamente (Segundos)</option>
+                    </select>
+                </div>
+                <div class="form-row" id="tempTimeRow" style="display:none;">
+                    <span class="form-label">Tempo sumido (segundos):</span>
+                    <input type="number" id="skinTempTime" class="form-input" value="3" min="1" max="60">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Efeito de Aura no Crítico:</span>
+                    <select id="skinAuraType" class="form-input" onchange="toggleAuraInput()">
+                        <option value="none">Nenhum</option>
+                        <option value="redlock">Fogo Red-lock (Usa a cor global acima)</option>
+                        <option value="custom">GIF Customizado (Upload de Arquivo)</option>
+                    </select>
+                </div>
+                <div class="form-row" id="customGifRow" style="display:none;">
+                    <span class="form-label">GIF (Aura/Explosão):</span>
+                    <input type="file" id="skinGifFile" accept="image/gif,image/*" class="form-input">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Posição X e Y do Efeito (Enter = Testar):</span>
+                    <div style="display:flex; gap:5px; flex:2;">
+                        <input type="number" id="skinPosX" class="form-input" placeholder="X (0)" value="0" title="Aperte Enter para ver o ponto vermelho">
+                        <input type="number" id="skinPosY" class="form-input" placeholder="Y (0)" value="0" title="Aperte Enter para ver o ponto vermelho">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Áudio de Crítico (MP3/WAV):</span>
+                    <input type="file" id="skinAudioFile" accept="audio/*" class="form-input">
+                </div>
+                <div class="form-row" style="justify-content: flex-start; gap: 8px;">
+                    <input type="checkbox" id="skinPopSound" checked style="cursor:pointer;">
+                    <label for="skinPopSound" style="font-size:11px; color:#ddd; cursor:pointer;">Ativar Som Clássico Sintetizado no Crítico</label>
+                </div>
+                <button class="btn-save-custom" onclick="saveCustomSkin()"><i class="fa-solid fa-check"></i> SALVAR E EQUIPAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app-container">
+    <div class="main-wrapper">
+        <div class="dice-section">
+            <h2 style="text-align: center; margin-bottom: 25px; font-size: 16px; color: #333; letter-spacing: 4px; text-transform: uppercase;">Mesa do Mestre <span style="font-size:10px; color:var(--accent); display:block; margin-top:4px;">(Shift + Espaço para Skins | Shift + ] Cinemático)</span></h2>
+            
+            <div class="dice-viewport" id="viewport">
+                <div class="hud-overlay">
+                    <div class="hud-item">
+                        <span class="hud-label">SOMA BRUTA</span>
+                        <span class="hud-value" id="raw-total">0</span>
+                    </div>
+                    <div class="hud-item">
+                        <span class="hud-label">VANTAGEM</span>
+                        <span class="hud-value-small" id="hud-modifier">0</span>
+                    </div>
+                    <div class="hud-item">
+                        <span class="hud-label">% VANTAGEM</span>
+                        <span class="hud-value-small" id="hud-percent">0%</span>
+                    </div>
+                    <div class="hud-item">
+                        <span class="hud-label">TOTAL FINAL</span>
+                        <span class="hud-value" id="hud-final-total">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-row">
+                <div class="dark-input-group">
+                    <span class="dark-label">SEU NOME</span>
+                    <input type="text" id="player-name-input" class="dark-input" value="Nome" oninput="updatePlayerName()">
+                </div>
+                <div class="dark-input-group">
+                    <span class="dark-label">MODIFICADOR</span>
+                    <input type="number" id="modifier-input" class="dark-input" value="0" oninput="updateValuesFromInputs()">
+                </div>
+                <div class="dark-input-group">
+                    <span class="dark-label">BÔNUS (+) / REDUÇÃO (-) %</span>
+                    <input type="number" id="percent-input" class="dark-input" value="0" placeholder="-50 / 50" oninput="updateValuesFromInputs()">
+                </div>
+            </div>
+
+            <div class="result-box">
+                <span class="result-title">RESULTADO FINAL</span>
+                <span class="result-number" id="final-total">0</span>
+            </div>
+
+            <div class="dice-grid">
+                <button class="dice-btn btn-coin" onclick="addDie('coin', event)">MOEDA</button>
+                <button class="dice-btn btn-d4" onclick="addDie('d4', event)">D4</button>
+                <button class="dice-btn btn-d6" onclick="addDie('d6', event)">D6</button>
+                <button class="dice-btn btn-d8" onclick="addDie('d8', event)">D8</button>
+                <button class="dice-btn btn-d10" onclick="addDie('d10', event)">D10</button>
+                <button class="dice-btn btn-d12" onclick="addDie('d12', event)">D12</button>
+                <button class="dice-btn btn-d20" onclick="addDie('d20', event)">D20</button>
+                <button class="dice-btn btn-d100" onclick="addDie('d100', event)">D100</button>
+            </div>
+
+            <div class="custom-zone">
+                <div class="custom-input-wrapper">
+                    <i class="fa-solid fa-cube input-icon"></i>
+                    <input type="number" id="custom-sides-input" class="magic-input" placeholder="Lados (Ex: 100)" min="2">
+                </div>
+                <button class="btn-magic" onclick="addCustomFromInput(event)">
+                    <i class="fa-solid fa-fire"></i> Forjar Dado
+                </button>
+            </div>
+            
+            <div class="actions-group">
+                <button class="action-btn" onclick="rollAll()">REROLAR TODOS</button>
+                <button class="action-btn btn-dramatizacao" onclick="playDramatizacao(event)">CINEMÁTICO (Shift + ])</button>
+                <button class="action-btn btn-invite" onclick="copyPlayerLink()" title="Convidar Jogadores"><i class="fa-solid fa-user-plus"></i></button>
+                <button class="action-btn btn-clear" onclick="saveAndClearDice()" title="Limpar Mesa"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="devlog-wrapper" id="devlog-container">
+        <h2 class="devlog-header">Devlog</h2>
+        <div class="devlog-content" id="devlog"></div>
+    </div>
+</div>
+
+<!-- Janela estilo CMD (Regras do ESC) -->
+<div class="window-cmd" id="cmdRulesWindow">
+    <div class="title-bar-cmd">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <img src="https://win98icons.alexmeub.com/icons/png/console_prompt-0.png" width="14" alt="CMD">
+            <span id="cmdWindowTitle">C:\WINDOWS\system32\cmd.exe - REGRAS E AÇÕES</span>
+        </div>
+        <div style="display: flex; gap: 5px; align-items: center;">
+            <div id="btnMestreNotes" class="win-btn-cmd" style="width: auto; padding: 0 8px; display: none;" onclick="toggleMestreNotes()">[ NOTAS ]</div>
+            <div class="win-btn-cmd" style="width: 16px;" onclick="toggleRulesWindow()">X</div>
+        </div>
+    </div>
+    <div class="cmd-tabs">
+        <div class="cmd-tab active" data-tab="rules" onclick="switchCmdTab('rules')">REGRAS E AÇÕES</div>
+        <div class="cmd-tab" data-tab="chat" onclick="switchCmdTab('chat')">CHAT <span id="chatUnread" class="chat-unread"></span></div>
+        <div class="cmd-tab-spacer"></div>
+        <div class="cmd-tab cmd-tab-log" id="btnToggleLog" onclick="togglePlayerLog()" title="Abrir/fechar o Log do jogador">+</div>
+    </div>
+    <div class="cmd-container-rules cmd-chat-pane" id="cmdChatPane" style="display:none;">
+        <div id="playerChatZone" class="terminal-chat-zone">
+            <div style="font-size:11px; color:#00e5ff; border-bottom:1px solid rgba(0,136,255,0.3); padding-bottom:4px; margin-bottom:4px;">
+                <i class="fa-solid fa-users"></i> CANAL DE COMUNICAÇÃO ( /limpar | /tell "nome" msg | /ban "nome" )
+            </div>
+            <div id="terminalChatLog" class="terminal-chat-log"></div>
+            <div class="terminal-chat-input-row">
+                <span id="chatPromptName" style="font-weight:bold;">JOGADOR&gt; </span>
+                <input type="text" id="terminalChatInput" class="terminal-chat-input" placeholder="Digite no chat e aperte Enter para enviar..." onkeydown="handleTerminalChatEnter(event)">
+            </div>
+        </div>
+    </div>
+    <div class="cmd-container-rules" id="cmdOutputRules">
+$: <span class="cmd-yellow">ACESSO RESTRITO - PROTOCOLO DE AÇÕES DO SISTEMA</span>
+$/ CARREGANDO DIRETRIZES DE ROLAGEM... OK.
+
+<span class="cmd-blue">=== AÇÕES PRINCIPAIS ===</span>
+
+<span class="cmd-green">[CÉREBRO] (RESULTADOS 2, 3)</span>
+> AÇÕES MENTAIS, INTELIGÊNCIA, LÓGICA E PERCEPÇÃO DOS 5 SENTIDOS.
+
+<span class="cmd-green">[CORPO] (RESULTADOS 3, 4, 5)</span>
+> AÇÕES FÍSICAS, REFLEXOS, ATLETISMO E ESFORÇO MUSCULAR.
+
+<span class="cmd-green">[COMPORTAMENTO] (RESULTADOS 4, 5, 6, 7)</span>
+> HABILIDADES SOCIAIS, PERSUASÃO, RESOLUÇÃO DE CONFLITOS E MENTIRAS.
+
+<span class="cmd-green">[EQUILÍBRIO] (RESULTADOS 5, 6, 7, 8, 9)</span>
+> MATURIDADE EMOCIONAL, REGULAÇÃO DE SENTIMENTOS E EMPATIA.
+
+<span class="cmd-blue">=== RESULTADOS ESPECIAIS ===</span>
+
+<span class="cmd-yellow">[BOZO] (RESULTADO 1)</span>
+> SUCESSO UTILIZANDO LÓGICA DE DESENHO ANIMADO (CARTOON). 
+> PODE GERAR CONSEQUÊNCIAS NEGATIVAS OU DESGASTE.
+
+<span class="cmd-yellow">[MELHOR / BLOWUP] (RESULTADO MÁXIMO DO DADO)</span>
+> SUCESSO PERFEITO! O JOGADOR ESCOLHE A AÇÃO UTILIZADA. 
+> O DADO EXPLODE, PERMITINDO ROLAR NOVAMENTE E SOMAR OS VALORES.
+
+<span class="cmd-blue">=== TIPOS DE ROLAGEM ===</span>
+
+<span class="cmd-green">[DADOS DE VANTAGEM]</span>
+> GIRA 2 DO MESMO DADO E PEGUE O MELHOR PARA A AÇÃO DO JOGADOR/SITUAÇÃO.
+
+<span class="cmd-red">[DADOS DE DESVANTAGEM]</span>
+> GIRE 2 DADOS DO MESMO E PEGUE O PIOR DADO PARA AÇÃO DO JOGADOR/SITUAÇÃO.
+
+<span class="cmd-yellow">[DADOS NORMAIS/NEUTROS]</span>
+> . . . APENAS OS GÍRIOS :]
+
+$/ PRESSIONE [ESC] OU [X] PARA FECHAR ESTE TERMINAL.
+    </div>
+</div>
+
+<!-- Painel de Notas do Mestre (Aba Secreta) -->
+<div class="window-cmd" id="mestreNotesWindow" style="width: 450px; height: 500px; left: 70%; z-index: 10001;">
+    <div class="title-bar-cmd">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png" width="14" alt="Notas">
+            <span>Bloco de Notas do Mestre.exe</span>
+        </div>
+        <div class="win-btn-cmd" style="width: 16px;" onclick="document.getElementById('mestreNotesWindow').style.display='none'">X</div>
+    </div>
+    <div style="background: #c0c0c0; padding: 10px; display: flex; flex-direction: column; height: calc(100% - 24px); gap: 10px;">
+        <div style="font-size: 11px; color: #000; font-weight: bold; background: #fff; border: 1px inset #808080; padding: 5px; line-height: 1.3;">
+            💡 <b>Lembrete:</b> Aperte <span style="color: blue;">Shift + \</span> no menu CMD para entrar no Modo de Edição das regras. O chat fica na aba CHAT.<br>
+            🎨 <b>Códigos (Serão formatados ao Salvar):</b> C=vermelho, C=azul, C=verde, C=amarelo, C=roxo, C=laranja, C=rosa, C=branco, C=c, T=pixel, T=normal.
+        </div>
+        <div style="display: flex; gap: 5px;">
+            <button class="win-btn-cmd" style="width: auto; padding: 2px 10px; height: auto;" onclick="exportNotes()">Exportar Códigos</button>
+            <button class="win-btn-cmd" style="width: auto; padding: 2px 10px; height: auto;" onclick="importNotes()">Importar Códigos</button>
+        </div>
+        <textarea id="newNoteText" style="flex: 0.3; width: 100%; border: 2px inset #808080; font-family: 'Tahoma', sans-serif; font-size: 12px; padding: 5px;" placeholder="Digite seu texto... Ex: C=vermelho O Dragão ataca!"></textarea>
+        <button class="win-btn-cmd" style="width: 100%; padding: 5px; height: auto; font-weight: bold;" onclick="saveNote()">+ Salvar e Formatar</button>
+        <div id="notesList" style="flex: 0.7; overflow-y: auto; border: 2px inset #808080; background: #000; padding: 5px; display: flex; flex-direction: column; gap: 5px;">
+            <!-- Notas serão renderizadas aqui -->
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
+
+    // Gerenciamento de Memória de Sala, Jogador e Skins
+    let savedRoom = localStorage.getItem('circus_room_id');
+    if (!savedRoom) {
+        savedRoom = 'sala_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('circus_room_id', savedRoom);
+    }
+    
+    let savedPlayerName = localStorage.getItem('circus_player_name');
+    window.playerName = savedPlayerName || "";
+    // Cor do jogador (escolhida no Menu) — aparece no nome dele para todos da sala
+    window.playerColor = (/^#[0-9a-fA-F]{6}$/.test(localStorage.getItem('mesa_color') || '') ? localStorage.getItem('mesa_color') : '#00ffcc');
+    window.playerColors = {};
+    window.colorForName = (name) => {
+        if (!name) return 'var(--accent)';
+        if (name === window.playerName) return window.playerColor;
+        return window.playerColors[name.toLowerCase()] || 'var(--accent)';
+    };
+    window.safeColor = (c) => (/^#[0-9a-fA-F]{6}$/.test(c || '') ? c : null);
+
+    // Histórico persistente de mensagens do Chat da Mesa
+    window.terminalChatMessages = JSON.parse(localStorage.getItem('terminal_chat_history')) || [];
+    window.showSecretMessages = false; 
+
+    // Sistema de Banimento persistente no Host
+    window.bannedPlayers = [];
+
+    // Sistema de Notas Rápidas do Mestre
+    window.mestreNotes = JSON.parse(localStorage.getItem('mestre_notes')) || [];
+
+    // Dicionário Oficial de Skins do Sistema
+    window.diceSkins = {
+        'default': { id: 'default', name: 'Padrão', desc: 'Com som clássico, apenas brilho natural.', badge: '', dieColor: null, normColor: '#ffffff', numColor: null, critType: 'none', critHideMode: 'none', popSound: true },
+        'digital': { id: 'digital', name: 'Digital', desc: 'Dado some no crítico, número dourado e confetes.', badge: '', dieColor: null, normColor: '#ffffff', numColor: '#ffd700', critType: 'digital', critHideMode: 'permanent', popSound: false },
+        'redlock': { id: 'redlock', name: 'Red-lock', desc: 'Aura de fogo customizável de Blue Lock e som egoísta.', badge: '', dieColor: '#050c18', normColor: '#ffffff', numColor: '#00ffff', critType: 'redlock', critHideMode: 'none', popSound: false }
+    };
+
+    try {
+        const customSkins = JSON.parse(localStorage.getItem('custom_dice_skins')) || {};
+        window.diceSkins = { ...window.diceSkins, ...customSkins };
+    } catch(e) { console.error("Erro ao carregar skins customizadas:", e); }
+
+    window.currentSkinId = localStorage.getItem('selected_dice_skin') || 'default';
+    if (!window.diceSkins[window.currentSkinId]) window.currentSkinId = 'default';
+
+    window.redlockHex = localStorage.getItem('redlock_color') || '#00e5ff';
+    document.getElementById('redlockColorInput').value = window.redlockHex;
+
+    function preloadGifs() {
+        const container = document.getElementById('gif-preload-container');
+        container.innerHTML = '';
+        Object.values(window.diceSkins).forEach(skin => {
+            if (skin.gifData) {
+                const img = document.createElement('img');
+                img.src = skin.gifData;
+                container.appendChild(img);
+            }
+        });
+    }
+    preloadGifs();
+
+    // --- BANCO DE DADOS INDEXEDDB PARA VÍDEO CINEMÁTICO ---
+    const dbName = "BlackoutMasterDB";
+    let db;
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("videos")) db.createObjectStore("videos");
+    };
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        loadCinematicVideo();
+    };
+
+    function saveCinematicVideo(file) {
+        if (!db) return;
+        const tx = db.transaction("videos", "readwrite");
+        tx.objectStore("videos").put(file, "dramatizacao");
+    }
+
+    function loadCinematicVideo() {
+        if (!db) return;
+        const tx = db.transaction("videos", "readonly");
+        const req = tx.objectStore("videos").get("dramatizacao");
+        req.onsuccess = (e) => {
+            const file = e.target.result;
+            const dramVideo = document.getElementById('dramatizacao-video');
+            if (file && !document.body.classList.contains('share-mode') && dramVideo) {
+                dramVideo.src = URL.createObjectURL(file);
+            }
+        };
+    }
+
+    // --- PARSER DE CÓDIGOS PARA NOTAS DO MESTRE ---
+    window.applyFormattingCodes = (rawText) => {
+        let safeText = rawText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+        
+        const codes = {
+            'c=vermelho': 'color: #ff3333;', 'c=verde': 'color: #00ff00;', 'c=amarelo': 'color: #ffff00;',
+            'c=azul': 'color: #00e5ff;', 'c=roxo': 'color: #b829ff;', 'c=laranja': 'color: #ff8800;',
+            'c=rosa': 'color: #ff66cc;', 'c=ciano': 'color: #00ffff;', 'c=branco': 'color: #ffffff;', 'c=c': 'color: #c0c0c0;',
+            't=normal': "font-family: 'Segoe UI', 'Tahoma', sans-serif;",
+            't=pixel': "font-family: 'VT323', 'Courier New', monospace;"
+        };
+        
+        let parsed = safeText.replace(/(c=(?:vermelho|verde|amarelo|azul|roxo|laranja|rosa|ciano|branco|c)|t=(?:normal|pixel))/gi, (match) => {
+            return `</span><span style="${codes[match.toLowerCase()]}">`;
+        });
+        
+        return `<span>${parsed}</span>`;
+    };
+
+    // --- FUNCIONALIDADES DA ABA DE NOTAS DO MESTRE ---
+    window.toggleMestreNotes = () => {
+        const win = document.getElementById('mestreNotesWindow');
+        win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+        if (win.style.display === 'flex') window.renderNotes();
+    };
+
+    window.saveNote = () => {
+        const inputEl = document.getElementById('newNoteText');
+        const text = inputEl.value;
+        if(!text.trim()) return;
+        
+        const formatted = window.applyFormattingCodes(text);
+        
+        window.mestreNotes.push({ id: Date.now(), text: formatted, raw: text });
+        localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
+        inputEl.value = '';
+        window.renderNotes();
+    };
+
+    window.deleteNote = (id) => {
+        window.mestreNotes = window.mestreNotes.filter(n => n.id !== id);
+        localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
+        window.renderNotes();
+    };
+
+    window.pasteNote = (id) => {
+        const note = window.mestreNotes.find(n => n.id === id);
+        if(!note) return;
+        
+        const cmdRulesEl = document.getElementById('cmdOutputRules');
+        
+        if (cmdRulesEl.getAttribute('contenteditable') === 'true') {
+            cmdRulesEl.innerHTML += '<br>' + note.text;
+            cmdRulesEl.focus();
+        } else {
+            const msgObj = {
+                id: Date.now() + Math.random().toString(36).substr(2, 4),
+                sender: window.playerName || "Mestre",
+                color: window.playerColor,
+                target: null,
+                text: note.text,
+                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                secret: false
+            };
+            window.terminalChatMessages.push(msgObj);
+            if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
+            localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
+            renderChatMessages();
+            broadcast({ action: 'terminal_chat', message: msgObj });
+        }
+    };
+
+    window.exportNotes = () => {
+        const data = JSON.stringify(window.mestreNotes);
+        navigator.clipboard.writeText(data).then(() => alert("Os códigos das suas notas foram copiados para a área de transferência!"));
+    };
+
+    window.importNotes = () => {
+        const data = prompt("Cole o código exportado das suas notas:");
+        if(data) {
+            try {
+                const parsed = JSON.parse(data);
+                if(Array.isArray(parsed)) {
+                    window.mestreNotes = parsed;
+                    localStorage.setItem('mestre_notes', JSON.stringify(window.mestreNotes));
+                    window.renderNotes();
+                    alert("Notas importadas com sucesso!");
+                }
+            } catch(e) {
+                alert("Formato inválido!");
+            }
+        }
+    };
+
+    window.renderNotes = () => {
+        const list = document.getElementById('notesList');
+        if(!list) return;
+        list.innerHTML = window.mestreNotes.map(n => `
+            <div style="border: 1px solid #333; background: #0a0a0a; padding: 8px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px;">
+                <div style="font-size: 16px; font-family: 'VT323', monospace; color: #fff; word-break: break-word;">${n.text}</div>
+                <div style="display: flex; gap: 5px; justify-content: flex-end;">
+                    <button class="win-btn-cmd" style="font-size: 10px; cursor: pointer; padding: 2px 8px; width: auto; height: auto;" onclick="pasteNote(${n.id})" title="Se modo de edição estiver aberto cola lá, senão envia pro chat.">Enviar / Colar</button>
+                    <button class="win-btn-cmd" style="font-size: 10px; cursor: pointer; color: red; padding: 2px 8px; width: auto; height: auto;" onclick="deleteNote(${n.id})">Apagar</button>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    const cmdRulesEl = document.getElementById('cmdOutputRules');
+    const defaultRulesHtml = cmdRulesEl.innerHTML;
+
+    function updateTerminalDisplay() {
+        let rawHtml = localStorage.getItem('custom_esc_rules') || defaultRulesHtml;
+        // O chat agora vive na aba CHAT — remove marcadores antigos das regras
+        rawHtml = rawHtml.replace(/\[P=chat\]/gi, '');
+        cmdRulesEl.innerHTML = rawHtml;
+        renderChatMessages();
+    }
+
+    function renderChatMessages() {
+        const logEl = document.getElementById('terminalChatLog');
+        if (!logEl) return;
+        const promptEl = document.getElementById('chatPromptName');
+        if (promptEl) {
+            promptEl.textContent = (window.playerName || 'JOGADOR') + '> ';
+            promptEl.style.color = window.playerColor;
+        }
+        logEl.innerHTML = window.terminalChatMessages.map(m => {
+            if (m.secret) {
+                const isSender = m.sender === window.playerName;
+                const isTarget = m.target === window.playerName;
+                const isMasterSeeingAll = window.showSecretMessages;
+                
+                if (!isSender && !isTarget && !isMasterSeeingAll) return ''; 
+            }
+            
+            const secStyle = m.secret ? 'color: #ffaa00; font-style: italic;' : 'color: #fff;';
+            const targetText = m.secret ? ` [Sussurro para ${m.target}]` : '';
+            
+            return `
+                <div style="word-break: break-word; line-height: 1.2;">
+                    <span style="color: #666; font-size: 14px;">[${m.time}]</span>
+                    <span style="color: ${window.safeColor(m.color) || window.colorForName(m.sender)}; font-weight: bold;">${m.sender}${targetText}:</span>
+                    <span style="${secStyle}">${m.text}</span>
+                </div>
+            `;
+        }).join('');
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    window.handleTerminalChatEnter = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const input = event.target;
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (text.toLowerCase() === 'shadowumbra' || text.toLowerCase() === '/shadowumbra') {
+                if(!isHost) return; 
+                window.showSecretMessages = !window.showSecretMessages;
+                window.logToDevlog(`<span style="color: #ffaa00;"><i class="fa-solid fa-eye-slash"></i> Visibilidade de sussurros: <b>${window.showSecretMessages ? 'ATIVADA' : 'DESATIVADA'}</b></span>`);
+                renderChatMessages();
+                input.value = '';
+                return;
+            }
+
+            if (text.toLowerCase().startsWith('/ban ')) {
+                if (!isHost) {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Apenas o Mestre pode banir jogadores.</span>`);
+                    input.value = '';
+                    return;
+                }
+                let match = text.match(/^\/ban\s+"([^"]+)"$/i) || text.match(/^\/ban\s+(\S+)$/i);
+                if (match) {
+                    const targetName = match[1];
+                    window.bannedPlayers.push(targetName.toLowerCase());
+                    broadcast({ action: 'ban_player', target: targetName });
+                    window.logToDevlog(`<span style="color: #ff0000; font-weight: bold;">🔨 Usuário [${targetName}] foi banido! Qualquer pacote enviado por ele será destruído.</span>`);
+                } else {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Uso correto: /ban "Nome do Jogador"</span>`);
+                }
+                input.value = '';
+                return;
+            }
+
+            if (text === '/clear' || text === '/limpar') {
+                if (!isHost) {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Apenas o Mestre pode limpar o histórico do chat.</span>`);
+                    input.value = '';
+                    return;
+                }
+                window.terminalChatMessages = [];
+                localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
+                renderChatMessages();
+                broadcast({ action: 'terminal_chat_clear' });
+                input.value = '';
+                return;
+            }
+
+            let isSecret = false;
+            let targetName = null;
+            let finalSender = window.playerName || "Jogador";
+            let finalText = text;
+
+            if (text.toLowerCase().startsWith('/tell ')) {
+                let match = text.match(/^\/tell\s+"([^"]+)"\s+(.+)$/i);
+                if (!match) match = text.match(/^\/tell\s+(\S+)\s+(.+)$/i);
+
+                if (match) {
+                    isSecret = true;
+                    targetName = match[1];
+                    finalText = match[2].trim();
+                } else {
+                    window.logToDevlog(`<span style="color: #ff0000;">⚠️ Uso incorreto. Digite: /tell "Nome do Jogador" Sua mensagem</span>`);
+                    input.value = '';
+                    return;
+                }
+            }
+            
+            const msgObj = {
+                id: Date.now() + Math.random().toString(36).substr(2, 4),
+                sender: finalSender,
+                color: window.playerColor,
+                target: targetName,
+                text: finalText,
+                time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                secret: isSecret
+            };
+            
+            window.terminalChatMessages.push(msgObj);
+            if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
+            localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
+            
+            input.value = '';
+            renderChatMessages();
+            broadcast({ action: 'terminal_chat', message: msgObj });
+        }
+    };
+
+    updateTerminalDisplay();
+
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    const isShareMode = (viewParam === 'share');
+    let roomParam = params.get('room') || savedRoom;
+    let modParam = parseInt(params.get('mod')) || 0;
+    let pctParam = parseFloat(params.get('pct')) || 0;
+
+    if (isShareMode) {
+        document.body.classList.add('share-mode');
+        window.playerName = "OBS";
+    } else if (savedPlayerName) {
+        document.getElementById('player-name-input').value = savedPlayerName;
+    }
+
+    const peerId = isShareMode ? `blackout-obs-${Math.random().toString(36).substring(2, 6)}` : `blackout-master-${roomParam}`;
+    let peer = null;
+    let isHost = false;
+    let hostConn = null;
+    let activeConnections = [];
+
+    // --- VARIÁVEIS DE CHEAT (MODIFICADO) ---
+    window.cheatsEnabled = false;
+    let cheatBuffer = "";
+
+    let scene, camera, renderer, diceList = [], raycaster, mouse;
+    let particles = [];
+    let isCPressed = false;
+    const container = document.getElementById('viewport');
+    const audioErroWin = document.getElementById('audioErroWin');
+    const cmdRulesWindow = document.getElementById('cmdRulesWindow');
+    const skinModal = document.getElementById('skinModal');
+    
+    window.currentModifier = modParam;
+    window.currentPercent = pctParam;
+    window.lastRolledValue = 0;
+
+    if(!isShareMode) {
+        document.getElementById('modifier-input').value = window.currentModifier;
+        document.getElementById('percent-input').value = window.currentPercent;
+    }
+
+    const configs = {
+        'coin':  { geo: new THREE.CylinderGeometry(1.2, 1.2, 0.15, 32), color: 0xcccccc, emissive: 0x555555, intensity: 0.2, sides: 2 },
+        'd4':    { geo: new THREE.TetrahedronGeometry(1.2), color: 0x34495e, emissive: 0x1abc9c, intensity: 0.2, sides: 4 },
+        'd6':    { geo: new THREE.BoxGeometry(1.3, 1.3, 1.3), color: 0x1a5276, emissive: 0x3498db, intensity: 0.4, sides: 6 },
+        'd8':    { geo: new THREE.OctahedronGeometry(1.3), color: 0x4a235a, emissive: 0x9b59b6, intensity: 0.5, sides: 8 },
+        'd10':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0x78281f, emissive: 0xe74c3c, intensity: 0.6, sides: 10 },
+        'd12':   { geo: new THREE.DodecahedronGeometry(1.3), color: 0x7e5109, emissive: 0xd35400, intensity: 0.7, sides: 12 },
+        'd20':   { geo: new THREE.IcosahedronGeometry(1.3, 0), color: 0x9a7d0a, emissive: 0xf1c40f, intensity: 1.0, sides: 20 },
+        'd100':  { geo: new THREE.IcosahedronGeometry(1.3, 1), color: 0x111111, emissive: 0xbdc3c7, intensity: 0.8, sides: 100 },
+    };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playCritSound(freqStart = 150, freqEnd = 0.01, type = 'sawtooth') {
+        if(isShareMode) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+    }
+
+    window.updateRedlockColor = () => {
+        window.redlockHex = document.getElementById('redlockColorInput').value;
+        localStorage.setItem('redlock_color', window.redlockHex);
+        window.logToDevlog(`<span style="color: ${window.redlockHex}; font-weight:bold;">🔥 Cor da aura Red-lock atualizada!</span>`);
+    };
+
+    function getRedlockFireFilter(hexHex) {
+        let hex = hexHex || '#00e5ff';
+        let r = parseInt(hex.slice(1, 3), 16) / 255;
+        let g = parseInt(hex.slice(3, 5), 16) / 255;
+        let b = parseInt(hex.slice(5, 7), 16) / 255;
+        let max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+            let d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+            else if (max === g) h = (b - r) / d + 2;
+            else if (max === b) h = (r - g) / d + 4;
+            h /= 6;
+        }
+        let targetHue = Math.round(h * 360);
+        let rotateDeg = (targetHue - 120 + 360) % 360;
+        let satPercent = Math.round(Math.max(200, s * 400));
+        return `hue-rotate(${rotateDeg}deg) saturate(${satPercent}%) brightness(1.3) contrast(1.1)`;
+    }
+
+    window.toggleSkinModal = () => {
+        if(isShareMode) return;
+        if(skinModal.style.display === 'flex') {
+            skinModal.style.display = 'none';
+        } else {
+            renderSkinList();
+            skinModal.style.display = 'flex';
+        }
+    };
+
+    window.toggleCustomSkinForm = () => {
+        const form = document.getElementById('customSkinForm');
+        form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    window.toggleTempTimeInput = () => {
+        const val = document.getElementById('skinCritHide').value;
+        document.getElementById('tempTimeRow').style.display = (val === 'temp') ? 'flex' : 'none';
+    };
+
+    window.toggleAuraInput = () => {
+        const val = document.getElementById('skinAuraType').value;
+        document.getElementById('customGifRow').style.display = (val === 'custom') ? 'flex' : 'none';
+    };
+
+    function renderSkinList() {
+        const containerEl = document.getElementById('skinListContainer');
+        containerEl.innerHTML = '';
+        
+        Object.values(window.diceSkins).forEach(skin => {
+            const card = document.createElement('div');
+            card.className = `skin-card ${skin.id === window.currentSkinId ? 'active' : ''}`;
+            
+            card.onclick = (e) => {
+                if (e.shiftKey) {
+                    if(['default', 'digital', 'redlock'].includes(skin.id)) {
+                        window.logToDevlog(`⚠️ As skins originais do site não podem ser deletadas!`, true);
+                    } else {
+                        delete window.diceSkins[skin.id];
+                        const customSkins = JSON.parse(localStorage.getItem('custom_dice_skins')) || {};
+                        delete customSkins[skin.id];
+                        localStorage.setItem('custom_dice_skins', JSON.stringify(customSkins));
+                        if(window.currentSkinId === skin.id) window.selectSkin('default');
+                        else renderSkinList();
+                        window.logToDevlog(`🗑️ Skin "${skin.name}" foi deletada com sucesso!`);
+                        preloadGifs();
+                    }
+                } else {
+                    selectSkin(skin.id);
+                }
+            };
+            
+            card.innerHTML = `
+                <div class="skin-title">
+                    <span>${skin.name}</span>
+                    ${skin.badge ? `<span class="skin-badge" style="color:${skin.numColor||'#aaa'}; border:1px solid ${skin.numColor||'#333'};">${skin.badge}</span>` : ''}
+                </div>
+                <div class="skin-desc">${skin.desc || 'Skin customizada exclusiva.'}</div>
+            `;
+            containerEl.appendChild(card);
+        });
+    }
+
+    window.selectSkin = (id) => {
+        if(!window.diceSkins[id]) return;
+        window.currentSkinId = id;
+        localStorage.setItem('selected_dice_skin', id);
+        renderSkinList();
+        window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-palette"></i> Skin equipada: <b>${window.diceSkins[id].name}</b></span>`);
+    };
+
+    window.saveCustomSkin = async () => {
+        const name = document.getElementById('skinName').value || "Skin Custom";
+        const badge = document.getElementById('skinTag').value.trim();
+        const dieColor = document.getElementById('skinDieColor').value;
+        const normColor = document.getElementById('skinNormColor').value;
+        const numColor = document.getElementById('skinNumColor').value;
+        const critHideMode = document.getElementById('skinCritHide').value;
+        const tempTime = parseInt(document.getElementById('skinTempTime').value) || 3;
+        const auraType = document.getElementById('skinAuraType').value;
+        const posX = parseInt(document.getElementById('skinPosX').value) || 0;
+        const posY = parseInt(document.getElementById('skinPosY').value) || 0;
+        const popSound = document.getElementById('skinPopSound').checked;
+        const gifFile = document.getElementById('skinGifFile').files[0];
+        const audioFile = document.getElementById('skinAudioFile').files[0];
+
+        const toBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        let gifBase64 = null;
+        let audioBase64 = null;
+        if(auraType === 'custom' && gifFile) gifBase64 = await toBase64(gifFile);
+        if(audioFile) audioBase64 = await toBase64(audioFile);
+
+        let critType = 'custom';
+        if (auraType === 'redlock') critType = 'redlock_custom';
+        else if (auraType === 'none') critType = 'none';
+
+        const id = 'custom_' + Date.now();
+        const newSkin = {
+            id, name, desc: 'Efeitos e cores customizados para sua mesa.',
+            badge, dieColor, normColor, numColor, critHideMode, tempTime, posX, posY, popSound,
+            critType: critType, gifData: gifBase64, audioData: audioBase64
+        };
+
+        window.diceSkins[id] = newSkin;
+        const customSkins = JSON.parse(localStorage.getItem('custom_dice_skins')) || {};
+        customSkins[id] = newSkin;
+        localStorage.setItem('custom_dice_skins', JSON.stringify(customSkins));
+
+        window.selectSkin(id);
+        preloadGifs();
+        document.getElementById('customSkinForm').style.display = 'none';
+        window.toggleSkinModal();
+    };
+
+    ['skinPosX', 'skinPosY'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const x = parseInt(document.getElementById('skinPosX').value) || 0;
+                const y = parseInt(document.getElementById('skinPosY').value) || 0;
+                const dot = document.getElementById('testRedDot');
+                
+                dot.style.left = `calc(50% + ${x}px)`;
+                dot.style.top = `calc(50% + ${y}px)`;
+                dot.style.display = 'block';
+                
+                setTimeout(() => { dot.style.display = 'none'; }, 1000);
+            }
+        });
+    });
+
+    window.updatePlayerName = () => {
+        const input = document.getElementById('player-name-input');
+        if (input) {
+            window.playerName = input.value || (isHost ? "Mestre" : "Jogador");
+            localStorage.setItem('circus_player_name', window.playerName);
+            renderChatMessages();
+        }
+    };
+
+    window.logToDevlog = (msg, isDanger = false, trueMsg = null, author = null) => {
+        const devlog = document.getElementById('devlog');
+        if (!devlog) return;
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        if(isDanger) entry.style.borderLeftColor = 'var(--danger)';
+
+        const time = new Date().toLocaleTimeString('pt-BR');
+        const displayName = author || window.playerName || "Sistema";
+        
+        entry.innerHTML = `
+            <div class="log-time">
+                <span style="display: flex; gap: 8px; align-items: center;">
+                    <span>[${time}]</span>
+                    <span style="color: ${window.colorForName(displayName)}; font-size: 11px; text-transform: uppercase; font-weight: bold; text-shadow: 0 0 8px ${window.colorForName(displayName)}55;">${displayName}</span>
+                </span>
+                <span>Mod: ${window.currentModifier} | ${window.currentPercent}%</span>
+            </div>
+            <div>${msg}</div>
+            ${trueMsg ? `<div class="true-log"><i class="fa-solid fa-eye"></i> Realidade: ${trueMsg}</div>` : ''}
+        `;
+        devlog.prepend(entry);
+    };
+
+    if (isShareMode) {
+        peer = new Peer();
+        peer.on('open', () => {
+            hostConn = peer.connect(`blackout-room-${roomParam}`);
+            hostConn.on('data', (data) => handleIncomingData(data, null));
+        });
+    } else {
+        peer = new Peer(`blackout-room-${roomParam}`);
+        peer.on('open', () => {
+            isHost = true;
+            if(!savedPlayerName) {
+                window.playerName = "Mestre";
+                document.getElementById('player-name-input').value = window.playerName;
+                localStorage.setItem('circus_player_name', window.playerName);
+            }
+            window.logToDevlog(`🎪 MESA ABERTA. Bem-vindo à sala: ${roomParam}`);
+            
+            document.getElementById('btnMestreNotes').style.display = 'block';
+        });
+        
+        peer.on('error', (err) => {
+            if (err.type === 'unavailable-id') {
+                isHost = false;
+                if(!savedPlayerName) {
+                    window.playerName = "Jogador";
+                    document.getElementById('player-name-input').value = window.playerName;
+                    localStorage.setItem('circus_player_name', window.playerName);
+                }
+                peer = new Peer();
+                peer.on('open', () => {
+                    hostConn = peer.connect(`blackout-room-${roomParam}`);
+                    hostConn.on('open', () => { hostConn.send({ action: 'request_sync', playerName: window.playerName }); });
+                    hostConn.on('data', (data) => handleIncomingData(data, null));
+                });
+            } else console.error("PeerJS error:", err);
+        });
+        
+        peer.on('connection', (conn) => {
+            activeConnections.push(conn);
+            conn.on('open', () => {
+                const currentDiceState = diceList.map(d => ({
+                    type: d.userData.type, sides: d.userData.sides, value: d.userData.value,
+                    id: d.userData.id, isRemoving: d.userData.isRemoving, rollMode: d.userData.rollMode, skin: d.userData.skin
+                })).filter(d => !d.isRemoving);
+                
+                const devlogHtml = document.getElementById('devlog').innerHTML;
+                conn.send({ 
+                    action: 'sync_init', dice: currentDiceState, mod: window.currentModifier, pct: window.currentPercent, devlog: devlogHtml,
+                    chatHistory: window.terminalChatMessages, rules: localStorage.getItem('custom_esc_rules') || defaultRulesHtml
+                });
+            });
+            conn.on('data', (data) => handleIncomingData(data, conn));
+            conn.on('close', () => { activeConnections = activeConnections.filter(c => c !== conn); });
+        });
+    }
+
+    function broadcast(payload) {
+        payload.playerName = window.playerName; 
+        payload.playerColor = window.playerColor;
+        if (isHost) {
+            activeConnections = activeConnections.filter(c => c.open);
+            activeConnections.forEach(c => c.send(payload));
+        } else if (hostConn && hostConn.open) {
+            hostConn.send(payload);
+        }
+    }
+
+    window.toggleRulesWindow = () => {
+        if(isShareMode) return;
+        if(cmdRulesWindow.style.display === 'flex') {
+            cmdRulesWindow.style.display = 'none';
+        } else {
+            cmdRulesWindow.style.display = 'flex';
+            audioErroWin.currentTime = 0;
+            audioErroWin.play().catch(e => console.log(e));
+        }
+    }
+
+    if(cmdRulesEl) {
+        cmdRulesEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab' && cmdRulesEl.getAttribute('contenteditable') === 'true') {
+                e.preventDefault();
+                handleTerminalTabCompletion();
+            }
+        });
+    }
+
+    function handleTerminalTabCompletion() {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+        const node = range.startContainer;
+
+        if (node.nodeType !== Node.TEXT_NODE) return;
+
+        const textBefore = node.textContent.slice(0, range.startOffset);
+        const match = textBefore.match(/(C=|T=|P=)[a-z0-9=]*$/i);
+        if (!match) return;
+
+        const typed = match[0];
+        const query = typed.toLowerCase();
+
+        const terminalCommands = {
+            'c=vermelho': { type: 'color', value: '#ff3333', full: 'C=vermelho' },
+            'c=verde':    { type: 'color', value: '#00ff00', full: 'C=verde' },
+            'c=amarelo':  { type: 'color', value: '#ffff00', full: 'C=amarelo' },
+            'c=azul':     { type: 'color', value: '#00e5ff', full: 'C=azul' },
+            'c=roxo':     { type: 'color', value: '#b829ff', full: 'C=roxo' },
+            'c=laranja':  { type: 'color', value: '#ff8800', full: 'C=laranja' },
+            'c=rosa':     { type: 'color', value: '#ff66cc', full: 'C=rosa' },
+            'c=ciano':    { type: 'color', value: '#00ffff', full: 'C=ciano' },
+            'c=branco':   { type: 'color', value: '#ffffff', full: 'C=branco' },
+            'c=c':        { type: 'color', value: '#c0c0c0', full: 'C=C' },
+            't=normal':   { type: 'font',  value: "'Segoe UI', 'Tahoma', sans-serif", full: 'T=normal' },
+            't=pixel':    { type: 'font',  value: "'VT323', 'Courier New', monospace", full: 'T=pixel' }
+        };
+
+        const matches = Object.keys(terminalCommands).filter(k => k.startsWith(query));
+        if (matches.length === 0) return;
+
+        const matchedKey = matches[0];
+        const cmdData = terminalCommands[matchedKey];
+        const startIndex = range.startOffset - typed.length;
+
+        if (query !== matchedKey) {
+            node.textContent = node.textContent.slice(0, startIndex) + cmdData.full + node.textContent.slice(range.startOffset);
+            const newRange = document.createRange();
+            newRange.setStart(node, startIndex + cmdData.full.length);
+            newRange.collapse(true);
+            sel.removeAllRanges(); sel.addRange(newRange);
+        } else {
+            node.textContent = node.textContent.slice(0, startIndex) + node.textContent.slice(range.startOffset);
+            const execRange = document.createRange();
+            execRange.setStart(node, startIndex);
+            execRange.collapse(true);
+
+            if (cmdData.type === 'text') {
+                const textNode = document.createTextNode(cmdData.value);
+                execRange.insertNode(textNode);
+                const newRange = document.createRange();
+                newRange.setStartAfter(textNode); newRange.collapse(true);
+                sel.removeAllRanges(); sel.addRange(newRange);
+            } else {
+                const span = document.createElement('span');
+                span.innerHTML = '&#8203;';
+                if (cmdData.type === 'color') span.style.color = cmdData.value;
+                else if (cmdData.type === 'font') span.style.fontFamily = cmdData.value;
+                execRange.insertNode(span);
+
+                const newCaretRange = document.createRange();
+                newCaretRange.setStart(span.firstChild, 1);
+                newCaretRange.collapse(true);
+                sel.removeAllRanges(); sel.addRange(newCaretRange);
+            }
+        }
+    }
+
+    const videoUpload = document.getElementById('video-upload');
+    const dramVideo = document.getElementById('dramatizacao-video');
+
+    if(!isShareMode && dramVideo) {
+        videoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                dramVideo.src = URL.createObjectURL(file);
+                saveCinematicVideo(file);
+                window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-video"></i> Vídeo Cinemático alterado e salvo com sucesso!</span>`);
+            }
+        });
+    }
+
+    if(!isShareMode) {
+        document.getElementById('devlog-container').addEventListener('click', (e) => {
+            if (e.ctrlKey) {
+                const logEntry = e.target.closest('.log-entry');
+                if (logEntry) logEntry.remove();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            // --- NOVO SISTEMA KEYLOGGER (CHEATS SILENCIOSOS) ---
+            if (e.key && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                cheatBuffer += e.key.toLowerCase();
+                // Limita o tamanho para não sobrecarregar a memória
+                if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20);
+
+                if (isHost && cheatBuffer.includes("goodnightworld")) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = ""; 
+                    // Cheats ativados para o Mestre silenciosamente.
+                } else if (!isHost && cheatBuffer.includes("badnightworld")) {
+                    window.cheatsEnabled = true;
+                    cheatBuffer = "";
+                    // Cheats ativados para o Jogador silenciosamente.
+                }
+            }
+
+            if (e.key.toLowerCase() === 'c') isCPressed = true;
+            if (e.key === 'Escape') {
+                if(skinModal.style.display === 'flex') window.toggleSkinModal();
+                else window.toggleRulesWindow(); 
+            }
+            if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
+                e.preventDefault(); window.playDramatizacao(null);
+            }
+            if (e.shiftKey && e.code === 'Space') {
+                e.preventDefault(); window.toggleSkinModal();
+            }
+
+            if (e.shiftKey && (e.key === '\\' || e.code === 'Backslash' || e.key === '|')) {
+                if (cmdRulesWindow.style.display === 'flex' && isHost && window.currentCmdTab !== 'chat') {
+                    e.preventDefault();
+                    const isEditing = cmdRulesEl.getAttribute('contenteditable') === 'true';
+                    
+                    if (!isEditing) {
+                        cmdRulesEl.setAttribute('contenteditable', 'true');
+                        cmdRulesEl.focus();
+                        window.logToDevlog(`<span style="color:#00ff00; font-weight:bold;">🛠️ MODO DE EDIÇÃO DO TERMINAL ATIVADO! Saia com Shift + \\ para salvar.</span>`, true);
+                    } else {
+                        cmdRulesEl.setAttribute('contenteditable', 'false');
+                        localStorage.setItem('custom_esc_rules', cmdRulesEl.innerHTML);
+                        updateTerminalDisplay();
+                        broadcast({ action: 'sync_rules', rules: localStorage.getItem('custom_esc_rules') });
+                        window.logToDevlog(`<span style="color:var(--success); font-weight:bold;">💾 Diretrizes do terminal salvas e sincronizadas na mesa!</span>`);
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => { if (e.key.toLowerCase() === 'c') isCPressed = false; });
+    }
+
+    window.playDramatizacao = (event, isRemote = false, remoteAuthor = null) => {
+        if (!isShareMode && event && event.type === 'click' && event.shiftKey) { 
+            videoUpload.click(); return; 
+        }
+        const overlay = document.getElementById('video-overlay');
+        const video = document.getElementById('dramatizacao-video');
+        overlay.style.display = 'flex'; video.currentTime = 0; video.play().catch(e => console.log(e));
+        video.onended = () => { overlay.style.display = 'none'; };
+
+        if (!isShareMode && !isRemote) {
+            window.logToDevlog(`<span style="color: #ff0000; font-weight:bold; text-shadow: 0 0 10px #ff0000; font-size: 16px;">🎬 VÍDEO CINEMÁTICO ATIVADO!</span>`, true, null, window.playerName);
+            broadcast({ action: 'dramatizacao' });
+        }
+    };
+
+    function init3D() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); scene.fog = new THREE.Fog(0x000000, 12, 30);
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.z = isShareMode ? 17 : 13; 
+        
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); 
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true; renderer.outputEncoding = THREE.sRGBEncoding; 
+        container.appendChild(renderer.domElement);
+        
+        scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+        const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+        spotLight.position.set(5, 10, 5); spotLight.castShadow = true; spotLight.penumbra = 0.5;
+        scene.add(spotLight);
+
+        if(!isShareMode) {
+            raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
+            container.addEventListener('mousedown', (event) => {
+                if (event.ctrlKey && isCPressed) { event.preventDefault(); copyObsLink(); return; }
+                onDiceClick(event);
+            });
+        }
+        window.updateTotal(); animate();
+    }
+
+    window.copyObsLink = () => {
+        const baseUrl = window.location.origin + window.location.pathname;
+        navigator.clipboard.writeText(baseUrl + `?view=share&room=${roomParam}`).then(() => {
+            window.logToDevlog(`<span style="color: var(--success);"><i class="fa-solid fa-link"></i> Link do OBS copiado</span>`);
+        });
+    };
+
+    window.copyPlayerLink = () => {
+        const baseUrl = window.location.origin + window.location.pathname;
+        navigator.clipboard.writeText(baseUrl + `?room=${roomParam}`).then(() => {
+            window.logToDevlog(`<span style="color: var(--accent);"><i class="fa-solid fa-users"></i> Link de Jogador copiado</span>`);
+        });
+    };
+
+    function onDiceClick(event) {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(diceList);
+        if (intersects.length > 0) removeDice(intersects[0].object);
+    }
+
+    function removeDice(dice, isRemote = false) {
+        if(dice.userData.isRemoving) return;
+        dice.userData.isRemoving = true;
+        dice.userData.label.style.display = 'none';
+        if(dice.userData.auraElement) dice.userData.auraElement.remove();
+
+        if (!isRemote) broadcast({ action: 'remove', id: dice.userData.id });
+
+        const startScale = dice.scale.x; let startTime = Date.now();
+        const anim = () => {
+            let elapsed = Date.now() - startTime; let progress = elapsed / 300;
+            if (progress < 1) {
+                const s = startScale * (1 - progress); dice.scale.set(s, s, s); dice.rotation.y += 0.2;
+                requestAnimationFrame(anim);
+            } else {
+                scene.remove(dice); dice.userData.label.remove();
+                if(dice.userData.auraElement) dice.userData.auraElement.remove();
+                diceList = diceList.filter(d => d !== dice); window.updateTotal(isRemote); 
+            }
+        };
+        anim();
+    }
+
+    window.saveAndClearDice = (isRemote = false, remoteAuthor = null) => {
+        if (diceList.length === 0) return;
+        [...diceList].forEach(d => removeDice(d, true)); 
+        if(!isRemote && !isShareMode) {
+            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa.</span>`, false, null, window.playerName);
+            broadcast({ action: 'clear' });
+        }
+    }
+
+    // --- BLOQUEIO DE SEGURANÇA ADICIONADO PARA O DADO NORMAL ---
+    window.addDie = (type, event) => {
+        let rollMode = 'normal';
+        // Apenas libera modificadores de clique se os cheats estiverem ativos.
+        if (event && window.cheatsEnabled) {
+            if (event.shiftKey) rollMode = 'shift';
+            else if (event.ctrlKey) rollMode = 'ctrl';
+        }
+        spawnDice(type, null, rollMode, null, null, false, null, false, window.diceSkins[window.currentSkinId]);
+    };
+
+    // --- BLOQUEIO DE SEGURANÇA ADICIONADO PARA O DADO CUSTOM ---
+    window.addCustomFromInput = (event) => {
+        const input = document.getElementById('custom-sides-input');
+        const sides = parseInt(input.value); if(!sides || sides < 2) return;
+        let rollMode = 'normal';
+        // Apenas libera modificadores de clique se os cheats estiverem ativos.
+        if (event && window.cheatsEnabled) {
+            if (event.shiftKey) rollMode = 'shift';
+            else if (event.ctrlKey) rollMode = 'ctrl';
+        }
+        spawnDice('custom', sides, rollMode, null, null, false, null, false, window.diceSkins[window.currentSkinId]);
+    }
+
+    function spawnDice(type, sides, rollMode = 'normal', forcedValue = null, id = null, isRemote = false, remoteAuthor = null, isSyncInit = false, skinData = null) {
+        let geometry, material;
+        const finalSides = sides || (configs[type] ? configs[type].sides : 0);
+        const skin = skinData || window.diceSkins['default'];
+
+        if (type === 'custom') {
+            const ratio = Math.min((finalSides - 2) / 100, 1); 
+            const finalColor = skin.dieColor ? new THREE.Color(skin.dieColor) : new THREE.Color(0x4a004a).lerp(new THREE.Color(0xff4500), ratio);
+            const finalEmissive = skin.dieColor ? new THREE.Color(skin.dieColor).multiplyScalar(0.5) : new THREE.Color(0x880088).lerp(new THREE.Color(0xffaa00), ratio);
+            material = new THREE.MeshStandardMaterial({ 
+                color: finalColor, emissive: finalEmissive, emissiveIntensity: 0.3 + (ratio * 2.2), roughness: 0.15, metalness: 0.8, flatShading: true 
+            }); geometry = new THREE.SphereGeometry(1.2, 24, 24); 
+        } else {
+            const conf = configs[type]; geometry = conf.geo;
+            const finalColor = skin.dieColor ? new THREE.Color(skin.dieColor) : new THREE.Color(conf.color);
+            const finalEmissive = skin.dieColor ? new THREE.Color(skin.dieColor).multiplyScalar(0.6) : new THREE.Color(conf.emissive);
+            material = new THREE.MeshStandardMaterial({ 
+                color: finalColor, emissive: finalEmissive, emissiveIntensity: conf.intensity,
+                roughness: type === 'coin' ? 0.4 : 0.2, metalness: type === 'coin' ? 0.9 : 0.5, flatShading: type !== 'coin'
+            });
+        }
+        
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true; mesh.receiveShadow = true;
+        const label = document.createElement('div'); label.className = 'dice-label'; container.appendChild(label);
+        
+        const meshId = id || Date.now() + Math.random().toString(36).substring(2,7);
+
+        mesh.userData = { 
+            id: meshId, type, sides: finalSides, label, value: 0, rollMode: rollMode || 'normal',
+            yOffset: 0, isRolling: false, isSyncInit: isSyncInit, skin: skin, auraElement: null
+        };
+        
+        scene.add(mesh); diceList.push(mesh);
+        rollSingle(mesh, forcedValue, isRemote, remoteAuthor);
+    }
+
+    function explodeParticles(position, colorHex = 0xff0000, emissiveHex = 0xff0000) {
+        for (let i = 0; i < 45; i++) {
+            const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
+            const isAlt = Math.random() > 0.5;
+            const mat = new THREE.MeshStandardMaterial({ 
+                color: isAlt ? colorHex : 0xffffff, emissive: isAlt ? emissiveHex : 0xffffff, emissiveIntensity: 2 
+            });
+            const p = new THREE.Mesh(geo, mat); p.position.copy(position);
+            p.userData.velocity = new THREE.Vector3((Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.45);
+            p.userData.life = 1.0; scene.add(p); particles.push(p);
+        }
+    }
+
+    function showConfetti(dice) {
+        const audio1 = document.getElementById('audioConfetti1');
+        const audio2 = document.getElementById('audioConfetti2');
+        audio1.currentTime = 0; audio2.currentTime = 0;
+        audio1.play().catch(()=>{}); audio2.play().catch(()=>{});
+
+        const gif = document.createElement('img');
+        gif.src = 'confetti.gif?t=' + Date.now(); 
+        gif.style.cssText = 'position:absolute; width:180px; height:180px; pointer-events:none; z-index:99; transform:translate(-50%, -50%);';
+
+        const updateGifPos = () => {
+            if(!gif.parentNode) return;
+            const vector = dice.position.clone().project(camera);
+            if(vector.z < 1) {
+                gif.style.left = `${(vector.x + 1) * container.clientWidth / 2}px`;
+                gif.style.top = `${(-vector.y + 1) * container.clientHeight / 2}px`;
+            }
+            requestAnimationFrame(updateGifPos);
+        };
+        container.appendChild(gif); updateGifPos();
+        setTimeout(() => { if(gif.parentNode) gif.remove(); }, 2000); 
+    }
+
+    function showAura(dice, type, customGifData = null, offsetX = 0, offsetY = 0) {
+        const aura = document.createElement('img');
+        aura.src = customGifData || ('aura.gif?t=' + Date.now());
+        aura.className = 'crit-aura';
+        
+        if(type === 'redlock') {
+            aura.style.filter = getRedlockFireFilter(window.redlockHex);
+        }
+        
+        container.appendChild(aura);
+        dice.userData.auraElement = aura;
+        dice.userData.auraOffsetX = offsetX || 0;
+        dice.userData.auraOffsetY = offsetY || 0;
+    }
+
+    function rollSingle(dice, forcedValue = null, isRemote = false, remoteAuthor = null) {
+        if(dice.userData.isRemoving) return;
+        dice.userData.label.style.display = 'none';
+        dice.userData.label.className = 'dice-label';
+        dice.userData.isRolling = true;
+        dice.visible = true; 
+        if(dice.userData.auraElement) { dice.userData.auraElement.remove(); dice.userData.auraElement = null; }
+        
+        let trueRes, res;
+
+        if (forcedValue !== null) {
+            res = forcedValue; trueRes = res;
+        } else if (dice.userData.type === 'coin') {
+            if (dice.userData.rollMode === 'shift') res = "Ca";
+            else if (dice.userData.rollMode === 'ctrl') res = "Co";
+            else res = Math.random() > 0.5 ? "Ca" : "Co";
+            trueRes = res;
+        } else {
+            trueRes = Math.floor(Math.random() * dice.userData.sides) + 1;
+            
+            // Lógica do Crítico Máximo (Shift)
+            if (dice.userData.rollMode === 'shift') {
+                res = dice.userData.sides; 
+            } 
+            // NOVA Lógica do Quase Crítico (Ctrl)
+            else if (dice.userData.rollMode === 'ctrl') {
+                if (dice.userData.sides <= 2) {
+                    // Evita resultados zerados caso seja um D2
+                    res = 1; 
+                } else {
+                    // Matematica Perfeita: Lados - 1 ou Lados - 2 aleatoriamente
+                    res = dice.userData.sides - (Math.random() > 0.5 ? 1 : 2);
+                }
+            } 
+            // Normal
+            else {
+                res = trueRes; 
+            }
+        }
+
+        if (dice.userData.type !== 'coin') window.lastRolledValue = res;
+
+        if (!isRemote) {
+            broadcast({ action: 'spawn', type: dice.userData.type, sides: dice.userData.sides, value: res, id: dice.userData.id, rollMode: dice.userData.rollMode, skin: dice.userData.skin });
+        }
+
+        let start = Date.now();
+        const duration = (forcedValue !== null && diceList.length > 0 && !dice.userData.isRolling) ? 0 : (dice.userData.type === 'coin' ? 800 : 500); 
+        const randRotX = (Math.random() - 0.5) * 0.5; const randRotY = (Math.random() - 0.5) * 0.5;
+
+        const anim = () => {
+            const elapsed = Date.now() - start;
+            if (elapsed < duration) {
+                if (dice.userData.type === 'coin') {
+                    dice.rotation.x += 0.5; dice.rotation.y += 0.1;
+                    dice.userData.yOffset = Math.sin((elapsed / duration) * Math.PI) * 4.5; 
+                } else {
+                    dice.rotation.x += 0.3 + randRotX; dice.rotation.y += 0.3 + randRotY; dice.rotation.z += 0.1;
+                }
+                requestAnimationFrame(anim);
+            } else {
+                dice.userData.isRolling = false; dice.userData.yOffset = 0;
+                dice.rotation.set(dice.userData.type === 'coin' ? Math.PI / 2 : 0, 0, 0);
+
+                if (dice.userData.type === 'coin') {
+                    dice.userData.value = 0; dice.userData.label.innerText = res;  
+                    dice.userData.label.className = res === "Ca" ? 'dice-label text-blue' : 'dice-label text-green';
+                } else {
+                    dice.userData.value = res; dice.userData.label.innerText = res;
+                    const skin = dice.userData.skin || window.diceSkins['default'];
+
+                    if (res === dice.userData.sides) {
+                        dice.userData.label.className = 'dice-label crit-text';
+                        if(skin.numColor) dice.userData.label.style.color = skin.numColor;
+
+                        if (skin.critHideMode === 'permanent') {
+                            dice.visible = false;
+                        } else if (skin.critHideMode === 'temp') {
+                            dice.visible = false;
+                            const t = (skin.tempTime || 3) * 1000;
+                            setTimeout(() => { if(diceList.includes(dice)) dice.visible = true; }, t);
+                        }
+
+                        if(forcedValue === null || duration > 0) {
+                            if(skin.popSound) {
+                                playCritSound(150, 0.01, 'sawtooth');
+                            }
+
+                            if (skin.critType === 'digital') {
+                                explodeParticles(dice.position, 0xff0000, 0xff0000);
+                                showConfetti(dice);
+                            } else if (skin.critType === 'redlock' || skin.critType === 'redlock_custom') {
+                                playCritSound(200, 0.01, 'sawtooth');
+                                explodeParticles(dice.position, parseInt(window.redlockHex.replace('#','0x')), parseInt(window.redlockHex.replace('#','0x')));
+                                showAura(dice, 'redlock', null, skin.posX, skin.posY);
+                            } else if (skin.critType === 'custom') {
+                                explodeParticles(dice.position, skin.dieColor ? parseInt(skin.dieColor.replace('#','0x')) : 0xffaa00);
+                                if(skin.gifData) showAura(dice, 'custom', skin.gifData, skin.posX, skin.posY);
+                                if(skin.audioData) {
+                                    const audio = new Audio(skin.audioData);
+                                    audio.play().catch(e => console.log("Erro áudio custom:", e));
+                                }
+                            } else {
+                                explodeParticles(dice.position, 0xffffff, 0x888888);
+                            }
+                        }
+                    } else {
+                        if(skin.normColor) dice.userData.label.style.color = skin.normColor;
+                        dice.userData.label.style.textShadow = `0 0 10px white, 0 0 20px #${dice.material.emissive.getHexString()}`;
+                    }
+                }
+                
+                dice.userData.label.style.display = 'block'; window.updateTotal(isRemote);
+
+                if (!isShareMode && !dice.userData.isSyncInit) {
+                    const author = isRemote ? remoteAuthor : window.playerName;
+                    if (dice.userData.type === 'coin') {
+                        window.logToDevlog(`Rolou <b>MOEDA</b>: <span style="color:${res === 'Ca'?'#00e5ff':'#00ff66'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
+                    } else {
+                        const dName = dice.userData.type.toUpperCase() === 'CUSTOM' ? `D${dice.userData.sides}` : dice.userData.type.toUpperCase();
+                        window.logToDevlog(`Rolou <b>${dName}</b>: <span style="color:${res === dice.userData.sides?'var(--danger)':'var(--success)'}; font-weight:bold; font-size:16px">${res}</span>`, false, null, author);
+                    }
+                }
+                dice.userData.isSyncInit = false; 
+            }
+        };
+        anim();
+    }
+
+    window.rollAll = (isRemote = false, remoteAuthor = null) => {
+        if(isShareMode) return;
+        if(!isRemote) {
+            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Rerolando mesa inteira...</span>`, false, null, window.playerName);
+            broadcast({ action: 'reroll_all' });
+        }
+        diceList.forEach(d => {
+            let trueRes = (d.userData.type === 'coin') ? (Math.random() > 0.5 ? "Ca" : "Co") : (Math.floor(Math.random() * d.userData.sides) + 1);
+            if(!isRemote) broadcast({ action: 'reroll_single', id: d.userData.id, value: trueRes });
+            rollSingle(d, trueRes, true); 
+        });
+    }
+
+    window.updateValuesFromInputs = () => {
+        const modInput = document.getElementById('modifier-input');
+        const pctInput = document.getElementById('percent-input');
+        if (modInput) window.currentModifier = parseInt(modInput.value) || 0;
+        if (pctInput) window.currentPercent = parseFloat(pctInput.value) || 0;
+        window.updateTotal(false);
+    }
+
+    window.updateTotal = (isRemote = false) => {
+        const diceSum = diceList.reduce((acc, d) => acc + (d.userData.isRemoving ? 0 : (d.userData.value || 0)), 0);
+        const rawEl = document.getElementById('raw-total');
+        if(rawEl) { rawEl.innerText = diceSum; if(diceSum > 0) rawEl.classList.add('active'); else rawEl.classList.remove('active'); }
+
+        const hudModEl = document.getElementById('hud-modifier');
+        const hudPctEl = document.getElementById('hud-percent');
+        const hudFinalEl = document.getElementById('hud-final-total');
+        const finEl = document.getElementById('final-total');
+
+        let total = diceSum + window.currentModifier;
+        if(window.currentPercent !== 0) total += total * (window.currentPercent / 100);
+        const finalRounded = Math.round(total);
+
+        if(finEl) finEl.innerText = finalRounded;
+        if(hudFinalEl) { hudFinalEl.innerText = finalRounded; if(finalRounded > 0) hudFinalEl.classList.add('active'); else hudFinalEl.classList.remove('active'); }
+        if(hudModEl) { hudModEl.innerText = window.currentModifier >= 0 ? `+${window.currentModifier}` : window.currentModifier; if(window.currentModifier !== 0) hudModEl.classList.add('active'); else hudModEl.classList.remove('active'); }
+        if(hudPctEl) { hudPctEl.innerText = window.currentPercent >= 0 ? `+${window.currentPercent}%` : `${window.currentPercent}%`; if(window.currentPercent !== 0) hudPctEl.classList.add('active-pct'); else hudPctEl.classList.remove('active-pct'); }
+        
+        if(!isShareMode && !isRemote) broadcast({ action: 'hud', mod: window.currentModifier, pct: window.currentPercent });
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i]; p.position.add(p.userData.velocity); p.userData.life -= 0.02; 
+            const scale = p.userData.life * 0.15; p.scale.set(scale, scale, scale);
+            if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+        }
+
+        const cols = isShareMode ? 2 : 4; 
+        const spacingX = isShareMode ? 2.0 : 2.5; const spacingY = isShareMode ? 2.1 : 2.5;
+
+        diceList.forEach((dice, i) => {
+            if(!dice.userData.isRemoving) {
+                const time = Date.now() * 0.001;
+                const rowCount = Math.ceil(diceList.length / cols);
+                const col = i % cols; const row = Math.floor(i / cols);
+
+                const tx = (col - (Math.min(diceList.length, cols) - 1) / 2) * spacingX;
+                const ty = (((rowCount - 1) / 2) - row) * spacingY + Math.sin(time + i) * 0.1;
+                
+                dice.position.x += (tx - dice.position.x) * 0.1;
+                if (dice.userData.isRolling && dice.userData.type === 'coin') dice.position.y = ty + dice.userData.yOffset;
+                else dice.position.y += (ty - dice.position.y) * 0.1;
+                
+                if (!dice.userData.isRolling) {
+                    if (dice.userData.type === 'coin') {
+                        dice.rotation.x = Math.PI / 2 + Math.sin(time * 2 + i) * 0.1;
+                        dice.rotation.y = Math.cos(time * 2 + i) * 0.1; dice.rotation.z += 0.01;
+                    } else { dice.rotation.y += 0.005; dice.rotation.z += 0.002; }
+                }
+            }
+            
+            const vector = dice.position.clone().project(camera);
+            if (vector.z < 1) {
+                const centerX = (vector.x + 1) * container.clientWidth / 2;
+                const centerY = (-vector.y + 1) * container.clientHeight / 2;
+                
+                dice.userData.label.style.left = `${centerX}px`;
+                dice.userData.label.style.top = `${centerY}px`;
+                
+                if(dice.userData.auraElement) { 
+                    const offX = dice.userData.auraOffsetX || 0;
+                    const offY = dice.userData.auraOffsetY || 0;
+                    dice.userData.auraElement.style.left = `${centerX + offX}px`; 
+                    dice.userData.auraElement.style.top = `${centerY + offY}px`; 
+                }
+            }
+        });
+        renderer.render(scene, camera);
+    }
+
+    function handleIncomingData(data, senderConn) {
+        const remoteAuthor = data.playerName || "Desconhecido";
+        const remoteColor = window.safeColor(data.playerColor);
+        if (data.playerName && remoteColor) window.playerColors[data.playerName.toLowerCase()] = remoteColor;
+
+        if (isHost && window.bannedPlayers.includes(remoteAuthor.toLowerCase())) {
+            if (senderConn) senderConn.send({ action: 'ban_player', target: remoteAuthor });
+            return; 
+        }
+
+        if (data.action === 'ban_player') {
+            if (window.playerName && window.playerName.toLowerCase() === data.target.toLowerCase()) {
+                if(peer) peer.destroy(); 
+                document.body.innerHTML = `
+                    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#000; color:#ff0000; font-family:'VT323', monospace;">
+                        <h1 style="font-size: 60px; text-shadow: 0 0 20px #ff0000;">ACESSO NEGADO</h1>
+                        <p style="font-size: 30px;">Você foi banido permanentemente desta sessão pelo Mestre.</p>
+                    </div>
+                `;
+                return;
+            }
+        } else if (data.action === 'sync_init') {
+            if (!isHost) {
+                [...diceList].forEach(d => removeDice(d, true));
+                window.currentModifier = parseInt(data.mod) || 0; window.currentPercent = parseFloat(data.pct) || 0;
+                if(!isShareMode) {
+                    const modInput = document.getElementById('modifier-input'); const pctInput = document.getElementById('percent-input');
+                    if(modInput) modInput.value = window.currentModifier; if(pctInput) pctInput.value = window.currentPercent;
+                }
+                const devlogEl = document.getElementById('devlog'); if (devlogEl && data.devlog) devlogEl.innerHTML = data.devlog;
+                
+                if (data.chatHistory) {
+                    window.terminalChatMessages = data.chatHistory;
+                    localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
+                }
+                if (data.rules) {
+                    localStorage.setItem('custom_esc_rules', data.rules);
+                    updateTerminalDisplay();
+                }
+
+                window.logToDevlog(`🎮 Conectado e sincronizado à sala: ${roomParam}`);
+                data.dice.forEach(d => { spawnDice(d.type, d.sides, d.rollMode || 'normal', d.value, d.id, true, remoteAuthor, true, d.skin); });
+                window.updateTotal(true);
+            }
+        } else if(data.action === 'spawn') {
+            spawnDice(data.type, data.sides, data.rollMode || 'normal', data.value, data.id, true, remoteAuthor, false, data.skin);
+        } else if(data.action === 'remove') {
+            const target = diceList.find(d => d.userData.id === data.id); if(target) removeDice(target, true);
+        } else if(data.action === 'clear') {
+            window.logToDevlog(`<span style="color: #7f8c8d; font-weight: bold;">Mesa limpa remotamente.</span>`, false, null, remoteAuthor);
+            saveAndClearDice(true, remoteAuthor);
+        } else if(data.action === 'reroll_single') {
+            const target = diceList.find(d => d.userData.id === data.id); if(target) rollSingle(target, data.value, true, remoteAuthor);
+        } else if(data.action === 'reroll_all') {
+            window.logToDevlog(`<span style="color: var(--magic); font-weight: bold;">Mesa inteira rerolada remotamente.</span>`, false, null, remoteAuthor);
+        } else if(data.action === 'dramatizacao') {
+            window.logToDevlog(`<span style="color: #ff0000; font-weight:900; text-shadow: 0 0 10px #ff0000; font-size: 16px;">🎬 VÍDEO CINEMÁTICO ATIVADO!</span>`, true, null, remoteAuthor);
+            const overlay = document.getElementById('video-overlay'); const video = document.getElementById('dramatizacao-video');
+            overlay.style.display = 'flex'; video.currentTime = 0; video.play().catch(e => console.log(e));
+            video.onended = () => { overlay.style.display = 'none'; };
+        } else if(data.action === 'hud') {
+            window.currentModifier = data.mod; window.currentPercent = data.pct; 
+            if(!isShareMode) {
+                const modInput = document.getElementById('modifier-input'); const pctInput = document.getElementById('percent-input');
+                if(modInput) modInput.value = window.currentModifier; if(pctInput) pctInput.value = window.currentPercent;
+            }
+            window.updateTotal(true);
+        } else if (data.action === 'terminal_chat_clear') {
+            window.terminalChatMessages = [];
+            localStorage.setItem('terminal_chat_history', JSON.stringify([]));
+            renderChatMessages();
+        } else if (data.action === 'terminal_chat') {
+            window.terminalChatMessages.push(data.message);
+            if(window.terminalChatMessages.length > 60) window.terminalChatMessages.shift();
+            localStorage.setItem('terminal_chat_history', JSON.stringify(window.terminalChatMessages));
+            renderChatMessages();
+            if (window.markChatUnread) window.markChatUnread(data.message);
+            
+            if (isHost && senderConn) {
+                activeConnections.forEach(c => { if (c !== senderConn && c.open) c.send(data); });
+            }
+        } else if (data.action === 'sync_rules') {
+            localStorage.setItem('custom_esc_rules', data.rules);
+            updateTerminalDisplay();
+        }
+
+        if (isHost && senderConn && !['terminal_chat', 'sync_rules'].includes(data.action)) {
+            activeConnections.forEach(c => { if (c !== senderConn && c.open) c.send(data); });
+        }
+    }
+    
+    init3D();
+</script>
+
+<!-- Integração com o Menu (Mesa) -->
+<style>
+  #mesa-back { position: fixed; top: 12px; left: 12px; z-index: 99999; font: 600 11px 'Segoe UI', sans-serif; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); background: #050505; border: 1px solid var(--accent); padding: 8px 12px; border-radius: 4px; text-decoration: none; transition: .2s; }
+  #mesa-back:hover { background: var(--accent); color: #000; box-shadow: 0 0 25px var(--accent); }
+  body.share-mode #mesa-back, body.share-mode #playerLogWindow { display: none !important; }
+
+  /* Abas do terminal ESC */
+  .cmd-tabs { display: flex; align-items: flex-end; gap: 2px; padding: 4px 4px 0; background: #c0c0c0; border-bottom: 2px solid #808080; user-select: none; }
+  .cmd-tab { font: bold 11px 'Tahoma', sans-serif; color: #000; padding: 4px 12px; background: #b0b0b0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #404040; cursor: pointer; position: relative; top: 2px; display: flex; align-items: center; gap: 6px; }
+  .cmd-tab:hover { background: #d4d4d4; }
+  .cmd-tab.active { background: #c0c0c0; padding-bottom: 6px; top: 2px; z-index: 1; }
+  .cmd-tab-spacer { flex: 1; }
+  .cmd-tab-log { font-size: 15px; line-height: 1; padding: 3px 11px; margin-bottom: 4px; top: 0; border-bottom: 2px solid #404040; }
+  .cmd-tab-log.open { background: #000080; color: #fff; }
+  .chat-unread { display: none; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff0000; color: #fff; font-size: 10px; line-height: 16px; text-align: center; }
+  .chat-unread.show { display: inline-block; }
+  .cmd-chat-pane { display: flex; flex-direction: column; }
+  .cmd-chat-pane .terminal-chat-zone { flex: 1; margin: 0; min-height: 0; }
+  .cmd-chat-pane .terminal-chat-log { max-height: none; flex: 1; min-height: 0; }
+
+  /* Janela do Log do jogador (sem sair da sala) */
+  #playerLogWindow { position: fixed; top: 70px; right: 24px; width: 460px; height: 620px; min-width: 300px; min-height: 280px; max-width: 95vw; max-height: 92vh; display: none; flex-direction: column; z-index: 10002; background: #c0c0c0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; box-shadow: 4px 4px 20px rgba(0,0,0,.6); resize: both; overflow: hidden; font-family: 'Tahoma', sans-serif; }
+  #playerLogWindow .title-bar-cmd { cursor: move; }
+  #playerLogWindow iframe { flex: 1; width: 100%; border: 0; background: #000; margin: 2px; width: calc(100% - 4px); }
+  #playerLogWindow.dragging iframe { pointer-events: none; }
+</style>
+<a id="mesa-back" href="../index.html">&larr; Menu</a>
+
+<div id="playerLogWindow">
+  <div class="title-bar-cmd" id="playerLogBar">
+    <div style="display:flex; align-items:center; gap:5px;">
+      <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png" width="14" alt="Log">
+      <span>Log do jogador.exe</span>
+    </div>
+    <div class="win-btn-cmd" style="width:16px;" onclick="togglePlayerLog()">X</div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var valid = function (c) { return /^#[0-9a-fA-F]{6}$/.test(c || ''); };
+    var applyColor = function (c) {
+      if (!valid(c)) return;
+      document.documentElement.style.setProperty('--accent', c);
+      window.playerColor = c;
+    };
+    applyColor(localStorage.getItem('mesa_color'));
+    if (new URLSearchParams(location.search).get('view') === 'share') {
+      var b = document.getElementById('mesa-back'); if (b) b.remove();
+    }
+
+    // --- Abas do ESC ---
+    window.currentCmdTab = 'rules';
+    window.switchCmdTab = function (tab) {
+      window.currentCmdTab = tab;
+      var rules = document.getElementById('cmdOutputRules');
+      var chat = document.getElementById('cmdChatPane');
+      var title = document.getElementById('cmdWindowTitle');
+      if (tab === 'rules' && rules.getAttribute('contenteditable') === 'true') { /* mantém edição */ }
+      rules.style.display = tab === 'rules' ? 'block' : 'none';
+      chat.style.display = tab === 'chat' ? 'flex' : 'none';
+      title.textContent = 'C:\\WINDOWS\\system32\\cmd.exe - ' + (tab === 'chat' ? 'CHAT' : 'REGRAS E AÇÕES');
+      document.querySelectorAll('.cmd-tab[data-tab]').forEach(function (el) {
+        el.classList.toggle('active', el.getAttribute('data-tab') === tab);
+      });
+      if (tab === 'chat') {
+        var badge = document.getElementById('chatUnread');
+        badge.textContent = ''; badge.classList.remove('show');
+        var log = document.getElementById('terminalChatLog'); if (log) log.scrollTop = log.scrollHeight;
+        setTimeout(function () { var i = document.getElementById('terminalChatInput'); if (i) i.focus(); }, 30);
+      }
+    };
+    window.markChatUnread = function (msg) {
+      var win = document.getElementById('cmdRulesWindow');
+      var visible = win.style.display === 'flex' && window.currentCmdTab === 'chat';
+      if (visible) return;
+      if (msg && msg.secret && msg.target !== window.playerName && msg.sender !== window.playerName && !window.showSecretMessages) return;
+      var badge = document.getElementById('chatUnread');
+      badge.textContent = String((parseInt(badge.textContent) || 0) + 1);
+      badge.classList.add('show');
+    };
+
+    // --- Log do jogador em janela ---
+    window.togglePlayerLog = function () {
+      var w = document.getElementById('playerLogWindow');
+      var btn = document.getElementById('btnToggleLog');
+      var open = w.style.display !== 'flex';
+      if (open && !w.querySelector('iframe')) {
+        var f = document.createElement('iframe');
+        f.src = '../index.html?embed=log';
+        f.title = 'Log do jogador';
+        w.appendChild(f);
+      }
+      w.style.display = open ? 'flex' : 'none';
+      if (btn) { btn.textContent = open ? '−' : '+'; btn.classList.toggle('open', open); }
+    };
+
+    // Arrastar a janela pelo título
+    var bar = document.getElementById('playerLogBar');
+    var win = document.getElementById('playerLogWindow');
+    bar.addEventListener('mousedown', function (e) {
+      if (e.target.closest('.win-btn-cmd')) return;
+      var r = win.getBoundingClientRect();
+      var dx = e.clientX - r.left, dy = e.clientY - r.top;
+      win.classList.add('dragging');
+      var move = function (ev) {
+        win.style.left = Math.max(0, Math.min(window.innerWidth - 80, ev.clientX - dx)) + 'px';
+        win.style.top = Math.max(0, Math.min(window.innerHeight - 30, ev.clientY - dy)) + 'px';
+        win.style.right = 'auto';
+      };
+      var up = function () { win.classList.remove('dragging'); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    });
+
+    // Se a conta/cor mudar dentro do Log, a sala acompanha
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'mesa_color') applyColor(e.newValue);
+      if (e.key === 'circus_player_name' && e.newValue) {
+        var input = document.getElementById('player-name-input');
+        if (input) { input.value = e.newValue; if (window.updatePlayerName) window.updatePlayerName(); }
+      }
+    });
+  })();
+</script>
+</body>
+</html>
